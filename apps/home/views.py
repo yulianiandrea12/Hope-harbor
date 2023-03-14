@@ -86,11 +86,15 @@ def getSensors(request):
     if plataforma == '0' or dispositivo == '0':
         return JsonResponse({'datos': datos})
     elif plataforma == '2':
-        result = conn.execute(text('SELECT tds.name_sensor, tds.name_sensor ' +
+        result = conn.execute(text('SELECT tds.name_sensor,' +
+                                    ' case when t.value is not null then  t.value  ' +
+                                    ' else tds.name_sensor end as valuee' +
                                     ' FROM TnnData td ' +
                                     ' INNER JOIN TnnDataSensors tds ON tds.id_tnn_data = td.id_tnn_data ' +
+                                    ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' ' + 
-                                    ' GROUP BY tds.name_sensor'))
+                                    ' GROUP BY t.value, tds.name_sensor' +
+                                    ' ORDER by valuee '))
     elif plataforma == '3':
         result = conn.execute(text('SELECT wdh.name,' +
                                     ' case when t.value is not null then  t.value  ' +
@@ -120,30 +124,38 @@ def processForm(request):
         return JsonResponse({'vertical': []})
 
     day = datetime.strptime(day, '%Y-%m-%d')
-    day = day.strftime("%Y-%d-%m")
+    day = day.strftime("%Y-%m-%d")
+    medida = ''
 
     if plataforma == '2':
-        result = conn.execute(text('SELECT DATEPART(hour,received_at) AS hora, tds.name_sensor, AVG(CONVERT(float,tds.info)) value' +
+        result = conn.execute(text('SELECT DATEPART(hour,received_at) AS hora,' +
+                                    ' case when t.value is not null then  t.value  ' +
+                                    ' else tds.name_sensor end as valuee,' +
+                                    ' AVG(CONVERT(float,tds.info)) value, ' +
+                                    ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                     ' FROM TnnData td ' +
                                     ' INNER JOIN TnnDataSensors tds ON tds.id_tnn_data = td.id_tnn_data ' +
+                                    ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + day + ' 00:00:00\' AND received_at <= \'' + 
                                     day + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY DATEPART(hour,received_at), tds.name_sensor'))
+                                    ' GROUP BY DATEPART(hour,received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
     if plataforma == '3':
         iniTime = int(datetime.strptime(day, '%Y-%d-%m').strftime("%s"))
         endTIme = int(datetime.strptime(day + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
         result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else wdh.name end as name_sensor, ' +
-                                    ' AVG(TRY_CONVERT(float,wdh.value)) value ' +
+                                    ' AVG(TRY_CONVERT(float,wdh.value)) value, ' +
+                                    ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                     ' FROM wl_sensors ws ' +
                                     'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
                                     'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
                                     'LEFT JOIN translates t on t.name = wdh.name ' +
                                     ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + sensor + '\''  + 
                                     'AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                    ' GROUP by DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))), t.value, wdh.name'))
+                                    ' GROUP by DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
     for row in result:
         verticalHoras.append(str(row[0]) + ':00')
         horizontalDatos.append(row[2])
-    return JsonResponse({'vertical': verticalHoras, 'horizontal': horizontalDatos})
+        medida = row[3]
+    return JsonResponse({'vertical': verticalHoras, 'horizontal': horizontalDatos,'medida': medida})

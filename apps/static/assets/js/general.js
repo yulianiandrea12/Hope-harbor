@@ -17,7 +17,7 @@ general = {
             }
         });
     },
-    initDashboardPageCharts: function(canvaId, labels, data) {
+    initDashboardPageCharts: function(canvaId, labels, data, labelLegeng = 'value') {
 
         gradientChartOptionsConfigurationWithTooltipPurple = {
             maintainAspectRatio: false,
@@ -82,7 +82,7 @@ general = {
             data: {
                 labels: chart_labels,
                 datasets: [{
-                    label: "Valor del sensor",
+                    label: labelLegeng,
                     fill: true,
                     backgroundColor: gradientStroke,
                     borderColor: '#d346b1',
