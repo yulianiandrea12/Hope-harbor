@@ -61,11 +61,11 @@ def getDispositivos(request):
     if platafroma == '0':
         return JsonResponse({'datos': datos})
     elif platafroma == '2':
-        result = conn.execute(text('SELECT td.dev_eui, td.dev_eui ' +
+        result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
                                     ' FROM TnnData td ' +
-                                    ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
-                                                    ' WHERE ex.estacion = td.dev_eui AND ex.origen = \'1\' AND ex.cliente_id = ' + request.session['cliente_id'] + ') ' +
-                                    ' GROUP BY td.dev_eui'))
+                                    ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
+                                    ' WHERE ex.origen = \'1\' AND ex.cliente_id = ' + request.session['cliente_id'] + ' ' +
+                                    ' GROUP BY td.dev_eui, ex.nombre'))
     elif platafroma == '3':
         result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
                                     ' FROM wl_stations ws '+
