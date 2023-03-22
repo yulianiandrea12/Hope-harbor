@@ -6,8 +6,9 @@ Copyright (c) 2019 - present AppSeed.us
 # Create your views here.
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
+from django.http import JsonResponse
 from .forms import LoginForm, SignUpForm
-from werkzeug.security import check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from apps.authentication.db import conn
 from sqlalchemy import func, text
 
@@ -31,6 +32,7 @@ def login_view(request):
                 if validate_pass == True:
                     login(request, user)
                     request.session['cliente_id']  = cliente
+                    request.session['username']  = username
                     return redirect("/")
             msg = 'Invalid credentials'
         else:
@@ -62,3 +64,9 @@ def register_user(request):
         form = SignUpForm()
 
     return render(request, "accounts/register.html", {"form": form, "msg": msg, "success": success})
+
+def cambiar_contrasena(request):
+    password = generate_password_hash(request.POST.get('pass'), 'pbkdf2:sha256:30', 30)
+    result = conn.execute(text('UPDATE usuarios  set password=\'' + password + '\'' +
+                                    ' WHERE cliente_id = ' + request.session['cliente_id'] + ' AND usuario like \'' + request.session['username'] + '\' '))
+    return JsonResponse({'status': 1})

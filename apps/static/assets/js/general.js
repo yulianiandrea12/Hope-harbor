@@ -1,10 +1,10 @@
 general = {
 
-    showNotificationOwn: function(from, align, type, message, title = 'Visualiti SAS') {
+    showNotificationOwn: function(from, align, type, message, title = 'Visualiti SAS', icon = "tim-icons icon-bell-55") {
         color = Math.floor((Math.random() * 4) + 1);
 
         $.notify({
-            icon: "tim-icons icon-bell-55",
+            icon: icon,
             message: message,
             title: title
 
@@ -17,7 +17,7 @@ general = {
             }
         });
     },
-    initDashboardPageCharts: function(canvaId, labels, data, labelLegeng = 'value') {
+    initDashboardPageCharts: function(canvaId, labels, data, labelLegeng = 'value', titleY = '', titleX = '') {
 
         gradientChartOptionsConfigurationWithTooltipPurple = {
             maintainAspectRatio: false,
@@ -38,6 +38,10 @@ general = {
             responsive: true,
             scales: {
                 yAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: titleY
+                    },
                     barPercentage: 1.6,
                     gridLines: {
                         drawBorder: false,
@@ -48,6 +52,10 @@ general = {
                 }],
 
                 xAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: titleX
+                    },
                     barPercentage: 1.6,
                     gridLines: {
                         drawBorder: false,

@@ -61,8 +61,13 @@
             </div>
         </div>
 
-        <div class="row">
-            <input type="button" value="enviar" class="form-control btn btn-success" id="form_btn">
+        <div class="row justify-content-md-center">
+            <div class="col-lg-4">
+                <input type="button" value="Graficar" class="form-control btn btn-success" id="form_btn">
+            </div>
+            <div class="col-lg-4">
+                <input type="button" value="Excel" class="form-control btn btn-success" id="excel_btn">
+            </div>
         </div>
 
     </form>
@@ -74,7 +79,6 @@
                     <div class="card-header ">
                         <div class="row">
                             <div class="col-sm-6 text-left">
-                                <h5 class="card-category">Total Shipments</h5>
                                 <h2 id="title-sensor" class="card-title">Performance</h2>
                             </div>
                         </div>
@@ -170,15 +174,41 @@
                 },
                 success: function(data) {
                     if (data.vertical.length == 0) {
-                        general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos', 'ERROR')
+                        general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos o Sin Informacion', 'ERROR')
                         $(".graficas").hide()
                     } else {
                         $(".graficas").show()
-                        $('#title-sensor').text($('#day').val() + ' - ' + $('#id_sensor option:selected').text());
-                        general.initDashboardPageCharts('chartBig1', data.vertical, data.horizontal, "Valor del sensor " + data.medida);
+                        $('#title-sensor').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fecha ' + $('#day').val());
+                        general.initDashboardPageCharts('chartBig1', data.vertical, data.horizontal, "Valor del sensor " + data.medida, data.medida, 'Hora');
                     }
                 }
             });
+        });
+
+        $("#excel_btn").click(function() {
+            general.showNotificationOwn('top', 'right', 'success', 'Excel', 'Generando', 'tim-icons icon-cloud-download-93')
+            var dispositivoId = $('#id_plataforma').val();
+            var platafromaId = $('#id_dispositivo').val();
+            var sensorId = $('#id_sensor').val();
+            var day = $('#day').val();
+            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + platafromaId + '&id_sensor=' + sensorId + '&day=' + day;
+            xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                var a, today;
+                if (xhttp.readyState === 4 && xhttp.status === 200) {
+                    a = document.createElement('a');
+                    a.href = window.URL.createObjectURL(xhttp.response);
+                    today = new Date();
+                    a.download = "data_" + today.toDateString().split(" ").join("_") + ".xls";
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    return a.click();
+                }
+            };
+            xhttp.open("POST", "/download-excel", true);
+            xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhttp.responseType = 'blob';
+            xhttp.send(data);
         });
 
     });

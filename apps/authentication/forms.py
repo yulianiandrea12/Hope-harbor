@@ -29,7 +29,7 @@ class LoginForm(forms.ModelForm):
     cliente = forms.ChoiceField(
                     choices = getClientes(),
                     required = True, label='Cliente',
-                    widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'cliente', 'data-style': 'btn-success'}),
+                    widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'cliente', 'data-style': 'btn-success', 'data-live-search': 'true'}),
                     )
     class Meta:
         model = Cliente

@@ -63,10 +63,13 @@
                             <ul class="dropdown-menu dropdown-navbar">
                                 <!-- <li class="nav-link">
                                     <a href="/user.html" class="nav-item dropdown-item">Profile</a>
-                                </li>
-                                <li class="dropdown-divider"></li> -->
+                                </li>-->
                                 <li class="nav-link">
-                                    <a href="{% url 'login' %}" class="nav-item dropdown-item">Logout</a>
+                                    <a href="javascript:cambiarContrasenaModal();" class="nav-item dropdown-item">Cambiar contraseña</a>
+                                </li>
+                                <li class="dropdown-divider"></li>
+                                <li class="nav-link">
+                                    <a href="{% url 'login' %}" class="nav-item dropdown-item">Cerrar sesion</a>
                                 </li>
                             </ul>
                         </li>
@@ -87,4 +90,76 @@
                 </div>
             </div>
         </div>
-        <!-- End Navbar -->
+        <!-- Modal -->
+        <div class="modal fade" id="contrasenaModel" tabindex="-1" role="dialog" aria-labelledby="contrasenaModelTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalCenterTitle">Cambio Contraseña</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cancelar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <div class="form-group">
+                                        <label>Nueva contraseña:</label>
+                                        <input type="password" class="form-control" data-style="btn-success" id="passwordNueva" name="passwordNueva">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-4">
+                                    <div class="form-group">
+                                        <label>Confirmar contraseña</label>
+                                        <input type="password" class="form-control" data-style="btn-success" id="passwordNueva1" name="passwordNueva1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">Cancelar</button>
+                        <button type="button" onclick="cambiarContrasena();" class="btn btn-success">Modificar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% block javascripts %}
+        <script>
+            function cambiarContrasenaModal() {
+                $("#contrasenaModel").modal('show');
+                $('#passwordNueva').val("");
+                $('#passwordNueva1').val("");
+            }
+
+            function cambiarContrasena() {
+                var pass = $('#passwordNueva').val();
+                var pass1 = $('#passwordNueva1').val();
+                if (pass === pass1) {
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'contrasena' %}",
+                        data: {
+                            'csrfmiddlewaretoken': '{{ csrf_token }}',
+                            'pass': pass1
+                        },
+                        success: function(data) {
+                            if (data.status == 1) {
+                                general.showNotificationOwn('top', 'right', 'success', 'Contraseña modificada', 'Listo', 'tim-icons icon-lock-circle');
+                                $('#passwordNueva').val("");
+                                $('#passwordNueva1').val("");
+                                $("#contrasenaModel").modal('hide');
+                            } else {
+                                general.showNotificationOwn('top', 'right', 'warning', 'No se puedo cambiar la contraseña', 'ERROR', 'tim-icons icon-lock-circle');
+                            }
+                        }
+                    });
+                } else {
+                    general.showNotificationOwn('top', 'right', 'warning', 'Contraseñas no conciden', 'ERROR', 'tim-icons icon-lock-circle');
+                }
+            }
+        </script>
+        {% endblock javascripts %}
