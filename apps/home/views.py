@@ -17,11 +17,6 @@ import json
 
 from .forms import AddressForm
 import xlwt
-import pandas as pd
-try:
-    from io import BytesIO as IO # for modern python
-except ImportError:
-    from StringIO import StringIO as IO # for legacy python
 
 @login_required(login_url="/login/")
 def index(request):
