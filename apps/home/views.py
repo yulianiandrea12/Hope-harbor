@@ -28,7 +28,6 @@ def index(request):
     else:
         return render(request, "accounts/login.html", {"form": None, "msg": None})
 
-
 @login_required(login_url="/login/")
 def pages(request):
     context = {}
@@ -76,7 +75,6 @@ def getDispositivos(request):
         datos.append((row[0], row[1]))
 
     return JsonResponse({'datos': datos})
-
 
 @login_required(login_url="/login/")
 def getSensors(request):

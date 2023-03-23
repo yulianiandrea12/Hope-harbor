@@ -3,7 +3,19 @@
 {% block title %} Dashboard {% endblock %}
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+    .input-group-addon {
+        color: #00f2c3;
+        border-color: #00f2c3;
+        border: none
+    }
+
+    .input-group-addon:focus {
+        outline: 0 !important
+    }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -55,7 +67,11 @@
                 <div class="mb-4">
                     <div class="form-group">
                         <label>Seleccione fecha</label>
-                        <input type="date" class="form-control" data-style="btn-success" id="day" name="day">
+                        <div class="input-group date datepicker" data-date-format="yyyy-mm-dd">
+                            <span class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></span>
+                            <input type="text" class="form-control" data-style="btn-success" id="day" name="day" placeholder="yyyy-mm-dd">
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -66,7 +82,7 @@
                 <input type="button" value="Graficar" class="form-control btn btn-success" id="form_btn">
             </div>
             <div class="col-lg-4">
-                <input type="button" value="Excel" class="form-control btn btn-success" id="excel_btn">
+                <input type="button" value="Descargar Excel" class="form-control btn btn-success" id="excel_btn">
             </div>
         </div>
 
@@ -107,7 +123,13 @@
     $(document).ready(function() {
         // Javascript method's body can be found in assets/js/demos.js
         $(".graficas").hide()
-
+        $(".datepicker").datepicker({
+            todayHighlight: !0,
+            language: 'es',
+            autoclose: !0,
+            endDate: '+2',
+            orientation: "bottom left"
+        });
 
 
         $("#id_plataforma").change(function() {

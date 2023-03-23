@@ -151,11 +151,11 @@ sup {
   top: -.5em; }
 
 a {
-  color: #e14eca;
+  color: #00f2c3;
   text-decoration: none;
   background-color: transparent; }
   a:hover {
-    color: #c221a9;
+    color: #0a9e81;
     text-decoration: none; }
 
 a:not([href]):not([tabindex]) {
@@ -10697,12 +10697,12 @@ textarea {
 h1, h2, h3, h4, h5, h6 {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.8); }
-
+  
 a {
-  color: #ba54f5;
+  color: #00f2c3;
   font-weight: 300; }
   a:hover, a:focus {
-    color: #e14eca; }
+    color: #0a9e81; }
 
 h1, .h1 {
   line-height: 1.05;
