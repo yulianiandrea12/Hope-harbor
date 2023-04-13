@@ -62,7 +62,7 @@ def getDispositivos(request):
         return JsonResponse({'datos': datos})
     elif platafroma == '2':
         result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
-                                    ' FROM TnnData td ' +
+                                    ' FROM TtnData td ' +
                                     ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
                                     ' WHERE ex.origen = \'1\' AND ex.cliente_id = ' + request.session['cliente_id'] + ' ' +
                                     ' GROUP BY td.dev_eui, ex.nombre'))
@@ -88,8 +88,8 @@ def getSensors(request):
         result = conn.execute(text('SELECT tds.name_sensor,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee' +
-                                    ' FROM TnnData td ' +
-                                    ' INNER JOIN TnnDataSensors tds ON tds.id_tnn_data = td.id_tnn_data ' +
+                                    ' FROM TtnData td ' +
+                                    ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' ' + 
                                     ' GROUP BY t.value, tds.name_sensor' +
@@ -127,17 +127,17 @@ def processForm(request):
     medida = ''
 
     if plataforma == '2':
-        result = conn.execute(text('SELECT DATEPART(hour,received_at) AS hora,' +
+        result = conn.execute(text('SELECT HOUR(received_at) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee,' +
-                                    ' AVG(CONVERT(float,tds.info)) value, ' +
+                                    ' CAST(tds.info AS DECIMAL(10,2)) value, ' +
                                     ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                    ' FROM TnnData td ' +
-                                    ' INNER JOIN TnnDataSensors tds ON tds.id_tnn_data = td.id_tnn_data ' +
+                                    ' FROM TtnData td ' +
+                                    ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + day + ' 00:00:00\' AND received_at <= \'' + 
                                     day + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY DATEPART(hour,received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
+                                    ' GROUP BY HOUR(received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
     if plataforma == '3':
         iniTime = int(datetime.strptime(day, '%Y-%d-%m').strftime("%s"))
         endTIme = int(datetime.strptime(day + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
@@ -176,17 +176,17 @@ def downloadExcel(request):
     medida = ''
     
     if plataforma == '2':
-        result = conn.execute(text('SELECT DATEPART(hour,received_at) AS hora,' +
+        result = conn.execute(text('SELECT HOUR(received_at) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee,' +
-                                    ' AVG(CONVERT(float,tds.info)) value, ' +
+                                    ' CAST(tds.info AS DECIMAL(10,2)) value, ' +
                                     ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                    ' FROM TnnData td ' +
-                                    ' INNER JOIN TnnDataSensors tds ON tds.id_tnn_data = td.id_tnn_data ' +
+                                    ' FROM TtnData td ' +
+                                    ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + day + ' 00:00:00\' AND received_at <= \'' + 
                                     day + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY DATEPART(hour,received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
+                                    ' GROUP BY HOUR(received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
     if plataforma == '3':
         iniTime = int(datetime.strptime(day, '%Y-%d-%m').strftime("%s"))
         endTIme = int(datetime.strptime(day + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
