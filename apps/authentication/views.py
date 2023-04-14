@@ -28,7 +28,7 @@ def login_view(request):
                                     ' WHERE c.nombre = upper(\'' + cliente + '\') '))
             
             for rowCli in resultCliente:
-                clienteId = int(rowCli[0])
+                clienteId = str(rowCli[0])
                 result = conn.execute(text('SELECT password FROM usuarios u  ' +
                                         ' WHERE u.cliente_id = ' + clienteId + ' AND u.usuario like \'' + username + '\' '))
                 
