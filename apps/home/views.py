@@ -142,7 +142,8 @@ def processForm(request):
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + dateIni + ' 00:00:00\' AND received_at <= \'' + 
                                     dateFin + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
+                                    ' GROUP BY CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
+                                    ' ORDER BY received_at'))
     if plataforma == '3':
         iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
         endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
@@ -162,6 +163,8 @@ def processForm(request):
         verticalHoras.append(str(row[0]) + ':00')
         horizontalDatos.append(row[2])
         medida = row[3]
+    if (medida == None):
+        medida = ' '
     return JsonResponse({'vertical': verticalHoras, 'horizontal': horizontalDatos,'medida': medida})
 
 @login_required(login_url="/login/")
@@ -172,8 +175,6 @@ def downloadExcel(request):
     dateIni = request.POST.get('dateIni')
     dateFin = request.POST.get('dateFin')
     
-    verticalHoras = []
-    horizontalDatos = []
     if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
         return JsonResponse({'vertical': []})
 
@@ -182,7 +183,6 @@ def downloadExcel(request):
 
     dateFin = datetime.strptime(dateFin, '%Y-%m-%d')
     dateFin = dateFin.strftime("%Y-%m-%d")
-    medida = ''
     
     if plataforma == '2':
         result = conn.execute(text('SELECT CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))) AS hora,' +
@@ -195,7 +195,8 @@ def downloadExcel(request):
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + dateIni + ' 00:00:00\' AND received_at <= \'' + 
                                     dateFin + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
+                                    ' GROUP BY CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
+                                    ' ORDER BY received_at'))
     if plataforma == '3':
         iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
         endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
