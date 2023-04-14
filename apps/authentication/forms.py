@@ -26,14 +26,22 @@ def getClientes():
 
 # Login
 class LoginForm(forms.ModelForm):
-    cliente = forms.ChoiceField(
-                    choices = getClientes(),
-                    required = True, label='Cliente',
-                    widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'cliente', 'data-style': 'btn-success', 'data-live-search': 'true'}),
-                    )
+    # cliente = forms.ChoiceField(
+    #                 choices = getClientes(),
+    #                 required = True, label='Cliente',
+    #                 widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'cliente', 'data-style': 'btn-success', 'data-live-search': 'true'}),
+    #                 )
     class Meta:
         model = Cliente
         fields = ['country']
+
+    cliente = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Cliente",
+                "class": "form-control"
+            }
+        ))
     
     username = forms.CharField(
         widget=forms.TextInput(
