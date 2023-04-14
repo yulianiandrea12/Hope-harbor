@@ -115,19 +115,24 @@ def processForm(request):
     plataforma = request.POST.get('id_dispositivo')
     dispositivo = request.POST.get('id_plataforma')
     sensor = request.POST.get('id_sensor')
-    day = request.POST.get('day')
+    dateIni = request.POST.get('dateIni')
+    dateFin = request.POST.get('dateFin')
     
     verticalHoras = []
     horizontalDatos = []
-    if plataforma == '0' or dispositivo == '0' or sensor == '0' or day == '':
+    if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
         return JsonResponse({'vertical': []})
 
-    day = datetime.strptime(day, '%Y-%m-%d')
-    day = day.strftime("%Y-%m-%d")
+    dateIni = datetime.strptime(dateIni, '%Y-%m-%d')
+    dateIni = dateIni.strftime("%Y-%m-%d")
+
+    dateFin = datetime.strptime(dateFin, '%Y-%m-%d')
+    dateFin = dateFin.strftime("%Y-%m-%d")
+
     medida = ''
 
     if plataforma == '2':
-        result = conn.execute(text('SELECT HOUR(received_at) AS hora,' +
+        result = conn.execute(text('SELECT CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee,' +
                                     ' CAST(tds.info AS DECIMAL(10,2)) value, ' +
@@ -135,12 +140,12 @@ def processForm(request):
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + day + ' 00:00:00\' AND received_at <= \'' + 
-                                    day + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY HOUR(received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
+                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + dateIni + ' 00:00:00\' AND received_at <= \'' + 
+                                    dateFin + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                    ' GROUP BY CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
     if plataforma == '3':
-        iniTime = int(datetime.strptime(day, '%Y-%d-%m').strftime("%s"))
-        endTIme = int(datetime.strptime(day + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
+        iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
+        endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
         result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else wdh.name end as name_sensor, ' +
@@ -164,19 +169,23 @@ def downloadExcel(request):
     plataforma = request.POST.get('id_dispositivo')
     dispositivo = request.POST.get('id_plataforma')
     sensor = request.POST.get('id_sensor')
-    day = request.POST.get('day')
+    dateIni = request.POST.get('dateIni')
+    dateFin = request.POST.get('dateFin')
     
     verticalHoras = []
     horizontalDatos = []
-    if plataforma == '0' or dispositivo == '0' or sensor == '0' or day == '':
-        return None
+    if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
+        return JsonResponse({'vertical': []})
 
-    day = datetime.strptime(day, '%Y-%m-%d')
-    day = day.strftime("%Y-%m-%d")
+    dateIni = datetime.strptime(dateIni, '%Y-%m-%d')
+    dateIni = dateIni.strftime("%Y-%m-%d")
+
+    dateFin = datetime.strptime(dateFin, '%Y-%m-%d')
+    dateFin = dateFin.strftime("%Y-%m-%d")
     medida = ''
     
     if plataforma == '2':
-        result = conn.execute(text('SELECT HOUR(received_at) AS hora,' +
+        result = conn.execute(text('SELECT CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee,' +
                                     ' CAST(tds.info AS DECIMAL(10,2)) value, ' +
@@ -184,12 +193,12 @@ def downloadExcel(request):
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + day + ' 00:00:00\' AND received_at <= \'' + 
-                                    day + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY HOUR(received_at), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
+                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND received_at >= \'' + dateIni + ' 00:00:00\' AND received_at <= \'' + 
+                                    dateFin + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                    ' GROUP BY CONCAT(DATE(received_at) , CONCAT(\' \', HOUR(received_at))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad'))
     if plataforma == '3':
-        iniTime = int(datetime.strptime(day, '%Y-%d-%m').strftime("%s"))
-        endTIme = int(datetime.strptime(day + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
+        iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
+        endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
         result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else wdh.name end as name_sensor, ' +
@@ -231,7 +240,7 @@ def downloadExcel(request):
     for row in result:
         row_num = row_num + 1
         ws.write(row_num, 0, row[1], font_style)
-        ws.write(row_num, 1, day + ' ' + str(row[0]) + ':00', font_style)
+        ws.write(row_num, 1, str(row[0]) + ':00', font_style)
         ws.write(row_num, 2, row[2], font_style)
         ws.write(row_num, 3, row[3], font_style)
 

@@ -66,10 +66,14 @@
             <div class="col-lg-6">
                 <div class="mb-4">
                     <div class="form-group">
-                        <label>Seleccione fecha</label>
-                        <div class="input-group date datepicker" data-date-format="yyyy-mm-dd">
+                        <label>Seleccione fecha inicial y final</label>
+                        {# <div class="input-group date datepicker" data-date-format="yyyy-mm-dd"> #}
+                        {# <input type="text" class="form-control" data-style="btn-success" id="day" name="day" placeholder="yyyy-mm-dd"> #}
+                        <div class="input-group input-daterange">
                             <span class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></span>
-                            <input type="text" class="form-control" data-style="btn-success" id="day" name="day" placeholder="yyyy-mm-dd">
+                            <input type="text" class="start-date form-control" data-style="btn-success" id="dateIni" name="dateIni" value="2023-04-01">
+                            <div class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></div>
+                            <input type="text" class="end-date form-control" data-style="btn-success" id="dateFin" name="dateFin" value="2023-04-30">
                         </div>
 
                     </div>
@@ -77,7 +81,7 @@
             </div>
         </div>
 
-        <div class="row justify-content-md-center">
+        <div class=" row justify-content-md-center">
             <div class="col-lg-4">
                 <input type="button" value="Graficar" class="form-control btn btn-success" id="form_btn">
             </div>
@@ -123,12 +127,68 @@
     $(document).ready(function() {
         // Javascript method's body can be found in assets/js/demos.js
         $(".graficas").hide()
-        $(".datepicker").datepicker({
-            todayHighlight: !0,
-            language: 'es',
-            autoclose: !0,
-            endDate: '+2',
-            orientation: "bottom left"
+        // $(".datepicker").datepicker({
+        //     todayHighlight: !0,
+        //     language: 'es',
+        //     autoclose: !0,
+        //     endDate: '+2',
+        //     orientation: "bottom left"
+        // });
+
+        // $('.input-daterange input').each(function() {
+        //     $(this).datepicker({
+        //         todayHighlight: !0,
+        //         language: 'es',
+        //         startDate: '2023-04-14',
+        //         endDate: '+1d',
+        //         autoclose: !0,
+        //         endDate: '+2',
+        //         orientation: "bottom left"
+        //     });
+        // });
+
+        $('.start-date').datepicker({
+            templates: {
+                leftArrow: '<i class="fa fa-chevron-left"></i>',
+                rightArrow: '<i class="fa fa-chevron-right"></i>'
+            },
+            format: "yyyy-mm-dd",
+            startDate: '2023-04-01',
+            keyboardNavigation: false,
+            autoclose: true,
+            todayHighlight: true,
+            disableTouchKeyboard: true,
+            orientation: "bottom auto"
+        });
+
+        $('.end-date').datepicker({
+            templates: {
+                leftArrow: '<i class="fa fa-chevron-left"></i>',
+                rightArrow: '<i class="fa fa-chevron-right"></i>'
+            },
+            format: "yyyy-mm-dd",
+            startDate: '2023-04-01',
+            keyboardNavigation: false,
+            autoclose: true,
+            todayHighlight: true,
+            disableTouchKeyboard: true,
+            orientation: "bottom auto"
+
+        });
+
+
+        $('.start-date').datepicker().on("changeDate", function() {
+            var startDate = $('.start-date').datepicker('getDate');
+            var oneDayFromStartDate = '2023-04-01';
+            $('.end-date').datepicker('setStartDate', oneDayFromStartDate);
+            $('.end-date').datepicker('setDate', oneDayFromStartDate);
+        });
+
+        $('.end-date').datepicker().on("show", function() {
+            var startDate = $('.start-date').datepicker('getDate');
+            $('.day.disabled').filter(function(index) {
+                return $(this).text() === moment(startDate).format('D');
+            }).addClass('active');
         });
 
 
@@ -183,7 +243,8 @@
             var dispositivoId = $('#id_plataforma').val();
             var platafromaId = $('#id_dispositivo').val();
             var sensorId = $('#id_sensor').val();
-            var day = $('#day').val();
+            var dateIni = $('#dateIni').val();
+            var dateFin = $('#dateFin').val();
             $.ajax({
                 type: "POST",
                 url: "{% url 'process-form' %}",
@@ -192,7 +253,8 @@
                     'id_dispositivo': dispositivoId,
                     'id_plataforma': platafromaId,
                     'id_sensor': sensorId,
-                    'day': day
+                    'dateIni': dateIni,
+                    'dateFin': dateFin
                 },
                 success: function(data) {
                     if (data.vertical.length == 0) {
@@ -200,7 +262,7 @@
                         $(".graficas").hide()
                     } else {
                         $(".graficas").show()
-                        $('#title-sensor').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fecha ' + $('#day').val());
+                        $('#title-sensor').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
                         general.initDashboardPageCharts('chartBig1', data.vertical, data.horizontal, "Valor del sensor " + data.medida, data.medida, 'Hora');
                     }
                 }
@@ -212,8 +274,10 @@
             var dispositivoId = $('#id_plataforma').val();
             var platafromaId = $('#id_dispositivo').val();
             var sensorId = $('#id_sensor').val();
-            var day = $('#day').val();
-            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + platafromaId + '&id_sensor=' + sensorId + '&day=' + day;
+            var dateIni = $('#dateIni').val();
+            var dateFin = $('#dateFin').val();
+
+            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + platafromaId + '&id_sensor=' + sensorId + '&dateIni=' + dateIni + '&dateFin=' + dateFin;
             xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 var a, today;
