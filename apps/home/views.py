@@ -132,16 +132,18 @@ def processForm(request):
     medida = ''
 
     if plataforma == '2':
-        result = conn.execute(text('SELECT CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+        result = conn.execute(text('SELECT ' +
+                                   'CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee,' +
-                                    ' CAST(tds.info AS DECIMAL(10,2)) value, ' +
+                                    ' CAST(AVG(tds.info) AS DECIMAL(10,2)) value, ' +
                                     ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + 
-                                    dateFin + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
+                                    ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                    ' AND tds.name_sensor like \'' + sensor + '\''  + 
                                     ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                     ' ORDER BY received_at'))
     if plataforma == '3':
@@ -185,16 +187,18 @@ def downloadExcel(request):
     dateFin = dateFin.strftime("%Y-%m-%d")
     
     if plataforma == '2':
-        result = conn.execute(text('SELECT CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+        result = conn.execute(text('SELECT  ' +
+                                   'CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee,' +
-                                    ' CAST(tds.info AS DECIMAL(10,2)) value, ' +
+                                    ' CAST(AVG(tds.info) AS DECIMAL(10,2)) value, ' +
                                     ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + 
-                                    dateFin + ' 23:59:59\' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
+                                    ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                    ' AND tds.name_sensor like \'' + sensor + '\''  + 
                                     ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                     ' ORDER BY received_at'))
     if plataforma == '3':
