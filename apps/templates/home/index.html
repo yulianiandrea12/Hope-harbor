@@ -35,7 +35,7 @@
             <div class="col-lg-6">
                 <div class="mb-4">
                     <div class="form-group">
-                        <label>Seleccione Plataforma</label>
+                        <label>Seleccione Plataforma IoT</label>
                         {{ form.platafromas}}
                     </div>
                 </div>
@@ -99,13 +99,34 @@
                     <div class="card-header ">
                         <div class="row">
                             <div class="col-sm-6 text-left">
-                                <h2 id="title-sensor" class="card-title">Performance</h2>
+                                <h2 id="title-sensor-line" class="card-title">Performance</h2>
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="chart-area">
-                            <canvas id="chartBig1"></canvas>
+                            <canvas id="chartLine"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="graficas1">
+        <div class="row">
+            <div class="col-12">
+                <div class="card card-chart">
+                    <div class="card-header ">
+                        <div class="row">
+                            <div class="col-sm-6 text-left">
+                                <h2 id="title-sensor-bar" class="card-title">Performance</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="chartBar"></canvas>
                         </div>
                     </div>
                 </div>
@@ -127,6 +148,7 @@
     $(document).ready(function() {
         // Javascript method's body can be found in assets/js/demos.js
         $(".graficas").hide()
+        $(".graficas1").hide()
         // $(".datepicker").datepicker({
         //     todayHighlight: !0,
         //     language: 'es',
@@ -250,8 +272,15 @@
                         $(".graficas").hide()
                     } else {
                         $(".graficas").show()
-                        $('#title-sensor').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
-                        general.initDashboardPageCharts('chartBig1', data.vertical, data.horizontal, "Valor del sensor " + data.medida, data.medida, 'Hora');
+                        $('#title-sensor-line').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
+                        general.initLineCharts('chartLine', data.vertical, data.horizontal, "Valor del sensor " + data.medida, data.medida, 'Hora');
+                    }
+                    if (data.vertical2.length == 0) {
+                        $(".graficas1").hide()
+                    } else {
+                        $(".graficas1").show()
+                        $('#title-sensor-bar').text('Grafico de sensor Precipitación - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
+                        general.initBarCharts('chartBar', data.vertical2, data.horizontal2, "Valor del sensor " + data.medida2, data.medida2, 'Hora');
                     }
                 }
             });
