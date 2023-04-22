@@ -206,10 +206,12 @@ def downloadExcel(request):
     sensor = request.POST.get('id_sensor')
     dateIni = request.POST.get('dateIni')
     dateFin = request.POST.get('dateFin')
+    todoSensor = request.POST.get('todoSensor')
     
     if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
-        return JsonResponse({'vertical': []})
-
+        return JsonResponse({'datos invalidos'})
+    elif (sensor == '0' or sensor == 'null') and todoSensor == 'false':
+        return JsonResponse({'datos invalidos'})
     dateIni = datetime.strptime(dateIni, '%Y-%m-%d')
     dateIni = dateIni.strftime("%Y-%m-%d")
 
@@ -223,91 +225,133 @@ def downloadExcel(request):
 
     #creating workbook
     wb = xlwt.Workbook(encoding='utf-8')
-    
-    if plataforma == '2':
-        result = conn.execute(text('SELECT  ' +
-                                   'CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else tds.name_sensor end as valuee,' +
-                                    ' CAST(AVG(tds.info) AS DECIMAL(10,2)) value, ' +
-                                    ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                    ' FROM TtnData td ' +
-                                    ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
-                                    ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
-                                    ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
-                                    ' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
-                                    ' ORDER BY received_at'))
-    if plataforma == '3':
-        iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
-        endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
-        result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else wdh.name end as name_sensor, ' +
-                                    ' AVG(TRY_CONVERT(float,wdh.value)) value, ' +
-                                    ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                    ' FROM wl_sensors ws ' +
-                                    'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                    'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                    'LEFT JOIN translates t on t.name = wdh.name ' +
-                                    ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + sensor + '\''  + 
-                                    'AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                    ' GROUP by DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
     #adding sheet
     ws = wb.add_sheet("Sensor Data")
-    # Sheet header, first row
-    row_num = 0
     font_style = xlwt.XFStyle()
     # headers are bold
     font_style.font.bold = True
     #column header names, you can use your own headers here
-    columns = ['Sensor', 'Time', 'Value', 'Medida', ]
+    columns = ['Device', 'Time']
+    
+    # Sheet header, first row
+    row_num = 0
+    # First column
+    column_num = 0
+
+    if (todoSensor == 'true'):
+        resultSensores = conn.execute(text('SELECT ' +
+                                                'tds.name_sensor,' +
+                                                ' CASE WHEN t.id is not null then' +
+                                                    ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                    ' else tds.name_sensor' +
+                                                ' end nombre ' +
+                                            ' FROM TtnData td ' +
+                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data  ' +
+                                            ' LEFT JOIN translates t on t.name = tds.name_sensor' +
+                                            ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
+                                            ' GROUP BY ' +
+                                                ' tds.name_sensor'))
+    else:
+        resultSensores = conn.execute(text('SELECT ' +
+                                                'tds.name_sensor,' +
+                                                ' CASE WHEN t.id is not null then' +
+                                                    ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                    ' else tds.name_sensor' +
+                                                ' end nombre ' +
+                                            ' FROM TtnData td ' +
+                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data  ' +
+                                            ' LEFT JOIN translates t on t.name = tds.name_sensor' +
+                                            ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
+                                                ' AND tds.name_sensor like \'' + sensor + '\'' +
+                                            ' GROUP BY ' +
+                                                ' tds.name_sensor'))
+    
+    primerSensor = True
+    for rowSensor in resultSensores:    
+        if plataforma == '2':
+            result = conn.execute(text('SELECT  ' +
+                                    'CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else tds.name_sensor end as valuee,' +
+                                        ' CAST(AVG(tds.info) AS DECIMAL(10,2)) value, ' +
+                                        ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                        ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
+                                        ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                        ' AND tds.name_sensor like \'' + rowSensor[0] + '\''  + 
+                                        ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
+                                        ' ORDER BY received_at'))
+        if plataforma == '3':
+            iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
+            endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
+            result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else wdh.name end as name_sensor, ' +
+                                        ' AVG(TRY_CONVERT(float,wdh.value)) value, ' +
+                                        ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                        ' FROM wl_sensors ws ' +
+                                        'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        'LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + rowSensor[0] + '\''  + 
+                                        'AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
+                                        ' GROUP by DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
+
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+        columns.append(rowSensor[1])
+        for row in result:
+            row_num = row_num + 1
+            if column_num == 0:
+                ws.write(row_num, (column_num), dispositivo, font_style)
+                ws.write(row_num, (column_num+1), str(row[0]) + ':00', font_style)
+                ws.write(row_num, (column_num+2), row[2], font_style)
+            else:
+                primerSensor = False
+                ws.write(row_num, (column_num+2), row[2], font_style)
+        if primerSensor:
+            column_num = 1
+        else:
+            column_num = column_num + 1
+
+        row_num = 0
+        # siguiente hoja grafica barras
+        tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + rowSensor[0] + '\' AND t.tipo_operacion_id != 1'))
+        for tipoOperacion in tipoOperacionSql:
+            if tipoOperacion[0] == 2:
+                if plataforma == '2':
+                    result = conn.execute(text('SELECT ' +
+                                        ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else tds.name_sensor end as valuee,' +
+                                        ' SUM(tds.precipitacion) value' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                        ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
+                                        ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                        ' AND tds.name_sensor like \'' + rowSensor[0] + '\''  + 
+                                        ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
+                                        ' ORDER BY received_at'))
+
+                    # Sheet body, remaining rows
+                    font_style = xlwt.XFStyle()
+                    for row in result:
+                        row_num = row_num + 1
+                        if (row[2] == None):
+                            ws.write(row_num, (column_num+2), '0', font_style)
+                        else:
+                            ws.write(row_num, (column_num+2), row[2], font_style)
+                    column_num = column_num + 1
+                    columns.append("Precipitacion - milímetros(mm)")
+                    row_num = 0
+
 
     #write column headers in sheet
     for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style)
-
-    # Sheet body, remaining rows
-    font_style = xlwt.XFStyle()
-    for row in result:
-        row_num = row_num + 1
-        ws.write(row_num, 0, row[1], font_style)
-        ws.write(row_num, 1, str(row[0]) + ':00', font_style)
-        ws.write(row_num, 2, row[2], font_style)
-        ws.write(row_num, 3, row[3], font_style)
-
-    # siguiente hoja grafica barras
-    tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + sensor + '\' AND t.tipo_operacion_id != 1'))
-    for tipoOperacion in tipoOperacionSql:
-        if tipoOperacion[0] == 2:
-            if plataforma == '2':
-                result = conn.execute(text('SELECT ' +
-                                    ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else tds.name_sensor end as valuee,' +
-                                    ' SUM(tds.precipitacion) value' +
-                                    ' FROM TtnData td ' +
-                                    ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
-                                    ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                    ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
-                                    ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
-                                    ' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                    ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
-                                    ' ORDER BY received_at'))
-
-                # Sheet body, remaining rows
-                font_style = xlwt.XFStyle()
-                for row in result:
-                    row_num = row_num + 1
-                    ws.write(row_num, 0, "Precipitacion", font_style)
-                    ws.write(row_num, 1, str(row[0]) + ':00', font_style)
-                    if (row[2] == None):
-                        ws.write(row_num, 2, '0.0', font_style)
-                    else:
-                        ws.write(row_num, 2, row[2], font_style)                    
-                    ws.write(row_num, 3, "milímetros(mm)", font_style)
-
+        ws.write(0, col_num, columns[col_num], font_style)
 
     wb.save(response)
     return response

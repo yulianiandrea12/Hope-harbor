@@ -81,6 +81,25 @@
             </div>
         </div>
 
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label>Todos los sensores en el excel </label>
+                        <div class="form-check">
+                            <label class="form-check-label">
+                                Si
+                                <input id="todoSensor" class="form-check-input" type="checkbox" value="1">
+                                <span class="form-check-sign">
+                                    <span class="check"></span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class=" row justify-content-md-center">
             <div class="col-lg-4">
                 <input type="button" value="Graficar" class="form-control btn btn-success" id="form_btn">
@@ -293,8 +312,9 @@
             var sensorId = $('#id_sensor').val();
             var dateIni = $('#dateIni').val();
             var dateFin = $('#dateFin').val();
+            var todoSensor = $('#todoSensor').is(':checked');
 
-            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + platafromaId + '&id_sensor=' + sensorId + '&dateIni=' + dateIni + '&dateFin=' + dateFin;
+            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + platafromaId + '&id_sensor=' + sensorId + '&dateIni=' + dateIni + '&dateFin=' + dateFin + '&todoSensor=' + todoSensor;
             xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 var a, today;
