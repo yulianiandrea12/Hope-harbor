@@ -296,20 +296,6 @@ def downloadExcel(request):
                                     ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                     ' ORDER BY received_at'))
 
-                #adding sheet
-                ws = wb.add_sheet("Pluviometro Precipitacion")
-                # Sheet header, first row
-                row_num = 0
-                font_style = xlwt.XFStyle()
-                # headers are bold
-                font_style.font.bold = True
-                #column header names, you can use your own headers here
-                columns = ['Sensor', 'Time', 'Value', 'Medida', ]
-
-                #write column headers in sheet
-                for col_num in range(len(columns)):
-                    ws.write(row_num, col_num, columns[col_num], font_style)
-
                 # Sheet body, remaining rows
                 font_style = xlwt.XFStyle()
                 for row in result:
