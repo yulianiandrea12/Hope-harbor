@@ -244,9 +244,11 @@ def downloadExcel(request):
                                                 ' CASE WHEN t.id is not null then' +
                                                     ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
                                                     ' else tds.name_sensor' +
-                                                ' end nombre ' +
+                                                ' end nombre, ' +
+                                                ' ex.nombre ' +
                                             ' FROM TtnData td ' +
-                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data  ' +
+                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data ' +
+                                            ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui ' +
                                             ' LEFT JOIN translates t on t.name = tds.name_sensor' +
                                             ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
                                             ' GROUP BY ' +
@@ -257,9 +259,11 @@ def downloadExcel(request):
                                                 ' CASE WHEN t.id is not null then' +
                                                     ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
                                                     ' else tds.name_sensor' +
-                                                ' end nombre ' +
+                                                ' end nombre, ' +
+                                                ' ex.nombre ' +
                                             ' FROM TtnData td ' +
-                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data  ' +
+                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data ' +
+                                            ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui ' +
                                             ' LEFT JOIN translates t on t.name = tds.name_sensor' +
                                             ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
                                                 ' AND tds.name_sensor like \'' + sensor + '\'' +
@@ -305,7 +309,7 @@ def downloadExcel(request):
         for row in result:
             row_num = row_num + 1
             if column_num == 0:
-                ws.write(row_num, (column_num), dispositivo, font_style)
+                ws.write(row_num, (column_num), rowSensor[2], font_style)
                 ws.write(row_num, (column_num+1), str(row[0]) + ':00', font_style)
                 ws.write(row_num, (column_num+2), row[2], font_style)
             else:
