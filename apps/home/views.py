@@ -136,34 +136,35 @@ def processForm(request):
 
     if plataforma == '2':
         result = conn.execute(text('SELECT ' +
-                                   'CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else tds.name_sensor end as valuee,' +
-                                    ' CAST(AVG(tds.info) AS DECIMAL(10,2)) value, ' +
-                                    ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                        ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else tds.name_sensor end as valuee,' +
+                                        ' CAST(AVG(tds.info) AS DECIMAL(10,2)) value, ' +
+                                        ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
-                                    ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
-                                    ' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                        ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                        ' AND tds.name_sensor like \'' + sensor + '\''  + 
                                     ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                     ' ORDER BY received_at'))
     if plataforma == '3':
-        iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
-        endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
-        result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else wdh.name end as name_sensor, ' +
-                                    ' AVG(TRY_CONVERT(float,wdh.value)) value, ' +
-                                    ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+        iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+        endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+        result = conn.execute(text('SELECT ' +
+                                        ' CONCAT(DATE(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)))) AS hora,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else wdh.name end as valuee, ' +
+                                        ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
+                                        ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                     ' FROM wl_sensors ws ' +
-                                    'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                    'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                    'LEFT JOIN translates t on t.name = wdh.name ' +
+                                    ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                    ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                    ' LEFT JOIN translates t on t.name = wdh.name ' +
                                     ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + sensor + '\''  + 
-                                    'AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                    ' GROUP by DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
+                                        ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
+                                    ' GROUP by CONCAT(DATE(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
     for row in result:
         verticalHoras.append(str(row[0]) + ':00')
         horizontalDatos.append(row[2])
@@ -176,16 +177,16 @@ def processForm(request):
         if tipoOperacion[0] == 2:
             if plataforma == '2':
                 result = conn.execute(text('SELECT ' +
-                                    ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else tds.name_sensor end as valuee,' +
-                                    ' SUM(tds.precipitacion) value' +
+                                        ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else tds.name_sensor end as valuee,' +
+                                        ' SUM(tds.precipitacion) value' +
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
-                                    ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
-                                    ' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                        ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                        ' AND tds.name_sensor like \'' + sensor + '\''  + 
                                     ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                     ' ORDER BY received_at'))
 
