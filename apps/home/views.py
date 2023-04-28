@@ -153,7 +153,7 @@ def processForm(request):
         iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
         endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
         result = conn.execute(text('SELECT ' +
-                                        ' CONCAT(DATE(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)))) AS hora,' +
+                                        ' CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))) AS hora,' +
                                         ' case when t.value is not null then  t.value  ' +
                                         ' else wdh.name end as valuee, ' +
                                         ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
@@ -164,7 +164,7 @@ def processForm(request):
                                     ' LEFT JOIN translates t on t.name = wdh.name ' +
                                     ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + sensor + '\''  + 
                                         ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                    ' GROUP by CONCAT(DATE(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
+                                    ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
     for row in result:
         verticalHoras.append(str(row[0]) + ':00')
         horizontalDatos.append(row[2])
@@ -240,36 +240,73 @@ def downloadExcel(request):
     column_num = 0
 
     if (todoSensor == 'true'):
-        resultSensores = conn.execute(text('SELECT ' +
-                                                'tds.name_sensor,' +
-                                                ' CASE WHEN t.id is not null then' +
-                                                    ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
-                                                    ' else tds.name_sensor' +
-                                                ' end nombre, ' +
-                                                ' ex.nombre ' +
-                                            ' FROM TtnData td ' +
-                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data ' +
-                                            ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui ' +
-                                            ' LEFT JOIN translates t on t.name = tds.name_sensor' +
-                                            ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
-                                            ' GROUP BY ' +
-                                                ' tds.name_sensor'))
+        if plataforma == '2':
+            resultSensores = conn.execute(text('SELECT ' +
+                                                    'tds.name_sensor,' +
+                                                    ' CASE WHEN t.id is not null then' +
+                                                        ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                        ' else tds.name_sensor' +
+                                                    ' end nombre, ' +
+                                                    ' ex.nombre ' +
+                                                ' FROM TtnData td ' +
+                                                ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data ' +
+                                                ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui ' +
+                                                ' LEFT JOIN translates t on t.name = tds.name_sensor' +
+                                                ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
+                                                ' GROUP BY ' +
+                                                    ' tds.name_sensor'))
+        elif plataforma == '3':
+            resultSensores = conn.execute(text('SELECT ' +
+                                                    ' wdh.name,' +
+                                                    ' CASE WHEN t.id is not null then' +
+                                                        ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                        ' else wdh.name ' +
+                                                    ' end nombre, ' +
+                                                    ' wst.station_name ' +
+                                                ' FROM wl_historic wh ' +
+                                                ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                                ' INNER JOIN wl_sensors ws on ws.lsid = wh.lsid ' +
+                                                ' INNER JOIN wl_stations wst on wst.station_id = ws.station_id ' +
+                                                ' INNER JOIN estacion_xcliente ex ON ex.estacion = ws.station_id ' +
+                                                ' INNER JOIN translates t on t.name = wdh.name ' +
+                                                ' WHERE ws.station_id = \'' + dispositivo + '\'' +
+                                                ' GROUP BY ' +
+                                                    ' wdh.name'))
     else:
-        resultSensores = conn.execute(text('SELECT ' +
-                                                'tds.name_sensor,' +
-                                                ' CASE WHEN t.id is not null then' +
-                                                    ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
-                                                    ' else tds.name_sensor' +
-                                                ' end nombre, ' +
-                                                ' ex.nombre ' +
-                                            ' FROM TtnData td ' +
-                                            ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data ' +
-                                            ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui ' +
-                                            ' LEFT JOIN translates t on t.name = tds.name_sensor' +
-                                            ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
-                                                ' AND tds.name_sensor like \'' + sensor + '\'' +
-                                            ' GROUP BY ' +
-                                                ' tds.name_sensor'))
+        if plataforma == '2':
+            resultSensores = conn.execute(text('SELECT ' +
+                                                    'tds.name_sensor,' +
+                                                    ' CASE WHEN t.id is not null then' +
+                                                        ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                        ' else tds.name_sensor' +
+                                                    ' end nombre, ' +
+                                                    ' ex.nombre ' +
+                                                ' FROM TtnData td ' +
+                                                ' INNER JOIN TtnDataSensors tds on tds.id_ttn_data = td.id_ttn_data ' +
+                                                ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui ' +
+                                                ' LEFT JOIN translates t on t.name = tds.name_sensor' +
+                                                ' WHERE td.dev_eui = \'' + dispositivo + '\'' +
+                                                    ' AND tds.name_sensor like \'' + sensor + '\'' +
+                                                ' GROUP BY ' +
+                                                    ' tds.name_sensor'))
+        elif plataforma == '3':
+            resultSensores = conn.execute(text('SELECT ' +
+                                                    ' wdh.name,' +
+                                                    ' CASE WHEN t.id is not null then' +
+                                                        ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                        ' else wdh.name ' +
+                                                    ' end nombre, ' +
+                                                    ' wst.station_name ' +
+                                                ' FROM wl_historic wh ' +
+                                                ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                                ' INNER JOIN wl_sensors ws on ws.lsid = wh.lsid ' +
+                                                ' INNER JOIN wl_stations wst on wst.station_id = ws.station_id  ' +
+                                                ' INNER JOIN estacion_xcliente ex ON ex.estacion = ws.station_id ' +
+                                                ' INNER JOIN translates t on t.name = wdh.name ' +
+                                                ' WHERE ws.station_id = \'' + dispositivo + '\'' +
+                                                    ' AND wdh.name like \'' + sensor + '\'' +
+                                                ' GROUP BY ' +
+                                                    ' wdh.name'))
     
     primerSensor = True
     for rowSensor in resultSensores:    
@@ -289,20 +326,21 @@ def downloadExcel(request):
                                         ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                         ' ORDER BY received_at'))
         if plataforma == '3':
-            iniTime = int(datetime.strptime(dateIni, '%Y-%d-%m').strftime("%s"))
-            endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%d-%m %H:%M:%S').strftime("%s"))
-            result = conn.execute(text('SELECT DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))) AS hora,' +
-                                        ' case when t.value is not null then  t.value  ' +
-                                        ' else wdh.name end as name_sensor, ' +
-                                        ' AVG(TRY_CONVERT(float,wdh.value)) value, ' +
-                                        ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+            iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+            endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+            result = conn.execute(text('SELECT ' +
+                                            ' CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))) AS hora,' +
+                                            ' case when t.value is not null then  t.value  ' +
+                                            ' else wdh.name end as valuee, ' +
+                                            ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
+                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                         ' FROM wl_sensors ws ' +
-                                        'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        'LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + rowSensor[0] + '\''  + 
-                                        'AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                        ' GROUP by DATEPART(hour,(DATEADD(s, wh.ts, \'1970-01-01\'))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
+                                            ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
+                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
 
         # Sheet body, remaining rows
         font_style = xlwt.XFStyle()
