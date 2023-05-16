@@ -410,14 +410,16 @@ def processForm(request):
                                             ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
                                         ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
 
+        first = True
         for row in result:
             if (primerSensor):
                 verticalHoras.append(str(row[0]) + ':00')
             horizontal.append(row[2])
-            # if ((row[3] not in medidas)):
-            medidas.append(row[3])
-            # if ((row[1] not in sensores)):
-            sensores.append(row[1])
+            if first:
+                medidas.append(row[3])
+                # if ((row[1] not in sensores)):
+                sensores.append(row[1])
+                first = False
         primerSensor = False
 
         horizontalDatos.append(horizontal)
@@ -441,11 +443,13 @@ def processForm(request):
                                         ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                         ' ORDER BY received_at'))
 
+                    first = True
                     for row in result:
-                        # if (("milímetros(mm)" not in medidas)):
-                        medidas.append("milímetros(mm)")
-                        # if (("Precipitación" not in sensores)):
-                        sensores.append("Precipitación")
+                        if first:
+                            medidas.append("milímetros(mm)")
+                            # if (("Precipitación" not in sensores)):
+                            sensores.append("Precipitación")
+                            first = False
                         # verticalHoras2.append(str(row[0]) + ':00')
                         if (row[2] == None):
                             horizontal.append(0.0)
