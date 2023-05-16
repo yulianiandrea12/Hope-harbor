@@ -414,10 +414,10 @@ def processForm(request):
             if (primerSensor):
                 verticalHoras.append(str(row[0]) + ':00')
             horizontal.append(row[2])
-            if ((row[3] not in medidas)):
-                medidas.append(row[3])
-            if ((row[1] not in sensores)):
-                sensores.append(row[1])
+            # if ((row[3] not in medidas)):
+            medidas.append(row[3])
+            # if ((row[1] not in sensores)):
+            sensores.append(row[1])
         primerSensor = False
 
         horizontalDatos.append(horizontal)
@@ -442,10 +442,10 @@ def processForm(request):
                                         ' ORDER BY received_at'))
 
                     for row in result:
-                        if (("milímetros(mm)" not in medidas)):
-                            medidas.append("milímetros(mm)")
-                        if (("Precipitación" not in sensores)):
-                            sensores.append("Precipitación")
+                        # if (("milímetros(mm)" not in medidas)):
+                        medidas.append("milímetros(mm)")
+                        # if (("Precipitación" not in sensores)):
+                        sensores.append("Precipitación")
                         # verticalHoras2.append(str(row[0]) + ':00')
                         if (row[2] == None):
                             horizontal.append(0.0)
