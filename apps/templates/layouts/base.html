@@ -67,6 +67,41 @@
     <!-- Specific Page JS goes HERE  -->
     {% block javascripts %}{% endblock javascripts %}
 
+    <script>
+        function autorefresh() {
+
+            // auto refresh page after 1 second
+
+            setInterval('refreshPage()', 601000);
+
+        }
+
+
+        function refreshPage() {
+
+            $.ajax({
+
+                url: window.location.pathname,
+
+                success: function(data) {
+
+                    window.location = "."
+
+                    // $('#console').html(data);
+
+                }
+
+            });
+
+        }
+    </script>
+
+    <script>
+        autorefresh()
+    </script>
+
+    <div id="console"></div>
+
 </body>
 
 </html>

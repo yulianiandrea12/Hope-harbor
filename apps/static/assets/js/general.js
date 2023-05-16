@@ -212,6 +212,135 @@ general = {
         eval("chart_" + canvaId + ' = new Chart(ctx, config)')
 
 
+    },
+    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '') {
+        function toNumber(value) {
+            return Number(value);
+        }
+        varSeries = [];
+        yAxises = [];
+        i = 0;
+        opposite = false;
+        data.forEach(dato => {
+            var serie = {
+                name: sensores.at(i),
+                type: 'spline',
+                yAxis: i,
+                data: dato.map(toNumber),
+                marker: {
+                    enabled: false
+                },
+                dashStyle: 'shortdot',
+                tooltip: {
+                    valueSuffix: ' ' + medidas.at(i)
+                }
+
+            };
+            varSeries.push(serie);
+
+
+            var yAxis = { // Primary yAxis
+                gridLineWidth: 0,
+                title: {
+                    text: sensores.at(i),
+                    style: {
+                        color: Highcharts.getOptions().colors[i]
+                    }
+                },
+                labels: {
+                    format: '{value} ' + medidas.at(i),
+                    style: {
+                        color: Highcharts.getOptions().colors[i]
+                    }
+                },
+                opposite: opposite
+
+            };
+            yAxises.push(yAxis);
+
+            opposite = !opposite;
+            i++;
+
+        });
+
+        // var data = data.map(toNumber)
+        Highcharts.chart(idDiv, {
+            chart: {
+                zoomType: 'xy'
+            },
+            title: {
+                text: titleY,
+                align: 'left',
+                style: {
+                    color: '#00efc4'
+
+                }
+            },
+            // subtitle: {
+            //     text: 'Source: WorldClimate.com',
+            //     align: 'left'
+            // },
+            xAxis: [{
+                categories: labels,
+                labels: {
+                    style: {
+                        color: '#00efc4'
+
+                    }
+                },
+                crosshair: true
+            }],
+            yAxis: yAxises,
+            tooltip: {
+                shared: true
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'left',
+                x: 80,
+                verticalAlign: 'top',
+                y: 55,
+                floating: true,
+                backgroundColor: Highcharts.defaultOptions.legend.backgroundColor || // theme
+                    'rgba(255,255,255,0.25)'
+            },
+            series: varSeries,
+            responsive: {
+                rules: [{
+                    condition: {
+                        maxWidth: 500
+                    },
+                    chartOptions: {
+                        legend: {
+                            floating: false,
+                            layout: 'horizontal',
+                            align: 'center',
+                            verticalAlign: 'bottom',
+                            x: 0,
+                            y: 0
+                        },
+                        yAxis: [{
+                            labels: {
+                                align: 'right',
+                                x: 0,
+                                y: -6
+                            },
+                            showLastLabel: false
+                        }, {
+                            labels: {
+                                align: 'left',
+                                x: 0,
+                                y: -6
+                            },
+                            showLastLabel: false
+                        }, {
+                            visible: false
+                        }]
+                    }
+                }]
+            }
+        });
+
     }
 
 };
