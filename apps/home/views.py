@@ -242,6 +242,8 @@ def processForm(request):
         return JsonResponse({'datos invalidos'})
     elif (sensor == '0' or sensor == 'null') and todoSensor == 'false':
         return JsonResponse({'vertical': []})
+    elif todoSensor == 'true' and plataforma == '2':
+        todoSensor = 'false'
 
     dateIni = datetime.strptime(dateIni, '%Y-%m-%d')
     dateIni = dateIni.strftime("%Y-%m-%d")
