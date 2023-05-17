@@ -222,9 +222,13 @@ general = {
         i = 0;
         opposite = false;
         data.forEach(dato => {
+            tipo = 'spline';
+            if (sensores.at(i).localeCompare("precipitación") === 0) {
+                tipo = 'column';
+            }
             var serie = {
                 name: sensores.at(i),
-                type: 'spline',
+                type: tipo,
                 yAxis: i,
                 data: dato.map(toNumber),
                 marker: {
@@ -248,7 +252,7 @@ general = {
                     }
                 },
                 labels: {
-                    format: '{value} ' + medidas.at(i),
+                    format: '{value}' + medidas.at(i).substr(medidas.at(i).indexOf("(") + 1).replace(')', ''),
                     style: {
                         color: Highcharts.getOptions().colors[i]
                     }

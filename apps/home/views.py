@@ -93,6 +93,7 @@ def getSensors(request):
         result = conn.execute(text('SELECT t.name, t.value ' +
                                     ' FROM translates t  ' +
                                     ' WHERE name like \'currentTemperature\' or name like \'currentHumidity\' '))
+        datos.append(("999", "Humedad y temperatura"))
     elif plataforma == '2':
         result = conn.execute(text('SELECT tds.name_sensor,' +
                                     ' case when t.value is not null then  t.value  ' +
@@ -114,6 +115,7 @@ def getSensors(request):
                                     'WHERE ws.station_id = ' + dispositivo +
                                     ' GROUP by t.value, wdh.name ' +
                                     'ORDER by valuee '))
+        datos.append(("999", "Gráfico de clima"))
     for row in result:
         datos.append((row[0], row[1]))
 
@@ -232,7 +234,7 @@ def processForm(request):
     sensor = request.POST.get('id_sensor')
     dateIni = request.POST.get('dateIni')
     dateFin = request.POST.get('dateFin')
-    todoSensor = request.POST.get('todoSensor')
+    todoSensor = 'false'
     
     verticalHoras = []
     horizontalDatos = []
@@ -240,7 +242,9 @@ def processForm(request):
     horizontalDatos2 = []
     if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
         return JsonResponse({'datos invalidos'})
-    elif (sensor == '0' or sensor == 'null') and todoSensor == 'false':
+    if (sensor == '999'):
+        todoSensor = 'true'
+    if (sensor == '0' or sensor == 'null') and todoSensor == 'false':
         return JsonResponse({'vertical': []})
     elif todoSensor == 'true' and plataforma == '2':
         todoSensor = 'false'
@@ -309,7 +313,7 @@ def processForm(request):
                                                 ' INNER JOIN estacion_xcliente ex ON ex.estacion = ws.station_id ' +
                                                 ' INNER JOIN translates t on t.name = wdh.name ' +
                                                 ' WHERE ws.station_id = \'' + dispositivo + '\'' +
-                                                    ' AND wdh.name in (\'et\', \'emc\', \'hum_in\', \'hum_out\', \'rainfall_mm\', \'solar_rad_avg\', \'temp_out\')'
+                                                    ' AND wdh.name in (\'et\', \'emc\', \'rainfall_mm\', \'solar_rad_avg\', \'temp_out\')'
                                                 ' GROUP BY ' +
                                                     ' wdh.name'))
     else:
