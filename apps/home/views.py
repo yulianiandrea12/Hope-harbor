@@ -313,7 +313,7 @@ def processForm(request):
                                                 ' INNER JOIN estacion_xcliente ex ON ex.estacion = ws.station_id ' +
                                                 ' INNER JOIN translates t on t.name = wdh.name ' +
                                                 ' WHERE ws.station_id = \'' + dispositivo + '\'' +
-                                                    ' AND wdh.name in (\'et\', \'emc\', \'rainfall_mm\', \'solar_rad_avg\', \'temp_out\')'
+                                                    ' AND wdh.name in (\'et\', \'hum_out\', \'rainfall_mm\', \'solar_rad_avg\', \'temp_out\')'
                                                 ' GROUP BY ' +
                                                     ' wdh.name'))
     else:
