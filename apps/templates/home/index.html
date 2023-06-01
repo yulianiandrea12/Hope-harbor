@@ -40,6 +40,18 @@
                     </div>
                 </div>
             </div>
+            <div id="divRed" class="col-lg-6">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label>Seleccione Red</label>
+                        <select id="id_red" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="state">
+                            <option selected disabled value="0">Seleccione</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-lg-6">
                 <div class="mb-4">
                     <div class="form-group">
@@ -50,9 +62,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="row">
             <div class="col-lg-6">
                 <div class="mb-4">
                     <div class="form-group">
@@ -63,6 +72,8 @@
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row">
             <div class="col-lg-6">
                 <div class="mb-4">
                     <div class="form-group">
@@ -79,9 +90,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="row">
             <div class="col-lg-6">
                 <div class="mb-4">
                     <div class="form-group">
@@ -234,13 +242,7 @@
         $(".graficas").hide()
         $(".graficas1").hide()
         $(".graficaMulti").hide()
-        // $(".datepicker").datepicker({
-        //     todayHighlight: !0,
-        //     language: 'es',
-        //     autoclose: !0,
-        //     endDate: '+2',
-        //     orientation: "bottom left"
-        // });
+        $("#divRed").hide();
 
         $('.start-date').datepicker({
             templates: {
@@ -287,14 +289,61 @@
         });
 
         $("#id_plataforma").change(function() {
-            var platafromaId = $(this).val();
+            var plataformaId = $(this).val();
+
+            if (plataformaId == 4) {
+                $("#divRed").show();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'get-red' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id': plataformaId
+                    },
+                    success: function(data) {
+                        console.log(data.datos);
+                        let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                        data.datos.forEach(function(data) {
+                            html_data += `<option value="${data[0]}">${data[1]}</option>`
+                        });
+                        $("#id_red").html(html_data);
+                        $("#id_red").selectpicker("refresh");
+                    }
+                });
+            } else {
+                $("#divRed").hide();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'get-dispositivo' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id': plataformaId
+                    },
+                    success: function(data) {
+                        console.log(data.datos);
+                        let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                        data.datos.forEach(function(data) {
+                            html_data += `<option value="${data[0]}">${data[1]}</option>`
+                        });
+                        $("#id_dispositivo").html(html_data);
+                        $("#id_dispositivo").selectpicker("refresh");
+                    }
+                });
+            }
+
+        });
+
+        $("#id_red").change(function() {
+            var plataformaId = $('#id_plataforma').val();
+            var redId = $('#id_red').val();
 
             $.ajax({
                 type: "POST",
                 url: "{% url 'get-dispositivo' %}",
                 data: {
                     'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'id': platafromaId
+                    'id': plataformaId,
+                    'id_red': redId
                 },
                 success: function(data) {
                     console.log(data.datos);
@@ -334,9 +383,10 @@
         });
 
         $("#form_btn").click(function() {
-            var dispositivoId = $('#id_plataforma').val();
-            var platafromaId = $('#id_dispositivo').val();
+            var dispositivoId = $('#id_dispositivo').val();
+            var plataformaId = $('#id_plataforma').val();
             var sensorId = $('#id_sensor').val();
+            var redId = $('#id_red').val();
             var dateIni = $('#dateIni').val();
             var dateFin = $('#dateFin').val();
             var todoSensor = $('#todoSensor').is(':checked');
@@ -346,8 +396,9 @@
                 data: {
                     'csrfmiddlewaretoken': '{{ csrf_token }}',
                     'id_dispositivo': dispositivoId,
-                    'id_plataforma': platafromaId,
+                    'id_plataforma': plataformaId,
                     'id_sensor': sensorId,
+                    'id_red': redId,
                     'dateIni': dateIni,
                     'dateFin': dateFin,
                     'todoSensor': todoSensor
@@ -379,13 +430,14 @@
         $("#excel_btn").click(function() {
             general.showNotificationOwn('top', 'right', 'success', 'Excel', 'Generando', 'tim-icons icon-cloud-download-93')
             var dispositivoId = $('#id_plataforma').val();
-            var platafromaId = $('#id_dispositivo').val();
+            var plataformaId = $('#id_dispositivo').val();
             var sensorId = $('#id_sensor').val();
+            var redId = $('#id_red').val();
             var dateIni = $('#dateIni').val();
             var dateFin = $('#dateFin').val();
             var todoSensor = $('#todoSensor').is(':checked');
 
-            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + platafromaId + '&id_sensor=' + sensorId + '&dateIni=' + dateIni + '&dateFin=' + dateFin + '&todoSensor=' + todoSensor;
+            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + plataformaId + '&id_sensor=' + sensorId + '&id_red=' + redId + '&dateIni=' + dateIni + '&dateFin=' + dateFin + '&todoSensor=' + todoSensor;
             xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 var a, today;

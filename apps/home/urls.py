@@ -12,6 +12,7 @@ urlpatterns = [
     path('', views.index, name='home'),
 
     path('get-dispositivo',views.getDispositivos, name='get-dispositivo'),
+    path('get-red',views.getRedes, name='get-red'),
     path('get-sensors',views.getSensors, name='get-sensors'),
     path('process-form',views.processForm, name='process-form'),
     path('download-excel',views.downloadExcel, name='download-excel'),

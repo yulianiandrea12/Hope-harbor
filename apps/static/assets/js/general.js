@@ -223,7 +223,7 @@ general = {
         opposite = false;
         data.forEach(dato => {
             tipo = 'spline';
-            if (sensores.at(i).localeCompare("precipitación") === 0 || sensores.at(i).localeCompare("Precipitación") === 0) {
+            if (sensores.at(i).localeCompare("precipitación") === 0 || sensores.at(i).localeCompare("Precipitación") === 0 || sensores.at(i).localeCompare("precipitacion") === 0) {
                 tipo = 'column';
             }
             var serie = {

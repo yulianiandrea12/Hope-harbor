@@ -8,11 +8,11 @@ def readJson(filename):
         return json.load(fp)
 
 def getPlataformas():
-
     plataformas = [('0', 'Seleccione')]  
     plataformas.append(('1', 'Dispositivos Automatización ')) 
     plataformas.append(('2', 'Red Inalámbrica Sensores'))
     plataformas.append(('3', 'Estaciones Davis Instruments'))
+    plataformas.append(('4', 'Estaciones Visualiti'))
 
     return plataformas
 
