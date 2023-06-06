@@ -153,6 +153,7 @@ def getSensors(request):
                                     ' WHERE vh.estacionVisualiti_id =  ' + dispositivo + '' +
                                     ' GROUP BY t.value, vhd.nameSensor ' +
                                     ' ORDER by valuee '))
+        datos.append(("999", "Todas las variables"))
     for row in result:
         datos.append((row[0], row[1]))
 
