@@ -67,9 +67,12 @@ def getRedes(request):
     elif plataforma == '3':
         result = conn.execute(text('SELECT 0, 0 '))
     elif plataforma == '4':
+        where = ''
+        if request.session['cliente_id'] != '6':
+            where = ' AND rv.cliente_id = ' + request.session['cliente_id']
         result = conn.execute(text('SELECT rv.redVisualiti_id, rv.nombre ' +
                                     ' FROM RedVisualiti rv ' +
-                                    ' WHERE rv.estado = \'1\' AND rv.cliente_id = ' + request.session['cliente_id'] + ''))
+                                    ' WHERE rv.estado = \'1\'' + where))
     for row in result:
         datos.append((row[0], row[1]))
 
@@ -83,21 +86,30 @@ def getDispositivos(request):
     if plataforma == '0':
         return JsonResponse({'datos': datos})
     elif plataforma == '1':
+        where = ''
+        if request.session['cliente_id'] != '6':
+            where = ' AND ex.cliente_id = ' + request.session['cliente_id']
         result = conn.execute(text('SELECT ed.deviceid, ed.name ' +
                                     ' FROM ewl_device ed  ' +
                                     ' INNER JOIN estacion_xcliente ex ON ex.estacion = ed.deviceid  ' +
-                                    ' WHERE ex.origen = \'3\' AND ex.cliente_id = ' + request.session['cliente_id'] + ' '))
+                                    ' WHERE ex.origen = \'3\'' + where))
     elif plataforma == '2':
+        where = ''
+        if request.session['cliente_id'] != '6':
+            where = ' AND ex.cliente_id = ' + request.session['cliente_id']
         result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
                                     ' FROM TtnData td ' +
                                     ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
-                                    ' WHERE ex.origen = \'1\' AND ex.cliente_id = ' + request.session['cliente_id'] + ' ' +
+                                    ' WHERE ex.origen = \'1\'' + where + ' ' +
                                     ' GROUP BY td.dev_eui, ex.nombre'))
     elif plataforma == '3':
+        where = ''
+        if request.session['cliente_id'] != '6':
+            where = ' AND ex.cliente_id = ' + request.session['cliente_id']
         result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
                                     ' FROM wl_stations ws '+
                                     ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
-                                                    ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\' AND ex.cliente_id = ' + request.session['cliente_id'] + ')'))
+                                                    ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\'' + where + ')'))
     elif plataforma == '4':
         red = request.POST.get('id_red')
         result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
@@ -155,7 +167,7 @@ def getSensors(request):
                                     ' ORDER by valuee '))
         datos.append(("999", "Todas las variables"))
     for row in result:
-        datos.append((row[0], row[1]))
+        datos.append((row[0], row[1].title()))
 
     return JsonResponse({'datos': datos})
 
@@ -371,17 +383,22 @@ def processForm(request):
             iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
             endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
             result = conn.execute(text('SELECT ' +
-                                            ' CONCAT(DATE(FROM_UNIXTIME(vh.createdAt)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(vh.createdAt)))) AS hora,' +
+                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
                                             ' case when t.value is not null then  t.value  ' +
                                             ' else vhd.nameSensor end as valuee, ' +
-                                            ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                            ' case when vhd.nameSensor LIKE \'volFluido\' then' +
+                                                ' CAST(SUM(vhd.info) AS DECIMAL(10,2))' +
+                                            ' ELSE' +
+                                                ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) ' +
+                                            ' END AS value, '
                                             ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
                                         ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
                                             ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(vh.createdAt)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(vh.createdAt)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad'))
+                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER by vh.createdAt ASC '))
 
         first = True
         for row in result:
@@ -434,7 +451,6 @@ def processForm(request):
                     horizontalDatos.append(horizontal)
                     
     return JsonResponse({'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores})
-
 
 @login_required(login_url="/login/")
 def downloadExcel(request):
@@ -669,17 +685,22 @@ def downloadExcel(request):
             iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
             endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
             result = conn.execute(text('SELECT ' +
-                                            ' CONCAT(DATE(FROM_UNIXTIME(vh.createdAt)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(vh.createdAt)))) AS hora,' +
+                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
                                             ' case when t.value is not null then  t.value  ' +
                                             ' else vhd.nameSensor end as valuee, ' +
-                                            ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                            ' case when vhd.nameSensor LIKE \'volFluido\' then' +
+                                                ' CAST(SUM(vhd.info) AS DECIMAL(10,2))' +
+                                            ' ELSE' +
+                                                ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) ' +
+                                            ' END AS value, '
                                             ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
                                         ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
                                             ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(vh.createdAt)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(vh.createdAt)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad'))
+                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER by vh.createdAt ASC '))
 
         # Sheet body, remaining rows
         font_style = xlwt.XFStyle()

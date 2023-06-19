@@ -10,9 +10,9 @@ def readJson(filename):
 def getPlataformas():
     plataformas = [('0', 'Seleccione')]  
     plataformas.append(('1', 'Dispositivos Automatización ')) 
-    plataformas.append(('2', 'Red Inalámbrica Sensores'))
+    plataformas.append(('2', 'Redes Inalámbricas Sensores'))
     plataformas.append(('3', 'Estaciones Davis Instruments'))
-    plataformas.append(('4', 'Red Inalámbrica de Sensores Visualiti'))
+    plataformas.append(('4', 'Redes Inalámbricas de Sensores Visualiti'))
 
     return plataformas
 
