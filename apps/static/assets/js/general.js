@@ -213,7 +213,7 @@ general = {
 
 
     },
-    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '', tipo = 'spline') {
+    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '', tipo = 'spline', plotBand = null) {
         function toNumber(value) {
             return Number(value);
         }
@@ -256,6 +256,7 @@ general = {
                         color: Highcharts.getOptions().colors[i]
                     }
                 },
+                plotBands: plotBand,
                 opposite: opposite
 
             };

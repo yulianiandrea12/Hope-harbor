@@ -73,7 +73,7 @@
 
             // auto refresh page after 1 second
 
-            //setInterval('refreshPage()', 601000);
+            setInterval('refreshPage()', 601000);
 
         }
 
@@ -86,7 +86,7 @@
 
                 success: function(data) {
 
-                    window.location = "."
+                    window.location = window.location.pathname
 
                     // $('#console').html(data);
 

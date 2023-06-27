@@ -1101,6 +1101,53 @@ def createInforme(request):
                 grafica = {'nombre': 'Humedad del suelo - Acumulado de los ultimos tres días', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
+        elif dato['informeId'] == '10':
+            
+            dateIni = datetime.strptime((dato['fecha'].split(' - ')[0]), '%d/%m/%Y')
+            dateIni = dateIni.strftime("%Y-%m-%d")
+
+            dateFin = datetime.strptime((dato['fecha'].split(' - ')[1]), '%d/%m/%Y')
+            dateFin = dateFin.strftime("%Y-%m-%d")
+
+            plotBand = [{'from': 0, 'to': dato['cc'], 'color': 'rgba(255, 0, 0, 0.2)', 'label': {'text': 'Punto de Marchitez', 'style': {'color': '#000000'}}}, {'from': dato['cc'], 'to': dato['pmp'], 'color': 'rgba(0, 150, 50, 0.2)', 'label': {'text': 'Capacidad de campo', 'style': {'color': '#000000'}}}]
+            if plataforma == '4':
+                iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+                endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+                result = conn.execute(text('SELECT ' +
+                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
+                                            ' case when t.value is not null then  t.value  ' +
+                                            ' else vhd.nameSensor end as valuee, ' +
+                                            ' CAST(AVG(vhd.info) AS DECIMAL(10,2))  value, ' +
+                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Humedad del suelo\''  + 
+                                            ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
+                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER by vh.createdAt ASC '))
+
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]) + ':00')
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Humedad del suelo - Por periodo de Fechas','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores, 'plotBand': plotBand}
+                graficos.append(grafica)
+
         elif dato['informeId'] == '11':
             
             dateIni = datetime.strptime((dato['fecha'].split(' - ')[0]), '%d/%m/%Y')

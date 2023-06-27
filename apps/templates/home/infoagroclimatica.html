@@ -342,7 +342,6 @@
                     '}); </' +
                     'script>';
                 break;
-            case "10":
             case "11":
             case "17":
             case "20":
@@ -368,6 +367,44 @@
                     'general.rangeDatePicker("fecDiv' + contDiv + '", "fecha' + contDiv + '", true); </' +
                     'script>';
                 break;
+            case "10":
+                html = '<div class="row">' +
+                    '<div class="col-lg-4">' +
+                    '<div class="mb-4">' +
+                    '<div class="form-group">' +
+                    '<label>Seleccione Fecha</label>' +
+                    '<div class="input-group" id="fecDiv' + contDiv + '">' +
+                    '<span class="input-group-btn">' +
+                    '<button class="btn btn-default" type="button">' +
+                    '<i class="fa fa-calendar"></i>' +
+                    '</button>' +
+                    '</span>' +
+                    '<input id="fecha' + contDiv + '" type="text" class="form-control" data-style="btn-success">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="col-lg-4">' +
+                    '<div class="mb-4">' +
+                    '<div class="form-group">' +
+                    '<label>CC</label>' +
+                    '<input id="cc' + contDiv + '" type="number" value="10" min="0" class="form-control" data-style="btn-success">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="col-lg-4">' +
+                    '<div class="mb-4">' +
+                    '<div class="form-group">' +
+                    '<label>PMP</label>' +
+                    '<input id="pmp' + contDiv + '" type="number" value="40" min="0" class="form-control" data-style="btn-success">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<script>' +
+                    'general.rangeDatePicker("fecDiv' + contDiv + '", "fecha' + contDiv + '", true); </' +
+                    'script>';
+                break;
         }
 
         $('#frmAdd' + contDiv).html(html);
@@ -379,6 +416,8 @@
         resp['dispositivoId'] = $('#id_dispositivo').val();
         resp['informeId'] = $('#id_informe').val();
         resp['fecha'] = $('#fecha').val();
+        resp['cc'] = $('#cc').val();
+        resp['pmp'] = $('#pmp').val();
         arrResp.push(resp);
 
         $("[id*='hdTxtCont']").each(function() {
@@ -386,6 +425,8 @@
             resp['dispositivoId'] = $('#id_dispositivo' + $(this).val()).val();
             resp['informeId'] = $('#id_informe' + $(this).val()).val();
             resp['fecha'] = $('#fecha' + $(this).val()).val();
+            resp['cc'] = $('#cc' + $(this).val()).val();
+            resp['pmp'] = $('#pmp' + $(this).val()).val();
             arrResp.push(resp);
         });
         return arrResp;
@@ -484,7 +525,7 @@
                                 '</div>' +
                                 '</div>';
                             $('.graficas').append(html);
-                            general.initMultipleAxesHighCharts('chart-grafica' + i, grafica.vertical, grafica.horizontal, grafica.medidas, grafica.sensores, ('Grafico de ' + grafica.nombre), null, grafica.tipo);
+                            general.initMultipleAxesHighCharts('chart-grafica' + i, grafica.vertical, grafica.horizontal, grafica.medidas, grafica.sensores, ('Grafico de ' + grafica.nombre), null, grafica.tipo, grafica.plotBand);
 
                             i = i + 1;
 
