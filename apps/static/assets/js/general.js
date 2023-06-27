@@ -213,7 +213,7 @@ general = {
 
 
     },
-    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '') {
+    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '', tipo = 'spline') {
         function toNumber(value) {
             return Number(value);
         }
@@ -222,7 +222,6 @@ general = {
         i = 0;
         opposite = false;
         data.forEach(dato => {
-            tipo = 'spline';
             if (sensores.at(i).localeCompare("precipitación") === 0 || sensores.at(i).localeCompare("Precipitación") === 0 || sensores.at(i).localeCompare("precipitacion") === 0) {
                 tipo = 'column';
             }
@@ -345,6 +344,34 @@ general = {
             }
         });
 
+    },
+    rangeDatePicker(div, input, maxToday = false) {
+        var date = new Date();
+        var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        var maxDate = (maxToday) ? (date.getMonth() + 1) + "/" + (date.getDate() - 1) + "/" + date.getFullYear() : '01/01/3000';
+
+        $('#' + div).daterangepicker({
+            format: 'DD/MM/YYYY',
+            startDate: firstDay,
+            endDate: lastDay,
+            minDate: '01/01/2015',
+            maxDate: maxDate,
+            showDropdowns: true,
+            timePicker: false,
+            buttonClasses: ['btn', 'btn-sm'],
+            applyClass: 'btn-success btn-outline btn-sm',
+            cancelClass: 'btn-warning btn-outline btn-sm',
+            locale: {
+                applyLabel: 'Aceptar',
+                cancelLabel: 'Cancelar',
+                daysOfWeek: ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa'],
+                monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                firstDay: 1
+            }
+        }, function(start, end, label) {
+            $('#' + input).val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
+        });
     }
 
 };

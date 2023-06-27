@@ -16,7 +16,7 @@ def getPlataformas():
 
     return plataformas
 
-class AddressForm(forms.ModelForm):
+class PlataformasForm(forms.ModelForm):
     platafromas = forms.ChoiceField(
                     choices = getPlataformas(),
                     required = False, label='Plataforma',
