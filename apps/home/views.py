@@ -955,6 +955,213 @@ def createInforme(request):
                 grafica = {'nombre': 'Precipitación - Anual','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
+        elif dato['informeId'] == '2':
+            date = dato['fecha']
+
+            if plataforma == '2':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Precipitación - Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+
+            elif plataforma == '4':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Precipitación - Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+
+        elif dato['informeId'] == '3':
+
+            if plataforma == '2':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Precipitación - Acomulado de hoy ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+
+            elif plataforma == '4':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Precipitación - Acomulado de hoy ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+
+        elif dato['informeId'] == '4':
+
+            if plataforma == '2':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY)' + 
+                                            'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Precipitación -  Acomulado Ultimos tres días ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+
+            elif plataforma == '4':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY)' + 
+                                            'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': 'Precipitación -  Acomulado Ultimos tres días ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+
         elif dato['informeId'] == '5':
             
             if plataforma == '4':
