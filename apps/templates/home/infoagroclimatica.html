@@ -414,6 +414,7 @@
         var arrResp = [];
         var resp = {};
         resp['dispositivoId'] = $('#id_dispositivo').val();
+        resp['dispositivoName'] = $('#id_dispositivo option:selected').text();
         resp['informeId'] = $('#id_informe').val();
         resp['fecha'] = $('#fecha').val();
         resp['cc'] = $('#cc').val();
@@ -423,6 +424,7 @@
         $("[id*='hdTxtCont']").each(function() {
             var resp = {};
             resp['dispositivoId'] = $('#id_dispositivo' + $(this).val()).val();
+            resp['dispositivoName'] = $('#id_dispositivo' + $(this).val() + ' option:selected').text();
             resp['informeId'] = $('#id_informe' + $(this).val()).val();
             resp['fecha'] = $('#fecha' + $(this).val()).val();
             resp['cc'] = $('#cc' + $(this).val()).val();
@@ -615,8 +617,8 @@
 
                 var pageCount = doc.internal.getNumberOfPages();
                 doc.deletePage(pageCount)
-
-                doc.save('TestChart.pdf');
+                var today = new Date();
+                doc.save('Ingroagroclimatica_' + today.toDateString().split(" ").join("_") + '.pdf');
             }, 1000);
 
         });
