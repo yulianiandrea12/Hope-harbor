@@ -557,8 +557,12 @@
             var DOMURL = window.URL || window.webkitURL || window;
             var elements = idsCharts;
 
+            var today = new Date().toLocaleDateString('en-GB');
+            var text = 'Informe Agroclimatico ' + today;
+            var xOffset = (doc.internal.pageSize.width / 2) - (doc.getStringUnitWidth(text) * doc.internal.getFontSize() / 2);
+            doc.text(text, xOffset, 20, );
+
             // console.log(xx);
-            var first = true;
             for (let i in elements) {
 
 
@@ -595,20 +599,33 @@
                         dataUrl = canvas.toDataURL('image/jpeg');
                     }
 
-                    if (first) {
-                        first = false;
+                    if (elements.length == 1) {
                         doc.addImage(dataUrl, 'JPEG', 20, 50, 550, 300);
-                        if (elements.length == 1) {
+                        doc.addPage();
+                    } else {
+
+                        if ((parseInt(i) + 1) % 2 == 0) {
+                            doc.addImage(dataUrl, 'JPEG', 20, 400, 550, 300);
+                        } else {
+                            doc.addImage(dataUrl, 'JPEG', 20, 50, 550, 300);
+                        }
+
+                        if ((parseInt(i) + 1) == elements.length || ((parseInt(i) + 1) % 2 == 0)) {
                             doc.addPage();
                         }
 
-                    } else {
-                        first = true;
-                        doc.addImage(dataUrl, 'JPEG', 20, 400, 550, 300);
-
-                        doc.addPage();
-
                     }
+
+                    // if (elements.length == 1 || !(i % 2 == 0)) {
+                    //     doc.addImage(dataUrl, 'JPEG', 20, 50, 550, 300);
+                    //     if (elements.length == 1) {
+                    //         doc.addPage();
+                    //     }
+
+                    // } else {
+                    //     doc.addImage(dataUrl, 'JPEG', 20, 400, 550, 300);
+                    //     doc.addPage();
+                    // }
                 };
 
             }
@@ -617,8 +634,7 @@
 
                 var pageCount = doc.internal.getNumberOfPages();
                 doc.deletePage(pageCount)
-                var today = new Date();
-                doc.save('Ingroagroclimatica_' + today.toDateString().split(" ").join("_") + '.pdf');
+                doc.save('Ingroagroclimatica_' + today + '.pdf');
             }, 1000);
 
         });

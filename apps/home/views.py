@@ -773,6 +773,7 @@ def getTipoInformes(request):
     elif plataforma == '1':
         sensors.append("Humedad y temperatura")
     elif plataforma == '2':
+        sensors.append("Precipitación")
         result = conn.execute(text('SELECT tds.name_sensor,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee' +
@@ -780,7 +781,7 @@ def getTipoInformes(request):
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' ' + 
-                                        ' AND t.value in (\'Precipitación\', \'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\')' + 
+                                        ' AND t.value in (\'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\')' + 
                                     ' GROUP BY t.value, tds.name_sensor' +
                                     ' ORDER by valuee '))
     elif plataforma == '3':
@@ -890,16 +891,19 @@ def createInforme(request):
             date = dato['fecha']
 
             if plataforma == '2':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') = ' + '\'' + date + '\' '))
+                result = conn.execute(text('SELECT DATE_FORMAT(vw.hora, \'%Y\') AS time, vw.valuee, SUM(vw.value) value, medida FROM ' +
+                                                '(SELECT ' +
+                                                    ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
+                                                    ' case when t.value is not null then  t.value  ' +
+                                                    ' else tds.name_sensor end as valuee,' +
+                                                    ' SUM(tds.precipitacion) value,' +
+                                                    ' \'Milimetros(mm)\' medida' +
+                                                ' FROM TtnData td ' +
+                                                ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                                ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                                ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
+                                                ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
+                                            ' WHERE DATE_FORMAT(vw.hora, \'%Y\') = \'' + date + '\''))
                                             
                 horizontal  = []
                 first = True
@@ -959,16 +963,19 @@ def createInforme(request):
             date = dato['fecha']
 
             if plataforma == '2':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+                result = conn.execute(text('SELECT DATE_FORMAT(vw.hora, \'%m-%Y\') AS time, vw.valuee, SUM(vw.value) value, medida FROM ' +
+                                                '(SELECT ' +
+                                                    ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
+                                                    ' case when t.value is not null then  t.value  ' +
+                                                    ' else tds.name_sensor end as valuee,' +
+                                                    ' SUM(tds.precipitacion) value,' +
+                                                    ' \'Milimetros(mm)\' medida' +
+                                                ' FROM TtnData td ' +
+                                                ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                                ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                                ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
+                                                ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
+                                            ' WHERE DATE_FORMAT(vw.hora, \'%m-%Y\') = \'' + date + '\''))
                                             
                 horizontal  = []
                 first = True
@@ -1027,16 +1034,19 @@ def createInforme(request):
         elif dato['informeId'] == '3':
 
             if plataforma == '2':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
+                result = conn.execute(text('SELECT vw.hora AS time, vw.valuee, SUM(vw.value) value, medida FROM ' +
+                                                '(SELECT ' +
+                                                    ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
+                                                    ' case when t.value is not null then  t.value  ' +
+                                                    ' else tds.name_sensor end as valuee,' +
+                                                    ' SUM(tds.precipitacion) value,' +
+                                                    ' \'Milimetros(mm)\' medida' +
+                                                ' FROM TtnData td ' +
+                                                ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                                ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                                ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
+                                                ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
+                                            ' WHERE vw.hora = DATE(NOW())'))
                                             
                 horizontal  = []
                 first = True
@@ -1095,17 +1105,20 @@ def createInforme(request):
         elif dato['informeId'] == '4':
 
             if plataforma == '2':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY)' + 
-                                            'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
+                result = conn.execute(text('SELECT vw.hora AS time, vw.valuee, SUM(vw.value) value, medida FROM ' +
+                                                '(SELECT ' +
+                                                    ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
+                                                    ' case when t.value is not null then  t.value  ' +
+                                                    ' else tds.name_sensor end as valuee,' +
+                                                    ' SUM(tds.precipitacion) value,' +
+                                                    ' \'Milimetros(mm)\' medida' +
+                                                ' FROM TtnData td ' +
+                                                ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                                ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                                ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
+                                                ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
+                                            ' WHERE vw.hora > DATE(NOW() -INTERVAL 3 DAY)' + 
+                                            ' GROUP BY vw.hora'))
                                             
                 horizontal  = []
                 first = True
