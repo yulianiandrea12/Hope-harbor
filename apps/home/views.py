@@ -886,6 +886,7 @@ def createInforme(request):
         horizontalDatos = []
         medidas = []
         sensores = []
+        dato['dispositivoName'] = "estación/dispositivo/equipo: " + dato['dispositivoName']
 
         if dato['informeId'] == '1':
             date = dato['fecha']
@@ -1183,7 +1184,7 @@ def createInforme(request):
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
                                                 'CAST(vhd.info AS DECIMAL(10,2)) value,' +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida, ' +
-                                                'MAX(vh.visualitiHistoric_id) maximo'
+                                                'MAX(vh.visualitiHistoric_id) maximo '
                                                 'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
                                             'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
@@ -1433,7 +1434,7 @@ def createInforme(request):
                         if row[3] == None:
                             medidas.append('')
                         else:
-                            medidas.append(row[3])
+                            medidas.append("Porcentaje(%)")
                         # if ((row[1] not in sensores)):
                         sensores.append(row[1])
                         first = False
@@ -1443,6 +1444,7 @@ def createInforme(request):
                 graficos.append(grafica)
 
         elif dato['informeId'] == '12' or dato['informeId'] == '15' or dato['informeId'] == '16':
+
             if plataforma == '1':
                 if dato['informeId'] == '12':
                     function = 'AVG'
@@ -1504,7 +1506,7 @@ def createInforme(request):
                         if row[3] == None:
                             medidas.append('')
                         else:
-                            medidas.append(row[3])
+                            medidas.append("Porcentaje(%)")
                         # if ((row[1] not in sensores)):
                         sensores.append(row[1])
                         first = False
@@ -1513,7 +1515,8 @@ def createInforme(request):
                 grafica = {'nombre': 'Humedad y temperatura - Por periodo de Fechas ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
-        elif dato['informeId'] == '13' or dato['informeId'] == '14':            
+        elif dato['informeId'] == '13' or dato['informeId'] == '14':
+            
             date = dato['fecha']
             if dato['informeId'] == '13':
                 function = 'MAX'
@@ -1571,7 +1574,7 @@ def createInforme(request):
                         if row[3] == None:
                             medidas.append('')
                         else:
-                            medidas.append(row[3])
+                            medidas.append("Porcentaje(%)")
                         # if ((row[1] not in sensores)):
                         sensores.append(row[1])
                         first = False
