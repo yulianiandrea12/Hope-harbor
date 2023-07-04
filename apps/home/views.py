@@ -831,32 +831,32 @@ def getTipoInformes(request):
             datos.append((3, (sensor + ' - Acumulado del día de hoy')))
             datos.append((4, (sensor + ' - Acumulado ultimos tres dias')))
         elif sensor == 'Humedad del suelo':
-            datos.append((5, (sensor + ' - Medición Actual')))
+            datos.append((5, (sensor + ' - Medición actual')))
             datos.append((6, (sensor + ' - Promedio del día de hoy')))
             datos.append((7, (sensor + ' - Maximo del mes')))
             datos.append((8, (sensor + ' - Minimo del mes')))
-            datos.append((9, (sensor + ' - Ultimos tres dias')))
+            datos.append((9, (sensor + ' - Promedio ultimos tres dias')))
             datos.append((10, (sensor + ' - CC y PMP')))
         elif sensor == 'Humedad y temperatura':
-            datos.append((11, (sensor + ' - Por periodo de Fechas')))
+            datos.append((11, (sensor + ' - Por periodo de fechas')))
             datos.append((12, (sensor + ' - Promedio del día de hoy')))
             datos.append((13, (sensor + ' - Maximo del mes')))
             datos.append((14, (sensor + ' - Minimo del mes')))
             datos.append((15, (sensor + ' - Maximo de ayer')))
             datos.append((16, (sensor + ' - Minimo de ayer')))
         elif sensor == 'Radiación solar':
-            datos.append((17, (sensor + ' - Por periodo de Fechas')))
+            datos.append((17, (sensor + ' - Por periodo de fechas')))
             datos.append((18, (sensor + ' - Acumulado ultimos tres días')))
             datos.append((19, (sensor + ' - Acumulado del día de hoy')))
         elif sensor == 'Distancia':
-            datos.append((20, ('Nivel/altura de lámina de agua - Por periodo de Fechas')))
-            datos.append((21, ('Nivel/altura de lámina de agua - Promedio del día')))
+            datos.append((20, ('Nivel/altura de lámina de agua - Por periodo de fechas')))
+            datos.append((21, ('Nivel/altura de lámina de agua - Promedio del día de hoy')))
             datos.append((22, ('Nivel/altura de lámina de agua - Maximo del mes')))
             datos.append((23, ('Nivel/altura de lámina de agua - Minimo del mes')))
             datos.append((24, ('Nivel/altura de lámina de agua - Maximo de ayer')))
             datos.append((25, ('Nivel/altura de lámina de agua - Minimo de ayer')))
         elif sensor == 'Volumen de agua':
-            datos.append((26, (sensor + ' - Por periodo de Fechas')))
+            datos.append((26, (sensor + ' - Por periodo de fechas')))
             datos.append((27, (sensor + ' - Promedio del día de hoy')))
             datos.append((28, (sensor + ' - Maximo del mes')))
             datos.append((29, (sensor + ' - Minimo del mes')))
@@ -879,14 +879,16 @@ def createInforme(request):
     sensor = ''
     where = ''
     groupBy = ''
+    result = []
     graficos = []
+
     for dato in datos:
         dispositivo = dato['dispositivoId']
         verticalHoras = []
         horizontalDatos = []
         medidas = []
         sensores = []
-        dato['dispositivoName'] = "estación/dispositivo/equipo: " + dato['dispositivoName']
+        dato['dispositivoName'] = ",estación:: " + dato['dispositivoName']
 
         if dato['informeId'] == '1':
             date = dato['fecha']
@@ -905,27 +907,6 @@ def createInforme(request):
                                                 ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
                                                 ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
                                             ' WHERE DATE_FORMAT(vw.hora, \'%Y\') = \'' + date + '\''))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Anual ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '3':
                 result = conn.execute(text('SELECT ' +
@@ -940,27 +921,6 @@ def createInforme(request):
                                             ' LEFT JOIN translates t on t.name = wdh.name ' +
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'rainfall_mm\''  + 
                                                 'AND DATE_FORMAT(FROM_UNIXTIME(wh.ts), \'%Y\') = ' + '\'' + date + '\' '))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Anual','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '4':
                 result = conn.execute(text('SELECT ' +
@@ -974,26 +934,26 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
                                                 'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') = ' + '\'' + date + '\' '))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Precipitación - Anual','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + date,'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '2':
             date = dato['fecha']
@@ -1012,27 +972,6 @@ def createInforme(request):
                                                 ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
                                                 ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
                                             ' WHERE DATE_FORMAT(vw.hora, \'%m-%Y\') = \'' + date + '\''))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '3':
                 result = conn.execute(text('SELECT ' +
@@ -1047,27 +986,6 @@ def createInforme(request):
                                             ' LEFT JOIN translates t on t.name = wdh.name ' +
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'rainfall_mm\''  + 
                                                 'AND DATE_FORMAT(FROM_UNIXTIME(wh.ts), \'%m-%Y\') = ' + '\'' + date + '\' '))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '4':
                 result = conn.execute(text('SELECT ' +
@@ -1081,26 +999,26 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
                                                 'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Precipitación - Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '3':
 
@@ -1118,27 +1036,6 @@ def createInforme(request):
                                                 ' WHERE td.dev_eui = \'' + dispositivo + '\' AND tds.name_sensor like \'Count\''  + 
                                                 ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
                                             ' WHERE vw.hora = DATE(NOW())'))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Acomulado de hoy ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '3':
                 result = conn.execute(text('SELECT ' +
@@ -1154,27 +1051,6 @@ def createInforme(request):
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'rainfall_mm\''  + 
                                                 'AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(NOW()) ' +
                                                 'GROUP BY DATE(FROM_UNIXTIME(wh.ts))'))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Acumulado de hoy ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '4':
                 result = conn.execute(text('SELECT ' +
@@ -1188,26 +1064,26 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Precipitación - Acomulado de hoy ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '4':
 
@@ -1226,27 +1102,6 @@ def createInforme(request):
                                                 ' GROUP BY DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad) vw ' + 
                                             ' WHERE vw.hora > DATE(NOW() -INTERVAL 3 DAY)' + 
                                             ' GROUP BY vw.hora'))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Acumulado de los ultimos tres días ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '3':
                 result = conn.execute(text('SELECT ' +
@@ -1262,27 +1117,6 @@ def createInforme(request):
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'rainfall_mm\''  + 
                                                 'AND DATE(FROM_UNIXTIME(wh.ts)) > DATE(NOW() -INTERVAL 3 DAY) ' +
                                                 'GROUP BY DATE(FROM_UNIXTIME(wh.ts))'))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Precipitación - Acumulado de los ultimos tres días ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
 
             elif plataforma == '4':
                 result = conn.execute(text('SELECT ' +
@@ -1297,26 +1131,26 @@ def createInforme(request):
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY)' + 
                                             'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Precipitación -  Acumulado de los ultimos tres días ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '5':
             
@@ -1333,26 +1167,26 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad del suelo - Ultimo registro de Hoy ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '6':
             
@@ -1368,28 +1202,29 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad del suelo - Promedio de Hoy ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '7' or dato['informeId'] == '8':
+
             date = dato['fecha']
             if dato['informeId'] == '7':
                 function = 'MAX'
@@ -1408,28 +1243,29 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
                                                 'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad del suelo - ' + function + ' Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + 'Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '9':
+
             if plataforma == '4':
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
@@ -1443,26 +1279,26 @@ def createInforme(request):
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY) ' +
                                                 'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad del suelo - Acumulado de los ultimos tres días ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '10':
             
@@ -1490,26 +1326,26 @@ def createInforme(request):
                                         ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
                                         ' ORDER by vh.createdAt ASC '))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]) + ':00')
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]) + ':00')
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad del suelo - Por periodo de Fechas ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores, 'plotBand': plotBand}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores, 'plotBand': plotBand}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '11':
             
@@ -1582,7 +1418,7 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad y temperatura - Por periodo de Fechas ' + dateIni + ' ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
         elif dato['informeId'] == '12' or dato['informeId'] == '15' or dato['informeId'] == '16':
@@ -1654,7 +1490,7 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad y temperatura - Por periodo de Fechas ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
         elif dato['informeId'] == '13' or dato['informeId'] == '14':
@@ -1722,7 +1558,7 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Humedad y temperatura - ' + function + ' Por mes ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
         
         elif dato['informeId'] == '17':
@@ -1750,27 +1586,6 @@ def createInforme(request):
                                                 ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
                                             ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]) + ':00')
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Radiación solar - Por periodo de Fechas ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
-
             elif plataforma == '4':
                 iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
                 endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
@@ -1788,28 +1603,29 @@ def createInforme(request):
                                         ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
                                         ' ORDER by vh.createdAt ASC '))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]) + ':00')
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]) + ':00')
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Radiación solar - Por periodo de Fechas ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '18':
+
             if plataforma == '3':
                 result = conn.execute(text('SELECT ' +
                                                 ' DATE(FROM_UNIXTIME(wh.ts)) AS hora,' +
@@ -1824,29 +1640,8 @@ def createInforme(request):
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'solar_rad_avg\''  + 
                                                 'AND DATE(FROM_UNIXTIME(wh.ts)) > DATE(NOW() -INTERVAL 3 DAY) ' +
                                                 'GROUP BY DATE(FROM_UNIXTIME(wh.ts))'))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Radiación solar - Acumulado de los ultimos tres días ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
-
-            if plataforma == '4':
+            elif plataforma == '4':
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
@@ -1859,28 +1654,29 @@ def createInforme(request):
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY) ' +
                                                 'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Radiación solar - Acumulado de los ultimos tres días ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '19':
+
             if plataforma == '3':
                 result = conn.execute(text('SELECT ' +
                                                 ' DATE(FROM_UNIXTIME(wh.ts)) AS hora,' +
@@ -1894,29 +1690,8 @@ def createInforme(request):
                                             ' LEFT JOIN translates t on t.name = wdh.name ' +
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'solar_rad_avg\''  + 
                                                 'AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(NOW())'))
-                                            
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
-
-                grafica = {'nombre': 'Radiación solar - Acumulado del dia de hoy ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
                 
-            if plataforma == '4':
+            elif plataforma == '4':
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
@@ -1928,26 +1703,26 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'radiacionSolar\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Radiación solar - Acumulado del dia de hoy ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '20':
             
@@ -1973,42 +1748,40 @@ def createInforme(request):
                                             ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))), t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
                                             ' ORDER BY received_at'))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]) + ':00')
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append("Nivel/altura de lámina de agua")
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]) + ':00')
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append("Nivel/altura de lámina de agua")
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Nivel/altura de lámina de agua - Por periodo de Fechas ' + dateIni + ' - ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' - ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '21' or dato['informeId'] == '24' or dato['informeId'] == '25':
 
+            if dato['informeId'] == '21':
+                function = 'AVG'
+                where = 'DATE(NOW()) '
+            elif dato['informeId'] == '24':
+                function = 'MAX'
+                where = 'DATE(NOW() - INTERVAL 1 DAY) '
+            else:
+                function = 'MIN'
+                where = 'DATE(NOW() - INTERVAL 1 DAY) '
+
             if plataforma == '2':
-                if dato['informeId'] == '21':
-                    function = 'AVG'
-                    where = 'DATE(NOW()) '
-                    tiempo = 'Promedio de Hoy'
-                elif dato['informeId'] == '24':
-                    function = 'MAX'
-                    where = 'DATE(NOW() - INTERVAL 1 DAY) '
-                    tiempo = 'Max de Ayer'
-                else:
-                    function = 'MIN'
-                    where = 'DATE(NOW() - INTERVAL 1 DAY) '
-                    tiempo = 'Min de Ayer'
 
                 result = conn.execute(text('SELECT  ' +
                                                 ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
@@ -2022,28 +1795,29 @@ def createInforme(request):
                                             ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) = ' + where + ' ' +
                                             ' AND t.value like \'Distancia\''))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]) + ':00')
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append("Nivel/altura de lámina de agua")
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]) + ':00')
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append("Nivel/altura de lámina de agua")
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Nivel/altura de lámina de agua - ' + tiempo + ' ' + dato['dispositivoName'] + '', 'tipo': 'column','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '22' or dato['informeId'] == '23':
+
             date = dato['fecha']
             if dato['informeId'] == '22':
                 function = 'MAX'
@@ -2063,26 +1837,26 @@ def createInforme(request):
                                             ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_FORMAT(DATE_SUB(received_at, INTERVAL 5 HOUR), \'%m-%Y\') = \'' + date + '\' ' +
                                             ' AND t.value like \'Distancia\''))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append("Nivel/altura de lámina de agua")
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append("Nivel/altura de lámina de agua")
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Nivel/altura de lámina de agua - ' + function + ' Por mes ' + date + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '26':
             
@@ -2113,42 +1887,40 @@ def createInforme(request):
                                         ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
                                         ' ORDER by vh.createdAt ASC '))
 
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]) + ':00')
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]) + ':00')
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Volumen de agua - Por periodo de Fechas ' + dateIni + ' - ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' - ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
         
         elif dato['informeId'] == '27' or dato['informeId'] == '30' or dato['informeId'] == '31':
 
+            if dato['informeId'] == '27':
+                function = 'AVG'
+                where = 'DATE(NOW()) '
+            elif dato['informeId'] == '30':
+                function = 'MAX'
+                where = 'DATE(NOW() - INTERVAL 1 DAY) '
+            else:
+                function = 'MIN'
+                where = 'DATE(NOW() - INTERVAL 1 DAY) '
+
             if plataforma == '4':
-                if dato['informeId'] == '27':
-                    function = 'AVG'
-                    where = 'DATE(NOW()) '
-                    tiempo = 'Promedio de Hoy'
-                elif dato['informeId'] == '30':
-                    function = 'MAX'
-                    where = 'DATE(NOW() - INTERVAL 1 DAY) '
-                    tiempo = 'Max de Ayer'
-                else:
-                    function = 'MIN'
-                    where = 'DATE(NOW() - INTERVAL 1 DAY) '
-                    tiempo = 'Min de Ayer'
 
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
@@ -2161,28 +1933,29 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'volFluido\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = '  + where))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Volumen de agua - ' + tiempo + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
         elif dato['informeId'] == '28' or dato['informeId'] == '29':
+
             date = dato['fecha']
             if dato['informeId'] == '28':
                 function = 'MAX'
@@ -2201,26 +1974,26 @@ def createInforme(request):
                                             'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'volFluido\' ' +
                                                 'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
                                             
-                horizontal  = []
-                first = True
-                primerSensor = True
-                for row in result:
-                    if (primerSensor):
-                        verticalHoras.append(str(row[0]))
-                    horizontal.append(row[2])
-                    if first:
-                        if row[3] == None:
-                            medidas.append('')
-                        else:
-                            medidas.append(row[3])
-                        # if ((row[1] not in sensores)):
-                        sensores.append(row[1])
-                        first = False
-                primerSensor = False
-                horizontalDatos.append(horizontal)
+            horizontal  = []
+            first = True
+            primerSensor = True
+            for row in result:
+                if (primerSensor):
+                    verticalHoras.append(str(row[0]))
+                horizontal.append(row[2])
+                if first:
+                    if row[3] == None:
+                        medidas.append('')
+                    else:
+                        medidas.append(row[3])
+                    # if ((row[1] not in sensores)):
+                    sensores.append(row[1])
+                    first = False
+            primerSensor = False
+            horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': 'Volumen de agua  - ' + function + ' Por mes ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
-                graficos.append(grafica)
+            grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            graficos.append(grafica)
 
 
     return JsonResponse({'data':graficos})

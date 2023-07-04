@@ -416,6 +416,7 @@
         resp['dispositivoId'] = $('#id_dispositivo').val();
         resp['dispositivoName'] = $('#id_dispositivo option:selected').text();
         resp['informeId'] = $('#id_informe').val();
+        resp['informeName'] = $('#id_informe option:selected').text();
         resp['fecha'] = $('#fecha').val();
         resp['cc'] = $('#cc').val();
         resp['pmp'] = $('#pmp').val();
@@ -426,6 +427,7 @@
             resp['dispositivoId'] = $('#id_dispositivo' + $(this).val()).val();
             resp['dispositivoName'] = $('#id_dispositivo' + $(this).val() + ' option:selected').text();
             resp['informeId'] = $('#id_informe' + $(this).val()).val();
+            resp['informeName'] = $('#id_informe' + $(this).val() + ' option:selected').text();
             resp['fecha'] = $('#fecha' + $(this).val()).val();
             resp['cc'] = $('#cc' + $(this).val()).val();
             resp['pmp'] = $('#pmp' + $(this).val()).val();
