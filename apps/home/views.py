@@ -888,7 +888,7 @@ def createInforme(request):
         horizontalDatos = []
         medidas = []
         sensores = []
-        dato['dispositivoName'] = ",estación:: " + dato['dispositivoName']
+        dato['dispositivoName'] = ", estación: " + dato['dispositivoName']
 
         if dato['informeId'] == '1':
             date = dato['fecha']
@@ -952,7 +952,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date,'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'],'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '2':
@@ -1017,7 +1017,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '3':
@@ -1082,7 +1082,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '4':
@@ -1149,7 +1149,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '5':
@@ -1185,7 +1185,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '6':
@@ -1220,7 +1220,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '7' or dato['informeId'] == '8':
@@ -1261,7 +1261,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + 'Por mes' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + 'Por mes' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '9':
@@ -1297,7 +1297,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '10':
@@ -1344,7 +1344,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores, 'plotBand': plotBand}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores, 'plotBand': plotBand}
             graficos.append(grafica)
 
         elif dato['informeId'] == '11':
@@ -1418,7 +1418,7 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' ' + dateFin + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
         elif dato['informeId'] == '12' or dato['informeId'] == '15' or dato['informeId'] == '16':
@@ -1490,7 +1490,7 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
 
         elif dato['informeId'] == '13' or dato['informeId'] == '14':
@@ -1558,7 +1558,7 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
         
         elif dato['informeId'] == '17':
@@ -1621,7 +1621,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '18':
@@ -1672,7 +1672,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '19':
@@ -1721,7 +1721,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '20':
@@ -1766,7 +1766,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' - ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' - ' + dateFin + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '21' or dato['informeId'] == '24' or dato['informeId'] == '25':
@@ -1813,7 +1813,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '22' or dato['informeId'] == '23':
@@ -1855,7 +1855,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '26':
@@ -1905,7 +1905,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' - ' + dateFin + ' ' + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' - ' + dateFin + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
         
         elif dato['informeId'] == '27' or dato['informeId'] == '30' or dato['informeId'] == '31':
@@ -1951,7 +1951,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '28' or dato['informeId'] == '29':
@@ -1992,7 +1992,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date + ' ' + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
 
