@@ -1490,16 +1490,17 @@ def createInforme(request):
 
         elif dato['informeId'] == '12' or dato['informeId'] == '15' or dato['informeId'] == '16':
 
+            if dato['informeId'] == '12':
+                function = 'AVG'
+                where = 'DATE(NOW()) '
+            elif dato['informeId'] == '15':
+                function = 'MAX'
+                where = 'DATE(NOW() - INTERVAL 1 DAY) '
+            else:
+                function = 'MIN'
+                where = 'DATE(NOW() - INTERVAL 1 DAY) '
+
             if plataforma == '1':
-                if dato['informeId'] == '12':
-                    function = 'AVG'
-                    where = 'DATE(NOW()) '
-                elif dato['informeId'] == '15':
-                    function = 'MAX'
-                    where = 'DATE(NOW() - INTERVAL 1 DAY) '
-                else:
-                    function = 'MIN'
-                    where = 'DATE(NOW() - INTERVAL 1 DAY) '
 
                 result = conn.execute(text('SELECT ' +
                                                 ' DATE(eh.createdAt) time, ' +
