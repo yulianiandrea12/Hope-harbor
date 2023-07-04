@@ -824,22 +824,23 @@ def getTipoInformes(request):
         if row[1] not in sensors:
             sensors.append(row[1])
 
+    nowDate = datetime.now().strftime("%d-%m-%Y")
     for sensor in sensors:
         if sensor == 'Precipitación':
             datos.append((1, (sensor + ' - Acumulado anual')))
             datos.append((2, (sensor + ' - Acumulado mensual')))
-            datos.append((3, (sensor + ' - Acumulado del día de hoy')))
+            datos.append((3, (sensor + ' - Acumulado del día de hoy ' + nowDate)))
             datos.append((4, (sensor + ' - Acumulado ultimos tres dias')))
         elif sensor == 'Humedad del suelo':
             datos.append((5, (sensor + ' - Medición actual')))
-            datos.append((6, (sensor + ' - Promedio del día de hoy')))
+            datos.append((6, (sensor + ' - Promedio del día de hoy ' + nowDate)))
             datos.append((7, (sensor + ' - Maximo del mes')))
             datos.append((8, (sensor + ' - Minimo del mes')))
             datos.append((9, (sensor + ' - Promedio ultimos tres dias')))
             datos.append((10, (sensor + ' - CC y PMP')))
         elif sensor == 'Humedad y temperatura':
             datos.append((11, (sensor + ' - Por periodo de fechas')))
-            datos.append((12, (sensor + ' - Promedio del día de hoy')))
+            datos.append((12, (sensor + ' - Promedio del día de hoy ' + nowDate)))
             datos.append((13, (sensor + ' - Maximo del mes')))
             datos.append((14, (sensor + ' - Minimo del mes')))
             datos.append((15, (sensor + ' - Maximo de ayer')))
@@ -847,17 +848,17 @@ def getTipoInformes(request):
         elif sensor == 'Radiación solar':
             datos.append((17, (sensor + ' - Por periodo de fechas')))
             datos.append((18, (sensor + ' - Acumulado ultimos tres días')))
-            datos.append((19, (sensor + ' - Acumulado del día de hoy')))
+            datos.append((19, (sensor + ' - Acumulado del día de hoy ' + nowDate)))
         elif sensor == 'Distancia':
             datos.append((20, ('Nivel/altura de lámina de agua - Por periodo de fechas')))
-            datos.append((21, ('Nivel/altura de lámina de agua - Promedio del día de hoy')))
+            datos.append((21, ('Nivel/altura de lámina de agua - Promedio del día de hoy ' + nowDate)))
             datos.append((22, ('Nivel/altura de lámina de agua - Maximo del mes')))
             datos.append((23, ('Nivel/altura de lámina de agua - Minimo del mes')))
             datos.append((24, ('Nivel/altura de lámina de agua - Maximo de ayer')))
             datos.append((25, ('Nivel/altura de lámina de agua - Minimo de ayer')))
         elif sensor == 'Volumen de agua':
             datos.append((26, (sensor + ' - Por periodo de fechas')))
-            datos.append((27, (sensor + ' - Promedio del día de hoy')))
+            datos.append((27, (sensor + ' - Promedio del día de hoy ' + nowDate)))
             datos.append((28, (sensor + ' - Maximo del mes')))
             datos.append((29, (sensor + ' - Minimo del mes')))
             datos.append((30, (sensor + ' - Maximo de ayer')))
@@ -1017,7 +1018,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' de ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '3':
@@ -1261,7 +1262,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + 'Por mes' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' de ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '9':
@@ -1420,6 +1421,72 @@ def createInforme(request):
 
                 grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' ' + dateFin + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
+            
+            elif plataforma == '4':
+                iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+                endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+                result = conn.execute(text('SELECT ' +
+                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
+                                            ' case when t.value is not null then  t.value  ' +
+                                            ' else vhd.nameSensor end as valuee, ' +
+                                            ' CAST(AVG(vhd.info) AS DECIMAL(10,2))  value, ' +
+                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'temperatura\' ' +
+                                            ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
+                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER by vh.createdAt ASC '))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]) + ':00')
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+                
+                result = conn.execute(text('SELECT ' +
+                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
+                                            ' case when t.value is not null then  t.value  ' +
+                                            ' else vhd.nameSensor end as valuee, ' +
+                                            ' CAST(AVG(vhd.info) AS DECIMAL(10,2))  value, ' +
+                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedad\' ' +
+                                            ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
+                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER by vh.createdAt ASC '))
+
+                horizontal  = []
+                first = True
+                for row in result:
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append("Porcentaje(%)")
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': dato['informeName'] + ' ' + dateIni + ' ' + dateFin + dato['dispositivoName'] + '','vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
 
         elif dato['informeId'] == '12' or dato['informeId'] == '15' or dato['informeId'] == '16':
 
@@ -1475,6 +1542,65 @@ def createInforme(request):
                                             ' LEFT JOIN translates t ON t.name LIKE \'currentHumidity\' ' +
                                             ' WHERE ed.deviceid = \'' + dispositivo + '\' ' + 
                                                 ' AND DATE(eh.createdAt) = ' + where))
+
+                horizontal  = []
+                first = True
+                for row in result:
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append("Porcentaje(%)")
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': dato['informeName'] + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+            
+            elif plataforma == '4':
+
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
+                                                'CAST(' + function + '(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'temperatura\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = '  + where))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
+                                                'CAST(' + function + '(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedad\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = '  + where))
 
                 horizontal  = []
                 first = True
@@ -1558,7 +1684,65 @@ def createInforme(request):
                         first = False
                 horizontalDatos.append(horizontal)
 
-                grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                grafica = {'nombre': dato['informeName'] + ' de ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+                graficos.append(grafica)
+            
+            elif plataforma == '4':
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                ' ' + function + '(CAST((vhd.info) AS DECIMAL(10,2))) value, ' + 
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'temperatura\' ' +
+                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+                                            
+                horizontal  = []
+                first = True
+                primerSensor = True
+                for row in result:
+                    if (primerSensor):
+                        verticalHoras.append(str(row[0]))
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append(row[3])
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                primerSensor = False
+                horizontalDatos.append(horizontal)
+                
+                result = conn.execute(text('SELECT ' +
+                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                ' ' + function + '(CAST((vhd.info) AS DECIMAL(10,2))) value, ' + 
+                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                            'FROM VisualitiHistoricData vhd  ' +
+                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedad\' ' +
+                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+
+                horizontal  = []
+                first = True
+                for row in result:
+                    horizontal.append(row[2])
+                    if first:
+                        if row[3] == None:
+                            medidas.append('')
+                        else:
+                            medidas.append("Porcentaje(%)")
+                        # if ((row[1] not in sensores)):
+                        sensores.append(row[1])
+                        first = False
+                horizontalDatos.append(horizontal)
+
+                grafica = {'nombre': dato['informeName'] + ' de ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
                 graficos.append(grafica)
         
         elif dato['informeId'] == '17':
@@ -1645,7 +1829,7 @@ def createInforme(request):
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                                 'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
@@ -1695,7 +1879,7 @@ def createInforme(request):
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                                 'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
@@ -1787,7 +1971,7 @@ def createInforme(request):
                                                 ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
                                                 ' case when t.value is not null then  t.value  ' +
                                                 ' else tds.name_sensor end as valuee,' +
-                                                ' CAST(' + function + '(tds.info) AS DECIMAL(10,2)) value, ' +
+                                                ' CAST(' + function + '(CAST(tds.info AS DECIMAL(10,2))) AS DECIMAL(10,2)) value, ' +
                                                 ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                             ' FROM TtnData td ' +
                                             ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
@@ -1829,7 +2013,7 @@ def createInforme(request):
                                                 ' DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) AS hora,' +
                                                 ' case when t.value is not null then  t.value  ' +
                                                 ' else tds.name_sensor end as valuee,' +
-                                                ' CAST(' + function + '(tds.info) AS DECIMAL(10,2)) value, ' +
+                                                ' ' + function + '(CAST(tds.info AS DECIMAL(10,2))) value, ' +
                                                 ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                             ' FROM TtnData td ' +
                                             ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
@@ -1855,7 +2039,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' de ' + date + dato['dispositivoName'] + '', 'tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
         elif dato['informeId'] == '26':
@@ -1992,7 +2176,7 @@ def createInforme(request):
             primerSensor = False
             horizontalDatos.append(horizontal)
 
-            grafica = {'nombre': dato['informeName'] + ' ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
+            grafica = {'nombre': dato['informeName'] + ' de ' + date + dato['dispositivoName'] + '','tipo': 'column', 'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores}
             graficos.append(grafica)
 
 
