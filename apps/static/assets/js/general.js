@@ -241,6 +241,31 @@ general = {
             };
             varSeries.push(serie);
 
+            if (plotBand != null && plotBand.length > 0) {
+                titlePlotBand = {
+                    marker: {
+                        symbol: 'square',
+                        radius: 4
+                    },
+                    type: 'scatter',
+                    plotBandsIndex: 0,
+                    name: 'PMP (Punto de Marchitez)',
+                    color: 'rgba(255, 0, 0, 0.2)'
+                };
+                varSeries.push(titlePlotBand);
+                titlePlotBand = {
+                    marker: {
+                        symbol: 'square',
+                        radius: 4
+                    },
+                    type: 'scatter',
+                    plotBandsIndex: 1,
+                    name: 'CC (Capacidad de campo)',
+                    color: 'rgba(0, 150, 50, 0.2)'
+                };
+                varSeries.push(titlePlotBand);
+            }
+
 
             var yAxis = { // Primary yAxis
                 gridLineWidth: 0,
@@ -307,6 +332,42 @@ general = {
                 floating: true,
                 backgroundColor: Highcharts.defaultOptions.legend.backgroundColor || // theme
                     'rgba(255,255,255,0.25)'
+            },
+            plotOptions: {
+                spline: {
+                    marker: {
+                        radius: 4,
+                        lineWidth: 1
+                    }
+                },
+                series: {
+                    allowPointSelect: false,
+                    events: {
+                        legendItemClick: function() {
+                            var newPlotBands = [],
+                                yAxis = this.chart.yAxis[0],
+                                plotBandsIndex;
+
+                            if (Highcharts.isNumber(this.options.plotBandsIndex)) {
+                                this.chart.series.forEach(function(s) {
+                                    plotBandsIndex = s.options.plotBandsIndex;
+
+                                    if (this !== s && Highcharts.isNumber(plotBandsIndex)) {
+                                        if (s.visible) {
+                                            newPlotBands.push(plotBand[plotBandsIndex])
+                                        }
+                                    } else if (this === s && !s.visible) {
+                                        newPlotBands.push(plotBand[plotBandsIndex])
+                                    }
+                                }, this);
+
+                                yAxis.update({
+                                    plotBands: newPlotBands
+                                });
+                            }
+                        }
+                    }
+                }
             },
             series: varSeries,
             responsive: {

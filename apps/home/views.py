@@ -1309,7 +1309,8 @@ def createInforme(request):
             dateFin = datetime.strptime((dato['fecha'].split(' - ')[1]), '%d/%m/%Y')
             dateFin = dateFin.strftime("%Y-%m-%d")
 
-            plotBand = [{'from': 0, 'to': dato['cc'], 'color': 'rgba(255, 0, 0, 0.2)', 'label': {'text': 'Punto de Marchitez', 'style': {'color': '#000000'}}}, {'from': dato['cc'], 'to': dato['pmp'], 'color': 'rgba(0, 150, 50, 0.2)', 'label': {'text': 'Capacidad de campo', 'style': {'color': '#000000'}}}]
+            plotBand = [{'from': 0, 'to': dato['cc'], 'color': 'rgba(255, 0, 0, 0.2)', 'label': {'text': 'Déficit hídrico', 'style': {'color': '#000000'}}}, {'from': dato['cc'], 'to': dato['pmp'], 'color': 'rgba(0, 150, 50, 0.2)', 'label': {'text': 'Rango de humedad ideal', 'style': {'color': '#000000'}}}]
+
             if plataforma == '4':
                 iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
                 endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
