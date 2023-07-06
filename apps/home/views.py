@@ -773,7 +773,7 @@ def getTipoInformes(request):
     elif plataforma == '1':
         sensors.append("Humedad y temperatura")
     elif plataforma == '2':
-        sensors.append("Precipitación")
+        # sensors.append("Precipitación")
         result = conn.execute(text('SELECT tds.name_sensor,' +
                                     ' case when t.value is not null then  t.value  ' +
                                     ' else tds.name_sensor end as valuee' +
@@ -781,7 +781,7 @@ def getTipoInformes(request):
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' ' + 
-                                        ' AND t.value in (\'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\')' + 
+                                        ' AND t.value in (\'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\', \'Pluviometria/Cantidad de pulsos\')' + 
                                     ' GROUP BY t.value, tds.name_sensor' +
                                     ' ORDER by valuee '))
     elif plataforma == '3':
@@ -826,11 +826,11 @@ def getTipoInformes(request):
 
     nowDate = datetime.now().strftime("%d-%m-%Y")
     for sensor in sensors:
-        if sensor == 'Precipitación':
-            datos.append((1, (sensor + ' - Acumulado anual')))
-            datos.append((2, (sensor + ' - Acumulado mensual')))
-            datos.append((3, (sensor + ' - Acumulado del día de hoy ' + nowDate)))
-            datos.append((4, (sensor + ' - Acumulado ultimos tres dias')))
+        if sensor == 'Precipitación' or sensor == 'Pluviometria/Cantidad de pulsos':
+            datos.append((1, ('Precipitación - Acumulado anual')))
+            datos.append((2, ('Precipitación - Acumulado mensual')))
+            datos.append((3, ('Precipitación - Acumulado del día de hoy ' + nowDate)))
+            datos.append((4, ('Precipitación - Acumulado ultimos tres dias')))
         elif sensor == 'Humedad del suelo':
             datos.append((5, (sensor + ' - Medición actual')))
             datos.append((6, (sensor + ' - Promedio del día de hoy ' + nowDate)))
@@ -1817,7 +1817,7 @@ def createInforme(request):
                                                 ' DATE(FROM_UNIXTIME(wh.ts)) AS hora,' +
                                                 ' case when t.value is not null then  t.value  ' +
                                                 ' else wdh.name end as valuee, ' +
-                                                ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
+                                                ' CAST(SUM(wdh.value) AS DECIMAL(10,2)) value, ' +
                                                 ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                             ' FROM wl_sensors ws ' +
                                             ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -1831,7 +1831,7 @@ def createInforme(request):
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value,' +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                                 'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
@@ -1868,7 +1868,7 @@ def createInforme(request):
                                                 ' DATE(FROM_UNIXTIME(wh.ts)) AS hora,' +
                                                 ' case when t.value is not null then  t.value  ' +
                                                 ' else wdh.name end as valuee, ' +
-                                                ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
+                                                ' CAST(SUM(wdh.value) AS DECIMAL(10,2)) value, ' +
                                                 ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                             ' FROM wl_sensors ws ' +
                                             ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -1881,7 +1881,7 @@ def createInforme(request):
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value,' +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                                 'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +

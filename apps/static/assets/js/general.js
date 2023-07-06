@@ -249,7 +249,7 @@ general = {
                     },
                     type: 'scatter',
                     plotBandsIndex: 0,
-                    name: 'PMP (Punto de Marchitez)',
+                    name: 'PMP (Punto de Marchitez Permanente)',
                     color: 'rgba(255, 0, 0, 0.2)'
                 };
                 varSeries.push(titlePlotBand);
@@ -260,7 +260,7 @@ general = {
                     },
                     type: 'scatter',
                     plotBandsIndex: 1,
-                    name: 'CC (Capacidad de campo)',
+                    name: 'CC (Capacidad de Campo)',
                     color: 'rgba(0, 150, 50, 0.2)'
                 };
                 varSeries.push(titlePlotBand);
