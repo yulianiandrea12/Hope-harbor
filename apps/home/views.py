@@ -2100,7 +2100,7 @@ def createInforme(request):
                 function = 'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value, '
                 where = 'DATE(NOW()) '
             elif dato['informeId'] == '30':
-                function = 'SUM(CAST(vhd.info AS DECIMAL(10,2))) value, '
+                function = 'MAX(CAST(vhd.info AS DECIMAL(10,2))) value, '
                 where = 'DATE(NOW() - INTERVAL 1 DAY) '
             else:
                 function = 'MIN(CAST(vhd.info AS DECIMAL(10,2))) value, '
