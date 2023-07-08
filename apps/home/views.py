@@ -2097,13 +2097,13 @@ def createInforme(request):
         elif dato['informeId'] == '27' or dato['informeId'] == '30' or dato['informeId'] == '31':
 
             if dato['informeId'] == '27':
-                function = 'AVG'
+                function = 'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value, '
                 where = 'DATE(NOW()) '
             elif dato['informeId'] == '30':
-                function = 'MAX'
+                function = 'SUM(CAST(vhd.info AS DECIMAL(10,2))) value, '
                 where = 'DATE(NOW() - INTERVAL 1 DAY) '
             else:
-                function = 'MIN'
+                function = 'MIN(CAST(vhd.info AS DECIMAL(10,2))) value, '
                 where = 'DATE(NOW() - INTERVAL 1 DAY) '
 
             if plataforma == '4':
@@ -2111,7 +2111,7 @@ def createInforme(request):
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(' + function + '(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                function +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                                 'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
@@ -2152,7 +2152,7 @@ def createInforme(request):
                 result = conn.execute(text('SELECT ' +
                                                 'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
                                                 'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(' + function + '(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                ' ' + function + '(CAST(vhd.info AS DECIMAL(10,2))) value, ' +
                                                 'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
                                             'FROM VisualitiHistoricData vhd  ' +
                                             'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
