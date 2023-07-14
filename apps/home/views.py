@@ -2183,3 +2183,425 @@ def createInforme(request):
 
 
     return JsonResponse({'data':graficos})
+
+@login_required(login_url="/login/")
+def getGrupos(request):
+    plataforma = request.POST.get('id')
+    datos = []
+    result = None
+    where = ''
+    if plataforma == '0':
+        return JsonResponse({'datos': datos})
+    
+    if request.session['cliente_id'] != '6':
+        where = ' AND g.cliente_id = ' + request.session['cliente_id']
+    result = conn.execute(text('SELECT g.grupo_id, g.nombre ' +
+                                ' FROM Grupo g ' +
+                                ' WHERE g.origen = \'' + plataforma + '\'' + where))
+    for row in result:
+        datos.append((row[0], row[1]))
+
+    return JsonResponse({'datos': datos})
+
+@login_required(login_url="/login/")
+def getDispositivosGrupo(request):
+    plataforma = request.POST.get('id_plataforma')
+    grupo = request.POST.get('id_grupo')
+
+    datos = []
+    if plataforma == '0' or grupo == '0':
+        return JsonResponse({'datos': datos})
+    result = None
+    where = ' AND EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.grupo_id = ' + grupo + ' AND ge.estacion '
+
+    if plataforma == '1':
+        result = conn.execute(text('SELECT ed.deviceid, ed.name ' +
+                                    ' FROM ewl_device ed  ' +
+                                    ' INNER JOIN estacion_xcliente ex ON ex.estacion = ed.deviceid  ' +
+                                    ' WHERE ex.origen = \'3\'' + where + '= ex.estacion)'))
+    elif plataforma == '2':
+        result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
+                                    ' FROM TtnData td ' +
+                                    ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
+                                    ' WHERE ex.origen = \'1\'' + where + '= ex.estacion)' +
+                                    ' GROUP BY td.dev_eui, ex.nombre'))
+    elif plataforma == '3':
+        result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
+                                    ' FROM wl_stations ws '+
+                                    ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
+                                                    ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\') ' +
+                                    where + '= ws.station_id)'))
+    elif plataforma == '4':
+        result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
+                                    ' FROM EstacionVisualiti ev ' +
+                                    ' WHERE ev.estado = \'1\' ' + where + '= ev.estacionVisualiti_id)'))
+    
+    for row in result:
+        incorrectos = 0
+        opacity = 'opacity: 0.5;'
+        resultRule = None
+
+        # Validar si esta Online el dispositivo
+        if plataforma == '1':
+            resultRule = conn.execute(text('SELECT COUNT(*) n ' +
+                                            'FROM ewl_historic eh ' +
+                                            'WHERE eh.deviceid = \'' + str(row[0]) + '\' ' +
+                                                'AND eh.createdAt >= DATE_SUB(NOW(), INTERVAL 3 HOUR)'))
+
+        elif plataforma == '2':
+            resultRule = conn.execute(text('SELECT COUNT(*) n ' +
+                                            'FROM TtnData td ' +
+                                            'WHERE td.dev_eui = \'' + str(row[0]) + '\' ' +
+                                                'AND DATE_SUB(td.received_at, INTERVAL 5 HOUR) >= DATE_SUB(NOW(), INTERVAL 3 HOUR)'))
+
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT COUNT(*) n ' +
+                                            'FROM wl_historic wh ' +
+                                            'INNER JOIN wl_sensors ws ON ws.lsid = wh.lsid ' +
+                                            'WHERE ws.station_id = \'' + str(row[0]) + '\' ' +
+                                                'AND DATE_ADD(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR) >= DATE_SUB(NOW(), INTERVAL 3 HOUR)'))
+
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT COUNT(*) n ' +
+                                            'FROM VisualitiHistoric vh ' +
+                                            'WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' ' +
+                                                'AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_SUB(NOW(), INTERVAL 3 HOUR)'))
+
+        for rowRule in resultRule:
+            if (rowRule[0] > 0):
+                opacity = ''
+
+        # Validar precipitación
+        resultRule = []
+        if plataforma == '2':
+            resultRule = conn.execute(text('SELECT SUM(vw.value) value FROM ' +
+                                            '(SELECT ' +
+                                                ' SUM(tds.precipitacion) value ' +
+                                            ' FROM TtnData td ' +
+                                            ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                            ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'Count\''  + 
+                                                ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR) > DATE_SUB(NOW(), INTERVAL 15 DAY)'+
+                                            ' GROUP BY DATE_SUB(received_at, INTERVAL 5 HOUR)) vw'))
+
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' CAST(SUM(wdh.value) AS DECIMAL(10,2)) value ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'rainfall_mm\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) > DATE_SUB(NOW(), INTERVAL 15 DAY)'))
+
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT ' +
+                                            'CAST(SUM(vhd.info) AS DECIMAL(10,2)) n  ' +
+                                        'FROM VisualitiHistoricData vhd  ' +
+                                        'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                        'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                        'WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Precipitación\' ' +
+                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE_SUB(NOW(), INTERVAL 15 DAY)'))
+        
+        for rowRule in resultRule:
+            if (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600):
+                incorrectos+=1
+
+
+        # Validar Radiacion Solar
+        resultRule = []
+        if plataforma == '2':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'solar_rad_avg\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'solar_rad_avg\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 30 HOUR)'))
+                                        
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 30 HOUR) '))
+
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
+                                            ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
+                                            ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
+                                            ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
+                                            ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 30 HOUR) '))
+
+        correcto = False
+        i = 0
+        for rowRule in resultRule:
+            if (i == 0):
+                if (rowRule[0] != None and rowRule[0] > 0):
+                    correcto = True
+            else:
+                if (rowRule[0] != None and rowRule[0] > 0):
+                    correcto = False
+
+            i+=1
+
+        if resultRule != None and correcto == False:
+            incorrectos+=1
+
+        # Validar Humedad Relativa
+        resultRule = []
+        if plataforma == '2':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'hum_out\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND tds.info >= 10 AND tds.info <= 100 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'hum_out\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND tds.info < 10 AND tds.info > 100 '))
+        
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(ws.station_id) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'hum_out\''  + 
+                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND wdh.value >= 10 AND wdh.value <= 100 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(ws.station_id) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'hum_out\''  + 
+                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND wdh.value < 10 AND wdh.value > 100 '))
+            
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'humedadRelativa\''  + 
+                                            ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND vhd.nameSensor >= 10 AND vhd.nameSensor <= 100 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'humedadRelativa\''  + 
+                                            ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND vhd.nameSensor < 10 AND vhd.nameSensor > 100 '))
+        
+        correcto = False
+        i = 0
+        for rowRule in resultRule:
+            if (i == 0):
+                if (rowRule[0] != None and rowRule[0] > 0):
+                    correcto = True
+            else:
+                if (rowRule[0] != None and rowRule[0] > 0):
+                    correcto = False
+
+            i+=1
+
+        if resultRule != None and correcto == False:
+            incorrectos+=1
+
+        # Validar Temperatura Ambiente
+        resultRule = []
+        if plataforma == '2':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'temp_out\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND tds.info >= 10 AND tds.info <= 40 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'temp_out\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND tds.info < 10 AND tds.info > 40 '))
+        
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(ws.station_id) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
+                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND wdh.value >= 10 AND wdh.value <= 40 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(ws.station_id) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
+                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND wdh.value < 10 AND wdh.value > 40 '))
+            
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'temperaturaAmbiente\''  + 
+                                            ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND vhd.info >= 10 AND vhd.info <= 40 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'temperaturaAmbiente\''  + 
+                                            ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND vhd.info < 10 AND vhd.info > 40 '))
+        
+        correcto = False
+        i = 0
+        for rowRule in resultRule:
+            if (i == 0):
+                if (rowRule[0] != None and rowRule[0] > 0):
+                    correcto = True
+            else:
+                if (rowRule[0] != None and rowRule[0] > 0):
+                    correcto = False
+
+            i+=1
+
+        if resultRule != None and correcto == False:
+            incorrectos+=1
+
+        # Validar Velocidad del viento
+        resultRule = []
+        if plataforma == '2':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' MAX(CAST(tds.info AS UNSIGNED)) - MIN(CAST(tds.info AS UNSIGNED)) n  ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'wind_speed_avg\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND tds.info > 0 '))
+        
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' MAX(CAST(wdh.value AS UNSIGNED)) - MIN(CAST(wdh.value AS UNSIGNED)) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_speed_avg\''  + 
+                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND wdh.value > 0'))
+            
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' MAX(CAST(vhd.info AS UNSIGNED)) - MIN(CAST(vhd.info AS UNSIGNED)) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'velocidadViento\''  + 
+                                            ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND vhd.info > 0 '))
+        
+        for rowRule in resultRule:
+            if (rowRule[0] != None and rowRule[0] == 0):
+                incorrectos+=1
+
+        # Validar Direccion del viento
+        resultRule = []
+        if plataforma == '2':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' MAX(CAST(tds.info AS UNSIGNED)) - MIN(CAST(tds.info AS UNSIGNED)) n  ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'wind_dir_of_prevail\''  + 
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND tds.info > 0 '))
+        
+        elif plataforma == '3':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' MAX(CAST(wdh.value AS UNSIGNED)) - MIN(CAST(wdh.value AS UNSIGNED)) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_dir_of_prevail\''  + 
+                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND wdh.value > 0'))
+            
+        elif plataforma == '4':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' MAX(CAST(vhd.info AS UNSIGNED)) - MIN(CAST(vhd.info AS UNSIGNED)) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'direccionViento\''  + 
+                                            ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
+                                            ' AND vhd.info > 0 '))
+        
+        for rowRule in resultRule:
+            if (rowRule[0] != None and rowRule[0] == 0):
+                incorrectos+=1
+
+        color = 'alert-success'
+        if (incorrectos == 1):
+            color = 'alert-primary'
+        elif (incorrectos == 2):
+            color = 'alert-warning'
+        elif (incorrectos > 2):
+            color = 'alert-danger'
+
+
+        datos.append((row[0], row[1], color, opacity))
+
+    return JsonResponse({'datos': datos})
+

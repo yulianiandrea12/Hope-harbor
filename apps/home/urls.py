@@ -18,6 +18,9 @@ urlpatterns = [
     path('download-excel',views.downloadExcel, name='download-excel'),
     path('get-tipo-informes',views.getTipoInformes, name='get-tipo-informes'),
     path('create-informe', views.createInforme, name='create-informe'),
+    path('get-grupos', views.getGrupos, name='get-grupos'),
+    path('get-dispositivos-grupos', views.getDispositivosGrupo, name='get-dispositivos-grupos'),
+
 
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),
