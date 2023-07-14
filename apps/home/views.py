@@ -2375,7 +2375,7 @@ def getDispositivosGrupo(request):
 
             i+=1
 
-        if resultRule != None and correcto == False:
+        if len(resultRule) > 0 and correcto == False:
             incorrectos+=1
 
         # Validar Humedad Relativa
@@ -2447,7 +2447,7 @@ def getDispositivosGrupo(request):
 
             i+=1
 
-        if resultRule != None and correcto == False:
+        if len(resultRule) > 0 and correcto == False:
             incorrectos+=1
 
         # Validar Temperatura Ambiente
@@ -2519,7 +2519,7 @@ def getDispositivosGrupo(request):
 
             i+=1
 
-        if resultRule != None and correcto == False:
+        if len(resultRule) > 0 and correcto == False:
             incorrectos+=1
 
         # Validar Velocidad del viento
