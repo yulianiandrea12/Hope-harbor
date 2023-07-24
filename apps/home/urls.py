@@ -20,6 +20,8 @@ urlpatterns = [
     path('create-informe', views.createInforme, name='create-informe'),
     path('get-grupos', views.getGrupos, name='get-grupos'),
     path('get-dispositivos-grupos', views.getDispositivosGrupo, name='get-dispositivos-grupos'),
+    path('get-casos-estacion', views.getCasosEstacion, name='get-casos-estacion'),
+    path('set-caso-estacion', views.setCasoEstacion, name='set-caso-estacion'),
 
 
     # Matches any html file

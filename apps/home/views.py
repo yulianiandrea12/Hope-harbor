@@ -2305,7 +2305,6 @@ def getDispositivosGrupo(request):
             if (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600):
                 incorrectos+=1
 
-
         # Validar Radiacion Solar
         resultRule = []
         if plataforma == '2':
@@ -2592,16 +2591,143 @@ def getDispositivosGrupo(request):
             if (rowRule[0] != None and rowRule[0] == 0):
                 incorrectos+=1
 
-        color = 'alert-success'
+        color = 'alert-bueno'
         if (incorrectos == 1):
-            color = 'alert-primary'
+            color = 'alert-aceptable'
         elif (incorrectos == 2):
-            color = 'alert-warning'
+            color = 'alert-anomalo'
         elif (incorrectos > 2):
-            color = 'alert-danger'
+            color = 'alert-catastrofico'
 
 
-        datos.append((row[0], row[1], color, opacity))
+        datos.append((row[0], row[1], color, opacity, plataforma))
 
     return JsonResponse({'datos': datos})
 
+@login_required(login_url="/login/")
+def getCasosEstacion(request):
+    plataforma = request.POST.get('id_plataforma')
+    estacion = request.POST.get('id_estacion')
+
+    if plataforma == '1':
+        result = conn.execute(text('SELECT placaActivo, ubicacion, personaEncargada, detallesEquipo, linkUbicacion, anoInstalacion' +
+                                    ' FROM estacion_xcliente ex ' +
+                                    ' WHERE ex.estacion = \'' + estacion + '\' AND ex.origen = \'3\''))
+    elif plataforma == '2':
+        result = conn.execute(text('SELECT placaActivo, ubicacion, personaEncargada, detallesEquipo, linkUbicacion, anoInstalacion' +
+                                    ' FROM estacion_xcliente ex ' +
+                                    ' WHERE ex.estacion = \'' + estacion + '\' AND ex.origen = \'1\''))
+    elif plataforma == '3':
+        result = conn.execute(text('SELECT placaActivo, ubicacion, personaEncargada, detallesEquipo, linkUbicacion, anoInstalacion' +
+                                    ' FROM estacion_xcliente ex ' +
+                                    ' WHERE ex.estacion = \'' + estacion + '\' AND ex.origen = \'2\''))    
+    elif plataforma == '4':
+        result = conn.execute(text('SELECT placaActivo, ubicacion, personaEncargada, detallesEquipo, linkUbicacion, anoInstalacion' +
+                                    ' FROM EstacionVisualiti ev ' +
+                                    ' WHERE ev.estacionVisualiti_id = \'' + estacion + '\' '))
+    dataEstacion = []
+
+    for row in result:
+        dataEstacion.append((row[0], row[1], row[2], row[3], row[4], row[5]))
+
+    datos = []
+
+    if plataforma == '1':
+        result = conn.execute(text('SELECT ' +
+                                        'c.caso_id, ' +
+                                        'c.fecha_creacion,' +
+                                        'c.agente_soporte,' +
+                                        'c.contacto_cliente,' +
+                                        'c.estacion,' +
+                                        'ed.name,' +
+                                        'c.evidencia_id,' +
+                                        'c.tipo_problema,' +
+                                        'c.problema,' +
+                                        'c.estado,' +
+                                        'c.solucion,' +
+                                        'c.fecha_solucion ' +
+                                    'FROM Casos c ' +
+                                    'INNER JOIN estacion_xcliente ex on ex.estacion = c.estacion AND ex.origen = 3 ' +
+                                    'INNER JOIN ewl_device ed ON ed.deviceid = ex.estacion ' +
+                                    'WHERE c.estacion = \'' + str(estacion) + '\' ' +
+                                    'ORDER BY c.fecha_creacion DESC'))
+    elif plataforma == '2':
+        result = conn.execute(text('SELECT ' +
+                                        'c.caso_id, ' +
+                                        'c.fecha_creacion,' +
+                                        'c.agente_soporte,' +
+                                        'c.contacto_cliente,' +
+                                        'c.estacion,' +
+                                        'ex.nombre,' +
+                                        'c.evidencia_id,' +
+                                        'c.tipo_problema,' +
+                                        'c.problema,' +
+                                        'c.estado,' +
+                                        'c.solucion,' +
+                                        'c.fecha_solucion ' +
+                                    'FROM Casos c ' +
+                                    'INNER JOIN estacion_xcliente ex on ex.estacion = c.estacion AND ex.origen = 1 ' +
+                                    'WHERE c.estacion = \'' + str(estacion) + '\' ' +
+                                    'ORDER BY c.fecha_creacion DESC'))
+    elif plataforma == '3':
+        result = conn.execute(text('SELECT distinct ' +
+                                        'c.caso_id, ' +
+                                        'c.fecha_creacion,' +
+                                        'c.agente_soporte,' +
+                                        'c.contacto_cliente,' +
+                                        'c.estacion,' +
+                                        'ws.station_name,' +
+                                        'c.evidencia_id,' +
+                                        'c.tipo_problema,' +
+                                        'c.problema,' +
+                                        'c.estado,' +
+                                        'c.solucion,' +
+                                        'c.fecha_solucion ' +
+                                    'FROM Casos c ' +
+                                    'INNER JOIN estacion_xcliente ex on ex.estacion = c.estacion AND ex.origen = 2 ' +
+                                    'INNER JOIN wl_stations ws on ws.station_id = ex.estacion ' +
+                                    'WHERE c.estacion = \'' + str(estacion) + '\' ' +
+                                    'ORDER BY c.fecha_creacion DESC'))
+    elif plataforma == '4':
+        result = conn.execute(text('SELECT ' +
+                                        'c.caso_id, ' +
+                                        'c.fecha_creacion,' +
+                                        'c.agente_soporte,' +
+                                        'c.contacto_cliente,' +
+                                        'c.estacion,' +
+                                        'ev.nombre,' +
+                                        'c.evidencia_id,' +
+                                        'c.tipo_problema,' +
+                                        'c.problema,' +
+                                        'c.estado,' +
+                                        'c.solucion,' +
+                                        'c.fecha_solucion ' +
+                                    'FROM Casos c ' +
+                                    'INNER JOIN EstacionVisualiti ev ON ev.estacionVisualiti_id = c.estacion ' +
+                                    'WHERE c.estacion = \'' + str(estacion) + '\' ' +
+                                    'ORDER BY c.fecha_creacion DESC'))
+
+    for row in result:
+        datos.append((str(row[0]), str(row[1]), str(row[2]), str(row[3]), str(row[4]), str(row[5]), str(row[6]), str(row[7]), str(row[8]), str(row[9]), str(row[10]), str(row[11])))
+
+    return JsonResponse({'datos': datos, 'datosEstacion': dataEstacion})
+
+@login_required(login_url="/login/")
+def setCasoEstacion(request):
+    plataforma = request.POST.get('id_plataforma')
+    estacion = request.POST.get('id_estacion')
+    soporte = request.POST.get('soporte')
+    contacto = request.POST.get('contacto')
+    tipo = request.POST.get('tipo')
+    problema = request.POST.get('problema')
+    estado = request.POST.get('estado')
+    solucion = request.POST.get('solucion')
+    evidencia = request.POST.get('evidencia')
+
+    result = conn.execute(text('INSERT INTO Casos ' +
+                                '(fecha_creacion,origen,estacion,agente_soporte,contacto_cliente,tipo_problema,problema,evidencia_id,estado,solucion) VALUES ' +
+	                            '(SYSDATE(),\'' + plataforma + '\',\'' + estacion + '\',\'' + soporte + '\',\'' + contacto + '\',\'' + tipo + '\',\'' + problema + '\',\'' + evidencia + '\',\'' + estado + '\',\'' + solucion + '\')'))
+    conn.commit()
+    exitoso = False
+
+    return JsonResponse({'OK': '1'})

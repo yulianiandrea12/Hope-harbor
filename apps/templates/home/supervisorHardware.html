@@ -55,67 +55,271 @@
             <div class="col-lg-4">
                 <input type="button" value="Generar" class="form-control btn btn-success" id="form_btn">
             </div>
-            <!-- <div class="col-lg-4">
-                <input type="button" value="Descargar PDF" class="form-control btn btn-warning" id="pdf_btn">
-            </div> -->
         </div>
 
     </form>
     <br>
     <div id="contenido">
     </div>
+    <div class="row" id="divCasosTable">
+        <div class="col-md-12">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title" id="titleCasosTable">Datos Estacion</h4>
+                    <button type="button" class="btn btn-success" onClick="frmCrearCaso();">Crear Caso</button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Conectividad:</b></label>
+                                    <label id="conectividad"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Estado:</b></label>
+                                    <label id="estado"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Persona a Cargo:</b></label>
+                                    <label id="personaEncargada"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Placa:</b></label>
+                                    <label id="placa"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Ubicacion:</b></label>
+                                    <label id="ubicacion"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Link Ubicacion:</b></label>
+                                    <label id="linkUbicacion"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Año:</b></label>
+                                    <label id="ano"></label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>Detalles:</b></label>
+                                    <label id="detallesEquipo"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table tablesorter " id="casosTable">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>ID CASO</th>
+                                    <th>FECHA CASO</th>
+                                    <th>ASESOR</th>
+                                    <th>ENCARGADO</th>
+                                    <th>ESTACION</th>
+                                    <th>ID ESTACION</th>
+                                    <th>ID CASO INICIAL</th>
+                                    <th>TIPO DE CASO</th>
+                                    <th>SITUACION</th>
+                                    <th class="text-center">
+                                        ESTADO
+                                    </th>
+                                    <th>ACCIONES</th>
+                                    <th>FECHA SOLUCION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CASOS -->
+<div class="modal fade in" id="casosModal" tabindex="-1" role="dialog" aria-labelledby="casosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h5 class="card-title" id="casosModalLabel">Casos Estacion #1</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="frmCaso">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Agente de Soporte</label>
+                                    <input id="soporte" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Contacto Cliente</label>
+                                    <input id="contacto" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Tipo Problema</label>
+                                    <select id="tipo" class="form-control selectpicker" data-live-search="true" data-style="btn-success">
+                                        <option selected disabled value="0">Seleccione</option>
+                                        <option>Bateria VC</option>
+                                        <option>Condensador ISS</option>
+                                        <option>Conectividad</option>
+                                        <option>Conectividad Coo<->E</option>
+                                        <option>Conectividad gsm</option>
+                                        <option>Conectividad VC</option>
+                                        <option>Conectividad VC<->ISS</option>
+                                        <option>Emplazamiento estación y/o sensores</option>
+                                        <option>Envio de refacciones</option>
+                                        <option>Gestión de servicios</option>
+                                        <option>Mantenimiento Correctivo</option>
+                                        <option>Mantenimiento periódico</option>
+                                        <option>Mantenimiento urgente</option>
+                                        <option>Notificacion estado</option>
+                                        <option>Nueva refaccion sin Stok</option>
+                                        <option>Orientación Conectividad </option>
+                                        <option>Orientación Emplazamiento </option>
+                                        <option>Orientación panel </option>
+                                        <option>Orientación Paneles</option>
+                                        <option>Orientación Pluviometría </option>
+                                        <option>Orientación Voltaje </option>
+                                        <option>Orientación Weatherlink</option>
+                                        <option>Otras asesorias</option>
+                                        <option>Otros casos de soporte técnico</option>
+                                        <option>Panel VC</option>
+                                        <option>Pila ISS</option>
+                                        <option>Pluviometro taponado</option>
+                                        <option>Reinstalacion de la estacion </option>
+                                        <option>Requiere refaccion</option>
+                                        <option>Sensores</option>
+                                        <option>Solicitud </option>
+                                        <option>Solicitud de Mantenimiento Preventivo</option>
+                                        <option>Traslado de la estacion</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Problema</label>
+                                    <textarea id="problema" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Estado</label>
+                                    <select id="estado" class="form-control selectpicker" data-live-search="true" data-style="btn-success">
+                                        <option selected>Creado</option>
+                                        <option>Actualizado</option>
+                                        <option>En Mantenimiento</option>
+                                        <option>En Espera</option>
+                                        <option>En Proceso</option>
+                                        <option>Resuelto</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Solucion</label>
+                                    <textarea id="solucion" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Id Evidencia</label>
+                                    <input id="evidencia" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" onclick="crear();">Crear</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
-    #chart-graficaMulti {
-        height: 500px;
+    .alert-catastrofico {
+        color: #d93e31;
+        background-color: #d93e31;
+        border-color: #d93e31;
     }
 
-    .highcharts-figure,
-    .highcharts-data-table table {
-        min-width: 310px;
-        max-width: 800px;
-        margin: 1em auto;
+    .alert-anomalo {
+        color: #ff9f0b;
+        background-color: #ff9f0b;
+        border-color: #ff9f0b;
     }
 
-    .highcharts-data-table table {
-        font-family: Verdana, sans-serif;
-        border-collapse: collapse;
-        border: 1px solid #ebebeb;
-        margin: 10px auto;
-        text-align: center;
-        width: 100%;
-        max-width: 500px;
+    .alert-aceptable {
+        color: #ffd724;
+        background-color: #ffd724;
+        border-color: #ffd724;
     }
 
-    .highcharts-data-table caption {
-        padding: 1em 0;
-        font-size: 1.2em;
-        color: #555;
-    }
-
-    .highcharts-data-table th {
-        font-weight: 600;
-        padding: 0.5em;
-    }
-
-    .highcharts-data-table td,
-    .highcharts-data-table th,
-    .highcharts-data-table caption {
-        padding: 0.5em;
-    }
-
-    .highcharts-data-table thead tr,
-    .highcharts-data-table tr:nth-child(even) {
-        background: #f8f8f8;
-    }
-
-    .highcharts-data-table tr:hover {
-        background: #f1f7ff;
-    }
-
-    .highcharts-background {
-        fill: #ffffff00;
+    .alert-bueno {
+        color: #21b198;
+        background-color: #21b198;
+        border-color: #21b198;
     }
 </style>
 {% endblock content %}
@@ -130,6 +334,11 @@
     var cantDivs = 0,
         contDivs = 1;
     var idsCharts = [];
+    var plataformaid,
+        estacionid,
+        estacionnombre,
+        estado,
+        activo;
 
     function getGrupos() {
         var plataformaId = $('#id_plataforma').val();
@@ -152,8 +361,114 @@
         });
     }
 
+    function getCasosEstacion(plataformaId, estacionId, estacion, estadoDispo, conectividad) {
+        plataformaid = plataformaId
+        estacionid = estacionId
+        estacionnombre = estacion;
+        estado = estadoDispo.split("-")[1];
+        activo = (conectividad == '') ? 'ONLINE' : 'OFFLINE';
+
+        $("#divCasosTable").hide();
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-casos-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_plataforma': plataformaId,
+                'id_estacion': estacionId
+            },
+            success: function(data) {
+                $("#divCasosTable").show();
+                $('#conectividad').text(activo);
+                $('#estado').text(estado);
+                data.datosEstacion.forEach(function(estacion) {
+                    $('#personaEncargada').text(estacion[2]);
+                    $('#placa').text(estacion[0]);
+                    $('#ubicacion').text(estacion[1]);
+                    $('#linkUbicacion').text(estacion[4]);
+                    $('#ano').text(estacion[5]);
+                    $('#detallesEquipo').text(estacion[3]);
+                });
+
+                if (data.datos.length < 1) {
+                    $('#casosTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#casosTable')) {
+                        var myTable = $('#casosTable').DataTable().clear().rows.add(data.datos).draw();
+
+                    } else {
+                        var myTable = $('#casosTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.datos).draw();
+                    }
+
+                    $('#titleCasosTable').text('Datos Estacion: ' + estacion);
+                    $('#casosTable').show();
+                }
+            }
+        })
+    }
+
+    function frmCrearCaso() {
+        $('#casosModalLabel').text('Crear Caso Estacion: ' + estacionnombre);
+
+        $('#frmCaso')[0].reset();
+
+        $('#casosModal').modal('show');
+    }
+
+    function crear() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-caso-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_plataforma': plataformaid,
+                'id_estacion': estacionid,
+                'soporte': $('#soporte').val(),
+                'contacto': $('#contacto').val(),
+                'tipo': $('#tipo  option:selected').text(),
+                'problema': $('#problema').val(),
+                'estado': $('#estado option:selected').text(),
+                'solucion': $('#solucion').val(),
+                'evidencia': $('#evidencia').val()
+            },
+            success: function(data) {
+                $('#casosModal').modal('hide');
+                general.showNotificationOwn('top', 'right', 'success', 'Caso Registrado', 'ATENCION');
+                getCasosEstacion(plataformaid, estacionid, estacionnombre);
+            }
+        });
+    }
+
     $(document).ready(function() {
-        $(".graficas").hide()
+        $(".graficas").hide();
+        $("#divCasosTable").hide();
 
         $("#id_plataforma").change(function() {
             getGrupos();
@@ -164,6 +479,7 @@
             var plataformaId = $('#id_plataforma').val();
             var grupoId = $('#id_grupo').val();
             $('.graficas').html('');
+            $("#divCasosTable").hide();
 
             $.ajax({
                 type: "POST",
@@ -175,7 +491,7 @@
                 },
                 success: function(data) {
                     if (data.datos == 0) {
-                        general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos o Sin Informacion', 'ERROR')
+                        general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos o Sin Informacion', 'ERROR');
                         $("#contenido").hide();
                     } else {
                         $("#contenido").show();
@@ -186,8 +502,8 @@
 
                         data.datos.forEach(function(data) {
                             buttons += '<div class="col-md-3">' +
-                                '<div class="alert ' + data[2] + '" style="' + data[3] + '" onclick="infoEstacion(' + data[0] + ')">' +
-                                '<span><b>' + data[1] + '</b></span>' +
+                                '<div class="alert ' + data[2] + '" style="' + data[3] + '" onclick="getCasosEstacion(' + data[4] + ', \'' + data[0] + '\', \'' + data[1] + '\', \'' + data[2] + '\', \'' + data[3] + '\')">' +
+                                '<span><b style="color:white;">' + data[1] + '</b></span>' +
                                 '</div>' +
                                 '</div>';
                             i++;
