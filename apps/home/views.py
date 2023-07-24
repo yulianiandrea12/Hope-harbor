@@ -42,6 +42,7 @@ def pages(request):
             return HttpResponseRedirect(reverse('admin:index'))
         context['segment'] = load_template
         context['form'] = PlataformasForm(request.POST or None)
+        context['cliente'] = request.session['cliente_id']
 
         html_template = loader.get_template('home/' + load_template + '.html')
         return HttpResponse(html_template.render(context, request))
