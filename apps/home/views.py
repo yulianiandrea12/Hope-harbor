@@ -2202,6 +2202,30 @@ def getGrupos(request):
     for row in result:
         datos.append((row[0], row[1]))
 
+    where = ''
+    if plataforma == '4':
+        if request.session['cliente_id'] != '6':
+            where = ' AND rv.cliente_id = ' + request.session['cliente_id']
+        result = conn.execute(text('SELECT DISTINCT -1, \'General\' ' +
+                                    'FROM EstacionVisualiti ev ' +
+                                    'INNER JOIN RedVisualiti rv ON rv.redVisualiti_id = ev.redVisualiti_id ' +
+                                    ' WHERE ev.estado = 1 AND NOT EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.estacion = ev.redVisualiti_id)' + where))
+    else:
+        origen = '0'
+        if  plataforma == '1':
+            origen = '3'
+        elif plataforma == '2':
+            origen = '1'
+        else:
+            origen = '2'
+        if request.session['cliente_id'] != '6':
+            where = ' AND ex.cliente_id = ' + request.session['cliente_id']
+        result = conn.execute(text('SELECT DISTINCT -1, \'General\' ' +
+                                    'FROM estacion_xcliente ex ' +
+                                    ' WHERE ex.origen = \'' + origen + '\' AND NOT EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.estacion = ex.estacion)' + where))
+    for row in result:
+        datos.append((row[0], row[1]))
+
     return JsonResponse({'datos': datos})
 
 @login_required(login_url="/login/")
@@ -2213,29 +2237,64 @@ def getDispositivosGrupo(request):
     if plataforma == '0' or grupo == '0':
         return JsonResponse({'datos': datos})
     result = None
-    where = ' AND EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.grupo_id = ' + grupo + ' AND ge.estacion '
 
-    if plataforma == '1':
-        result = conn.execute(text('SELECT ed.deviceid, ed.name ' +
-                                    ' FROM ewl_device ed  ' +
-                                    ' INNER JOIN estacion_xcliente ex ON ex.estacion = ed.deviceid  ' +
-                                    ' WHERE ex.origen = \'3\'' + where + '= ex.estacion)'))
-    elif plataforma == '2':
-        result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
-                                    ' FROM TtnData td ' +
-                                    ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
-                                    ' WHERE ex.origen = \'1\'' + where + '= ex.estacion)' +
-                                    ' GROUP BY td.dev_eui, ex.nombre'))
-    elif plataforma == '3':
-        result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
-                                    ' FROM wl_stations ws '+
-                                    ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
-                                                    ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\') ' +
-                                    where + '= ws.station_id)'))
-    elif plataforma == '4':
-        result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
-                                    ' FROM EstacionVisualiti ev ' +
-                                    ' WHERE ev.estado = \'1\' ' + where + '= ev.estacionVisualiti_id)'))
+    if grupo == '-1':
+        
+        where = ''
+        if plataforma == '4':
+            if request.session['cliente_id'] != '6':
+                where = ' AND rv.cliente_id = ' + request.session['cliente_id']
+            where = ' AND ev.estado = 1 AND NOT EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.estacion = ev.redVisualiti_id)' +  where
+        else:
+            if request.session['cliente_id'] != '6':
+                where = ' AND ex.cliente_id = ' + request.session['cliente_id'] 
+            where = ' AND NOT EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.estacion = ex.estacion)' + where
+        
+
+        if plataforma == '1':
+            result = conn.execute(text('SELECT ed.deviceid, ed.name ' +
+                                        ' FROM ewl_device ed  ' +
+                                        ' INNER JOIN estacion_xcliente ex ON ex.estacion = ed.deviceid  ' +
+                                        ' WHERE ex.origen = \'3\'' + where))
+        elif plataforma == '2':
+            result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
+                                        ' WHERE ex.origen = \'1\'' + where +
+                                        ' GROUP BY td.dev_eui, ex.nombre'))
+        elif plataforma == '3':
+            result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
+                                        ' FROM wl_stations ws '+
+                                        ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
+                                                        ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\' ' + where + ')'))
+        elif plataforma == '4':
+            result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
+                                        ' FROM EstacionVisualiti ev ' +
+                                        ' WHERE ev.estado = \'1\' ' + where))
+    else:
+        where = ' AND EXISTS (SELECT ge.grupo_id FROM GrupoEstacion ge WHERE ge.grupo_id = ' + grupo + ' AND ge.estacion '
+
+        if plataforma == '1':
+            result = conn.execute(text('SELECT ed.deviceid, ed.name ' +
+                                        ' FROM ewl_device ed  ' +
+                                        ' INNER JOIN estacion_xcliente ex ON ex.estacion = ed.deviceid  ' +
+                                        ' WHERE ex.origen = \'3\'' + where + '= ex.estacion)'))
+        elif plataforma == '2':
+            result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
+                                        ' WHERE ex.origen = \'1\'' + where + '= ex.estacion)' +
+                                        ' GROUP BY td.dev_eui, ex.nombre'))
+        elif plataforma == '3':
+            result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
+                                        ' FROM wl_stations ws '+
+                                        ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
+                                                        ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\') ' +
+                                        where + '= ws.station_id)'))
+        elif plataforma == '4':
+            result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
+                                        ' FROM EstacionVisualiti ev ' +
+                                        ' WHERE ev.estado = \'1\' ' + where + '= ev.estacionVisualiti_id)'))
     
     for row in result:
         incorrectos = 0
@@ -2380,7 +2439,21 @@ def getDispositivosGrupo(request):
 
         # Validar Humedad Relativa
         resultRule = []
-        if plataforma == '2':
+        if plataforma == '1':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM ewl_historic eh' +
+                                        ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
+                                            ' AND eh.createdAt = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND eh.currentHumidity >= 10 AND eh.currentHumidity <= 100 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM ewl_historic eh' +
+                                        ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
+                                            ' AND eh.createdAt = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND eh.currentHumidity < 10 AND eh.currentHumidity > 100 '))
+        elif plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
                                             ' COUNT(*) value ' +
                                         ' FROM TtnData td ' +
@@ -2452,7 +2525,21 @@ def getDispositivosGrupo(request):
 
         # Validar Temperatura Ambiente
         resultRule = []
-        if plataforma == '2':
+        if plataforma == '1':
+            resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM ewl_historic eh' +
+                                        ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
+                                            ' AND eh.createdAt = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND eh.currentTemperature >= 10 AND eh.currentTemperature <= 100 ' +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM ewl_historic eh' +
+                                        ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
+                                            ' AND eh.createdAt = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
+                                            ' AND eh.currentTemperature < 10 AND eh.currentTemperature > 100 '))
+        elif plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
                                             ' COUNT(*) value ' +
                                         ' FROM TtnData td ' +
