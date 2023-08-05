@@ -108,11 +108,12 @@ def getDispositivos(request):
     elif plataforma == '3':
         where = ''
         if request.session['cliente_id'] != '6':
-            where = ' AND ex.cliente_id = ' + request.session['cliente_id']
-        result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
-                                    ' FROM wl_stations ws '+
-                                    ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
-                                                    ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\'' + where + ')'))
+            where = ' AND ex1.cliente_id = ' + request.session['cliente_id']
+        result = conn.execute(text('SELECT ws.station_id, case when ex.nombre is not null then ex.nombre else ws.station_name end as nombre' +
+                                    ' FROM wl_stations ws ' +
+                                    ' LEFT JOIN estacion_xcliente ex ON ex.estacion = ws.station_id  ' +
+                                    ' WHERE ex.origen = \'2\' AND EXISTS (SELECT ex1.estacion_xcliente_id FROM estacion_xcliente ex1 ' +
+                                                    ' WHERE ex1.estacion = ws.station_id AND ex1.origen = \'2\'' + where + ')'))
     elif plataforma == '4':
         red = request.POST.get('id_red')
         result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
@@ -2263,9 +2264,10 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex.origen = \'1\'' + where +
                                         ' GROUP BY td.dev_eui, ex.nombre'))
         elif plataforma == '3':
-            result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
+            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombre ' +
                                         ' FROM wl_stations ws '+
-                                        ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
+                                        ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
+                                        ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
                                                         ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\' ' + where + ')'))
         elif plataforma == '4':
             result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
@@ -2286,9 +2288,10 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex.origen = \'1\'' + where + '= ex.estacion)' +
                                         ' GROUP BY td.dev_eui, ex.nombre'))
         elif plataforma == '3':
-            result = conn.execute(text('SELECT ws.station_id, ws.station_name ' +
+            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombre ' +
                                         ' FROM wl_stations ws '+
-                                        ' WHERE EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
+                                        ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
+                                        ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
                                                         ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\') ' +
                                         where + '= ws.station_id)'))
         elif plataforma == '4':
@@ -2764,7 +2767,7 @@ def getCasosEstacion(request):
                                         'c.agente_soporte,' +
                                         'c.contacto_cliente,' +
                                         'c.estacion,' +
-                                        'ws.station_name,' +
+                                        'case when ex.nombre is not null then ex.nombre else ws.station_name end as nombre,' +
                                         'c.evidencia_id,' +
                                         'c.tipo_problema,' +
                                         'c.problema,' +
