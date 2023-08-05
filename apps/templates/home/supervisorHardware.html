@@ -66,6 +66,17 @@
             <div class="card ">
                 <div class="card-header">
                     <h4 class="card-title" id="titleCasosTable">Datos Estacion</h4>
+                    <div class="row">
+                        <div class="col-lg-4">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label><b>ERRORES ACTUALES DEL SISTEMA:</b></label>
+                                    <ul id="estadoActual">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     {% if cliente == '6' %}
                     <button type="button" class="btn btn-success" onClick="frmCrearCaso();">Crear Caso</button>
                     {% endif %}
@@ -340,7 +351,8 @@
         estacionid,
         estacionnombre,
         estado,
-        activo;
+        activo,
+        estadoActual;
 
     function getGrupos() {
         var plataformaId = $('#id_plataforma').val();
@@ -363,12 +375,13 @@
         });
     }
 
-    function getCasosEstacion(plataformaId, estacionId, estacion, estadoDispo, conectividad) {
+    function getCasosEstacion(plataformaId, estacionId, estacion, estadoDispo, conectividad, estadoActualDispo) {
         plataformaid = plataformaId
         estacionid = estacionId
         estacionnombre = estacion;
         estado = estadoDispo.split("-")[1];
         activo = (conectividad == '') ? 'ONLINE' : 'OFFLINE';
+        estadoActual = estadoActualDispo;
 
         $("#divCasosTable").hide();
 
@@ -384,6 +397,7 @@
                 $("#divCasosTable").show();
                 $('#conectividad').text(activo);
                 $('#estado').text(estado);
+                $('#estadoActual').html(estadoActual);
                 data.datosEstacion.forEach(function(estacion) {
                     $('#personaEncargada').text(estacion[2]);
                     $('#placa').text(estacion[0]);
@@ -504,7 +518,7 @@
 
                         data.datos.forEach(function(data) {
                             buttons += '<div class="col-md-3">' +
-                                '<div class="alert ' + data[2] + '" style="' + data[3] + '" onclick="getCasosEstacion(' + data[4] + ', \'' + data[0] + '\', \'' + data[1] + '\', \'' + data[2] + '\', \'' + data[3] + '\')">' +
+                                '<div class="alert ' + data[2] + '" style="' + data[3] + '" onclick="getCasosEstacion(' + data[4] + ', \'' + data[0] + '\', \'' + data[1] + '\', \'' + data[2] + '\', \'' + data[3] + '\', \'' + data[5] + '\')">' +
                                 '<span><b style="color:white;">' + data[1] + '</b></span>' +
                                 '</div>' +
                                 '</div>';

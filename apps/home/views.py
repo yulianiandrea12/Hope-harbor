@@ -2300,6 +2300,7 @@ def getDispositivosGrupo(request):
                                         ' WHERE ev.estado = \'1\' ' + where + '= ev.estacionVisualiti_id)'))
     
     for row in result:
+        estadoActual = ''
         incorrectos = 0
         opacity = 'opacity: 0.5;'
         resultRule = None
@@ -2367,6 +2368,7 @@ def getDispositivosGrupo(request):
         for rowRule in resultRule:
             if (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600):
                 incorrectos+=1
+                estadoActual = '<li>La precipitación de las ultimas dos semanas es 0 o mayor a 600.</li>'
 
         # Validar Radiacion Solar
         resultRule = []
@@ -2439,6 +2441,7 @@ def getDispositivosGrupo(request):
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
+            estadoActual = estadoActual + '<li>La radiación solar del dia de ayer no tiene datos entre las 8:00am y las 4:00pm o hay datos entre el dia de ayer a las 8:00pm y hoy a las 6:00am.</li>'
 
         # Validar Humedad Relativa
         resultRule = []
@@ -2525,6 +2528,7 @@ def getDispositivosGrupo(request):
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
+            estadoActual = estadoActual + '<li>La humedad relativa posee datos del día de ayer fuera del rango entre el 10% y el 100%.</li>'
 
         # Validar Temperatura Ambiente
         resultRule = []
@@ -2611,6 +2615,7 @@ def getDispositivosGrupo(request):
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
+            estadoActual = estadoActual + '<li>La temperatura ambiente posee datos del día de ayer fuera del rango entre el 10°C y el 40°C.</li>'
 
         # Validar Velocidad del viento
         resultRule = []
@@ -2646,6 +2651,7 @@ def getDispositivosGrupo(request):
         for rowRule in resultRule:
             if (rowRule[0] != None and rowRule[0] == 0):
                 incorrectos+=1
+                estadoActual = estadoActual + '<li>La velocidad del viento no tuvo variación el dia de ayer.</li>'
 
         # Validar Direccion del viento
         resultRule = []
@@ -2681,6 +2687,7 @@ def getDispositivosGrupo(request):
         for rowRule in resultRule:
             if (rowRule[0] != None and rowRule[0] == 0):
                 incorrectos+=1
+                estadoActual = estadoActual + '<li>La direccion del viento no tuvo variacion el dia de ayer.</li>'
 
         color = 'alert-bueno'
         if (incorrectos == 1):
@@ -2691,7 +2698,7 @@ def getDispositivosGrupo(request):
             color = 'alert-catastrofico'
 
 
-        datos.append((row[0], row[1], color, opacity, plataforma))
+        datos.append((row[0], row[1], color, opacity, plataforma, estadoActual))
 
     return JsonResponse({'datos': datos})
 
