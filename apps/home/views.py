@@ -11,7 +11,7 @@ from django.template import loader
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
-from apps.authentication.db import conn
+from apps.authentication.db import conn, conn2
 from sqlalchemy import func, Sequence,text
 from datetime import datetime
 import json
@@ -60,15 +60,9 @@ def pages(request):
 def getRedes(request):
     plataforma = request.POST.get('id')
     datos = []
-    result = None
+    result = []
     if plataforma == '0':
         return JsonResponse({'datos': datos})
-    elif plataforma == '1':
-        result = conn.execute(text('SELECT 0, 0 '))
-    elif plataforma == '2':
-        result = conn.execute(text('SELECT 0, 0 '))
-    elif plataforma == '3':
-        result = conn.execute(text('SELECT 0, 0 '))
     elif plataforma == '4':
         where = ''
         if request.session['cliente_id'] != '6':
@@ -76,6 +70,15 @@ def getRedes(request):
         result = conn.execute(text('SELECT rv.redVisualiti_id, rv.nombre ' +
                                     ' FROM RedVisualiti rv ' +
                                     ' WHERE rv.estado = \'1\'' + where))
+        for row in result:
+            datos.append((row[0], row[1]))
+
+        where = ''
+        if request.session['cliente_id'] != '6':
+            where = ' WHERE tr.id_cliente = ' + request.session['cliente_id']
+        result = conn2.execute(text('SELECT CONCAT(\'gb-\', PAN_ID), NOMBRE_RED' +
+                                    ' FROM t_red tr ' +
+                                    where))
     for row in result:
         datos.append((row[0], row[1]))
 
@@ -116,7 +119,13 @@ def getDispositivos(request):
                                                     ' WHERE ex1.estacion = ws.station_id AND ex1.origen = \'2\'' + where + ')'))
     elif plataforma == '4':
         red = request.POST.get('id_red')
-        result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
+        if ('gb-' in red):
+            red = red.split('-')[1]
+            result = conn2.execute(text('SELECT CONCAT(\'gb-\', te.ID_XBEE_ESTACION), te.NOMBRE_ESTACION ' +
+                                    ' FROM t_estacion te ' +
+                                    ' WHERE te.PAN_ID  = ' + red + ''))
+        else:
+            result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
                                     ' FROM EstacionVisualiti ev ' +
                                     ' WHERE ev.estado = \'1\' AND ev.redVisualiti_id = ' + red + ''))
     for row in result:
@@ -160,15 +169,21 @@ def getSensors(request):
                                     'ORDER by valuee '))
         datos.append(("999", "Gráfico de clima"))
     elif plataforma == '4':
-        result = conn.execute(text('SELECT vhd.nameSensor,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else vhd.nameSensor end as valuee  ' +
-                                    ' FROM VisualitiHistoricData vhd  ' +
-                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                    ' LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                    ' WHERE vh.estacionVisualiti_id =  ' + dispositivo + '' +
-                                    ' GROUP BY t.value, vhd.nameSensor ' +
-                                    ' ORDER by valuee '))
+        if ('gb-' in dispositivo):
+            dispositivo = dispositivo.split('-')[1]
+            result = conn2.execute(text('SELECT concat(\'gb-\', ID_VARIABLE), NOMBRE ' +
+                                    ' FROM t_estacion_sensor tes ' +
+                                    ' WHERE ESTADO = \'ACTIVO\' AND ID_XBEE_ESTACION = ' + dispositivo + ''))
+        else:
+            result = conn.execute(text('SELECT vhd.nameSensor,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else vhd.nameSensor end as valuee  ' +
+                                        ' FROM VisualitiHistoricData vhd  ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                        ' WHERE vh.estacionVisualiti_id =  ' + dispositivo + '' +
+                                        ' GROUP BY t.value, vhd.nameSensor ' +
+                                        ' ORDER by valuee '))
         datos.append(("999", "Todas las variables"))
     for row in result:
         datos.append((row[0], row[1].title()))
@@ -269,12 +284,18 @@ def processForm(request):
             if red == '0' or red == 'null':
                 return JsonResponse({'datos invalidos'})
             
-            resultSensores = conn.execute(text('SELECT' +
-                                                    ' vhd.nameSensor '
-                                                ' FROM VisualitiHistoricData vhd ' +
-                                                ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                                ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
-                                                ' GROUP BY vhd.nameSensor '))
+            if ('gb-' in dispositivo):
+                dispositivo = dispositivo.split('-')[1]
+                resultSensores = conn2.execute(text('SELECT ID_VARIABLE' +
+                                        ' FROM t_estacion_sensor tes ' +
+                                        ' WHERE ID_XBEE_ESTACION = ' + dispositivo + ''))
+            else:
+                resultSensores = conn.execute(text('SELECT' +
+                                                        ' vhd.nameSensor '
+                                                    ' FROM VisualitiHistoricData vhd ' +
+                                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                                    ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
+                                                    ' GROUP BY vhd.nameSensor '))
     else:
         if plataforma == '1':
             resultSensores = conn.execute(text('SELECT ' +
@@ -323,10 +344,19 @@ def processForm(request):
                                                 ' GROUP BY ' +
                                                     ' wdh.name'))
         elif plataforma == '4':
-                red = request.POST.get('id_red')
-                if red == '0' or red == 'null':
-                    return JsonResponse({'datos invalidos'})
-                
+            red = request.POST.get('id_red')
+            if red == '0' or red == 'null':
+                return JsonResponse({'datos invalidos'})
+            
+            if ('gb-' in dispositivo):
+                red = red.split('-')[1]
+                dispositivo = dispositivo.split('-')[1]
+                sensor = sensor.split('-')[1]
+                resultSensores = conn2.execute(text('SELECT ID_VARIABLE' +
+                                                    ' FROM t_estacion_sensor tes ' +
+                                                    ' WHERE ID_XBEE_ESTACION = ' + dispositivo + '' +
+                                                        ' AND ID_VARIABLE = ' + sensor))
+            else:
                 resultSensores = conn.execute(text('SELECT' +
                                                         ' vhd.nameSensor '
                                                     ' FROM VisualitiHistoricData vhd ' +
@@ -384,25 +414,37 @@ def processForm(request):
                                             ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
                                         ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
         elif plataforma == '4':
-            iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
-            endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
-            result = conn.execute(text('SELECT ' +
-                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
-                                            ' case when t.value is not null then  t.value  ' +
-                                            ' else vhd.nameSensor end as valuee, ' +
-                                            ' case when vhd.nameSensor LIKE \'volFluido\' then' +
-                                                ' CAST(SUM(vhd.info) AS DECIMAL(10,2))' +
-                                            ' ELSE' +
-                                                ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) ' +
-                                            ' END AS value, '
-                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                        ' FROM VisualitiHistoricData vhd ' +
-                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                        ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
-                                            ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
-                                        ' ORDER by vh.createdAt ASC '))
+            if ('gb-' in request.POST.get('id_dispositivo')):
+                result = conn2.execute(text('SELECT ' +
+                                                ' CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))) AS hora,' +
+                                                ' tes.NOMBRE,' +
+                                                ' CAST(AVG(tad.' + str(rowSensor[0]) + ') AS DECIMAL(10,2)) value,' +
+                                                ' \'\' medida' +
+                                            ' FROM t_acumulado_diario tad' +
+                                            ' INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID' +
+                                            ' WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\'  AND tes.PAN_ID = \'' + red + '\' ' +
+                                                ' AND tad.fechaLlegada > \'' + dateIni + ' 00:00:00\' ' +
+                                                ' AND tad.fechaLlegada < \'' + dateFin + ' 00:00:00\' '))
+            else:
+                iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+                endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+                result = conn.execute(text('SELECT ' +
+                                                ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
+                                                ' case when t.value is not null then  t.value  ' +
+                                                ' else vhd.nameSensor end as valuee, ' +
+                                                ' case when vhd.nameSensor LIKE \'volFluido\' then' +
+                                                    ' CAST(SUM(vhd.info) AS DECIMAL(10,2))' +
+                                                ' ELSE' +
+                                                    ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) ' +
+                                                ' END AS value, '
+                                                ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                            ' FROM VisualitiHistoricData vhd ' +
+                                            ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                            ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                            ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
+                                                ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
+                                            ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                            ' ORDER by vh.createdAt ASC '))
 
         first = True
         for row in result:
@@ -420,39 +462,39 @@ def processForm(request):
         primerSensor = False
 
         horizontalDatos.append(horizontal)
-        
-        tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + sensor + '\' AND t.tipo_operacion_id != 1'))
-        for tipoOperacion in tipoOperacionSql:
-            horizontal = [];
-            if tipoOperacion[0] == 2:
-                if plataforma == '2':
-                    result = conn.execute(text('SELECT ' +
-                                            ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
-                                            ' case when t.value is not null then  t.value  ' +
-                                            ' else tds.name_sensor end as valuee,' +
-                                            ' SUM(tds.precipitacion) value' +
-                                        ' FROM TtnData td ' +
-                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
-                                        ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                        ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
-                                            ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
-                                            ' AND tds.name_sensor like \'' + sensor + '\''  + 
-                                        ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
-                                        ' ORDER BY received_at'))
+        if ('gb-' not in request.POST.get('id_dispositivo')):
+            tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + sensor + '\' AND t.tipo_operacion_id != 1'))
+            for tipoOperacion in tipoOperacionSql:
+                horizontal = [];
+                if tipoOperacion[0] == 2:
+                    if plataforma == '2':
+                        result = conn.execute(text('SELECT ' +
+                                                ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+                                                ' case when t.value is not null then  t.value  ' +
+                                                ' else tds.name_sensor end as valuee,' +
+                                                ' CAST(SUM(tds.precipitacion) AS DECIMAL(10,2)) value' +
+                                            ' FROM TtnData td ' +
+                                            ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                            ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                            ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
+                                                ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                                ' AND tds.name_sensor like \'' + sensor + '\''  + 
+                                            ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
+                                            ' ORDER BY received_at'))
 
-                    first = True
-                    for row in result:
-                        if first:
-                            medidas.append("milímetros(mm)")
-                            # if (("Precipitación" not in sensores)):
-                            sensores.append("Precipitación")
-                            first = False
-                        # verticalHoras2.append(str(row[0]) + ':00')
-                        if (row[2] == None):
-                            horizontal.append(0.0)
-                        else:
-                            horizontal.append(row[2])
-                    horizontalDatos.append(horizontal)
+                        first = True
+                        for row in result:
+                            if first:
+                                medidas.append("milímetros(mm)")
+                                # if (("Precipitación" not in sensores)):
+                                sensores.append("Precipitación")
+                                first = False
+                            # verticalHoras2.append(str(row[0]) + ':00')
+                            if (row[2] == None):
+                                horizontal.append(0.0)
+                            else:
+                                horizontal.append(row[2])
+                        horizontalDatos.append(horizontal)
                     
     return JsonResponse({'vertical': verticalHoras, 'horizontal': horizontalDatos, 'medidas': medidas, 'sensores': sensores})
 
@@ -799,28 +841,34 @@ def getTipoInformes(request):
                                     ' GROUP by t.value, wdh.name ' +
                                     'ORDER by valuee '))
     elif plataforma == '4':
-        result = conn.execute(text('SELECT COUNT(*) n FROM (' +
-            'SELECT case when t.value is not null then  t.value   else vhd.nameSensor end as valuee ' +
-            'FROM VisualitiHistoricData vhd ' +
-            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-            'LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-            'WHERE vh.estacionVisualiti_id = ' + dispositivo + ' AND t.value in (\'Humedad\', \'Temperatura\') ' +
-            'GROUP BY t.value ' +
-            'ORDER by valuee) tv'))
-        for row in result:
-            if row[0] == 2:
-                sensors.append("Humedad y temperatura")
+        
+        if ('gb-' in dispositivo):
+            dispositivo = dispositivo.split('-')[1]
+            result = conn2.execute(text('SELECT 0, UPPER(VARIABLE) FROM t_estacion_sensor tes ' +
+                                        'WHERE ID_XBEE_ESTACION = ' + dispositivo + ' GROUP BY VARIABLE '))
+        else:
+            result = conn.execute(text('SELECT COUNT(*) n FROM (' +
+                'SELECT case when t.value is not null then  t.value   else vhd.nameSensor end as valuee ' +
+                'FROM VisualitiHistoricData vhd ' +
+                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                'LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                'WHERE vh.estacionVisualiti_id = ' + dispositivo + ' AND t.value in (\'Humedad\', \'Temperatura\') ' +
+                'GROUP BY t.value ' +
+                'ORDER by valuee) tv'))
 
-        result = conn.execute(text('SELECT vhd.nameSensor,' +
-                                    ' case when t.value is not null then  t.value  ' +
-                                    ' else vhd.nameSensor end as valuee  ' +
-                                    ' FROM VisualitiHistoricData vhd  ' +
-                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                    ' LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                    ' WHERE vh.estacionVisualiti_id =  ' + dispositivo + '' +
-                                        ' AND t.value in (\'Precipitación\', \'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\')' + 
-                                    ' GROUP BY t.value, vhd.nameSensor ' +
-                                    ' ORDER by valuee '))
+            for row in result:
+                if row[0] == 2:
+                    sensors.append("Humedad y temperatura")
+            result = conn.execute(text('SELECT vhd.nameSensor,' +
+                                        ' case when t.value is not null then  t.value  ' +
+                                        ' else vhd.nameSensor end as valuee  ' +
+                                        ' FROM VisualitiHistoricData vhd  ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                        ' WHERE vh.estacionVisualiti_id =  ' + dispositivo + '' +
+                                            ' AND t.value in (\'Precipitación\', \'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\')' + 
+                                        ' GROUP BY t.value, vhd.nameSensor ' +
+                                        ' ORDER by valuee '))
 
     for row in result:
         if row[1] not in sensors:
@@ -828,29 +876,29 @@ def getTipoInformes(request):
 
     nowDate = datetime.now().strftime("%d-%m-%Y")
     for sensor in sensors:
-        if sensor == 'Precipitación' or sensor == 'Pluviometria/Cantidad de pulsos':
+        if sensor == 'Precipitación' or sensor == 'Pluviometria' or sensor == 'PRECIPITACION' or sensor == 'T_PRECIPITACION':
             datos.append((1, ('Precipitación - Acumulado anual')))
             datos.append((2, ('Precipitación - Acumulado mensual')))
             datos.append((3, ('Precipitación - Acumulado del día de hoy ' + nowDate)))
             datos.append((4, ('Precipitación - Acumulado ultimos tres dias')))
-        elif sensor == 'Humedad del suelo':
-            datos.append((5, (sensor + ' - Medición actual')))
-            datos.append((6, (sensor + ' - Promedio del día de hoy ' + nowDate)))
-            datos.append((7, (sensor + ' - Maximo del mes')))
-            datos.append((8, (sensor + ' - Minimo del mes')))
-            datos.append((9, (sensor + ' - Promedio ultimos tres dias')))
-            datos.append((10, (sensor + ' - CC y PMP')))
+        elif sensor == 'Humedad del suelo' or sensor == 'HUMEDAD_SUELO' or sensor == 'T_HUMEDAD_SUELO':
+            datos.append((5, ('Humedad del suelo - Medición actual')))
+            datos.append((6, ('Humedad del suelo - Promedio del día de hoy ' + nowDate)))
+            datos.append((7, ('Humedad del suelo - Maximo del mes')))
+            datos.append((8, ('Humedad del suelo - Minimo del mes')))
+            datos.append((9, ('Humedad del suelo - Promedio ultimos tres dias')))
+            datos.append((10, ('Humedad del suelo - CC y PMP')))
         elif sensor == 'Humedad y temperatura':
-            datos.append((11, (sensor + ' - Por periodo de fechas')))
-            datos.append((12, (sensor + ' - Promedio del día de hoy ' + nowDate)))
-            datos.append((13, (sensor + ' - Maximo del mes')))
-            datos.append((14, (sensor + ' - Minimo del mes')))
-            datos.append((15, (sensor + ' - Maximo de ayer')))
-            datos.append((16, (sensor + ' - Minimo de ayer')))
-        elif sensor == 'Radiación solar':
-            datos.append((17, (sensor + ' - Por periodo de fechas')))
-            datos.append((18, (sensor + ' - Acumulado ultimos tres días')))
-            datos.append((19, (sensor + ' - Acumulado del día de hoy ' + nowDate)))
+            datos.append((11, ('Humedad y temperatura - Por periodo de fechas')))
+            datos.append((12, ('Humedad y temperatura - Promedio del día de hoy ' + nowDate)))
+            datos.append((13, ('Humedad y temperatura - Maximo del mes')))
+            datos.append((14, ('Humedad y temperatura - Minimo del mes')))
+            datos.append((15, ('Humedad y temperatura - Maximo de ayer')))
+            datos.append((16, ('Humedad y temperatura - Minimo de ayer')))
+        elif sensor == 'Radiación solar' or sensor == 'T_RADIACION':
+            datos.append((17, ('Radiación solar - Por periodo de fechas')))
+            datos.append((18, ('Radiación solar - Acumulado ultimos tres días')))
+            datos.append((19, ('Radiación solar - Acumulado del día de hoy ' + nowDate)))
         elif sensor == 'Distancia':
             datos.append((20, ('Nivel/altura de lámina de agua - Por periodo de fechas')))
             datos.append((21, ('Nivel/altura de lámina de agua - Promedio del día de hoy ' + nowDate)))
@@ -858,15 +906,13 @@ def getTipoInformes(request):
             datos.append((23, ('Nivel/altura de lámina de agua - Minimo del mes')))
             datos.append((24, ('Nivel/altura de lámina de agua - Maximo de ayer')))
             datos.append((25, ('Nivel/altura de lámina de agua - Minimo de ayer')))
-        elif sensor == 'Volumen de agua':
-            datos.append((26, (sensor + ' - Por periodo de fechas')))
-            datos.append((27, (sensor + ' - Promedio del día de hoy ' + nowDate)))
-            datos.append((28, (sensor + ' - Maximo del mes')))
-            datos.append((29, (sensor + ' - Minimo del mes')))
-            datos.append((30, (sensor + ' - Maximo de ayer')))
-            datos.append((31, (sensor + ' - Minimo de ayer')))
-
-
+        elif sensor == 'Volumen de agua' or sensor == 'VOL_FLUIDO':
+            datos.append((26, ('Volumen de agua - Por periodo de fechas')))
+            datos.append((27, ('Volumen de agua - Promedio del día de hoy ' + nowDate)))
+            datos.append((28, ('Volumen de agua - Maximo del mes')))
+            datos.append((29, ('Volumen de agua - Minimo del mes')))
+            datos.append((30, ('Volumen de agua - Maximo de ayer')))
+            datos.append((31, ('Volumen de agua - Minimo de ayer')))
 
     return JsonResponse({'datos': datos})
 
@@ -926,16 +972,35 @@ def createInforme(request):
                                                 'AND DATE_FORMAT(FROM_UNIXTIME(wh.ts), \'%Y\') = ' + '\'' + date + '\' '))
 
             elif plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') = ' + '\'' + date + '\' '))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE_FORMAT(tad.INICIO, \'%Y\') AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(SUM(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\') ' +
+                                                    'AND DATE_FORMAT(tad.INICIO, \'%Y\') = ' + '\'' + date + '\''))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                    'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                    'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%Y\') = ' + '\'' + date + '\' '))
                                             
             horizontal  = []
             first = True
@@ -991,16 +1056,35 @@ def createInforme(request):
                                                 'AND DATE_FORMAT(FROM_UNIXTIME(wh.ts), \'%m-%Y\') = ' + '\'' + date + '\' '))
 
             elif plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE_FORMAT(tad.INICIO, \'%m-%Y\') AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(SUM(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\') ' +
+                                                    'AND DATE_FORMAT(tad.INICIO, \'%m-%Y\') = ' + '\'' + date + '\''))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                    'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                    'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
                                             
             horizontal  = []
             first = True
@@ -1056,16 +1140,35 @@ def createInforme(request):
                                                 'GROUP BY DATE(FROM_UNIXTIME(wh.ts))'))
 
             elif plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE(tad.INICIO) AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(SUM(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\') ' +
+                                                    'AND DATE(tad.INICIO) = DATE(NOW())'))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                    'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                    'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
             horizontal  = []
             first = True
@@ -1122,17 +1225,37 @@ def createInforme(request):
                                                 'GROUP BY DATE(FROM_UNIXTIME(wh.ts))'))
 
             elif plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY)' + 
-                                            'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE(tad.INICIO) AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(SUM(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'PRECIPITACION\', \'T_PRECIPITACION\') ' +
+                                                    'AND DATE(tad.INICIO) > DATE(NOW() -INTERVAL 3 DAY) ' +
+                                                'GROUP BY DATE(tad.INICIO)'))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                    'CAST(SUM(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Precipitación\' ' +
+                                                    'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY)' + 
+                                                'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
                                             
             horizontal  = []
             first = True
@@ -1158,17 +1281,36 @@ def createInforme(request):
         elif dato['informeId'] == '5':
             
             if plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(vhd.info AS DECIMAL(10,2)) value,' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida, ' +
-                                                'MAX(vh.visualitiHistoric_id) maximo '
-                                                'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE(tad.INICIO) AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(tad.' + str(column) + ' AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\') ' +
+                                                    'AND DATE(tad.INICIO) = DATE(NOW())'))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
+                                                    'CAST(vhd.info AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida, ' +
+                                                    'MAX(vh.visualitiHistoric_id) maximo '
+                                                    'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
+                                                    'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
             horizontal  = []
             first = True
@@ -1194,16 +1336,35 @@ def createInforme(request):
         elif dato['informeId'] == '6':
             
             if plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                                'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE(tad.INICIO) AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(AVG(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\') ' +
+                                                    'AND DATE(tad.INICIO) = DATE(NOW())'))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
+                                                    'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                    'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
+                                                    'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(NOW())'))
                                             
             horizontal  = []
             first = True
@@ -1235,16 +1396,35 @@ def createInforme(request):
                 function = 'MIN'
 
             if plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
-                                                'CAST(' + function + '(vhd.info) AS DECIMAL(10,2)) value, ' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
-                                            'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
-                                                'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE(tad.INICIO) AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(' + function + '(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\') ' +
+                                                    'AND DATE_FORMAT(tad.INICIO, \'%m-%Y\') = ' + '\'' + date + '\' '))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee, ' +
+                                                    'CAST(' + function + '(vhd.info) AS DECIMAL(10,2)) value, ' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida  ' +
+                                                'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
+                                                    'AND DATE_FORMAT(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR), \'%m-%Y\') = ' + '\'' + date + '\' '))
                                             
             horizontal  = []
             first = True
@@ -1270,17 +1450,37 @@ def createInforme(request):
         elif dato['informeId'] == '9':
 
             if plataforma == '4':
-                result = conn.execute(text('SELECT ' +
-                                                'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
-                                                'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
-                                                'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
-                                                'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                                'FROM VisualitiHistoricData vhd  ' +
-                                            'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
-                                            'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
-                                            'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
-                                                'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY) ' +
-                                                'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'DATE(tad.INICIO) AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(AVG(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\') ' +
+                                                    'AND DATE(tad.INICIO) > DATE(NOW() - INTERVAL 3 DAY) ' +
+                                                'GROUP BY DATE(tad.INICIO)'))
+                else:
+                    result = conn.execute(text('SELECT ' +
+                                                    'DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) AS time, ' +
+                                                    'case when t.value is not null then  t.value   else vhd.nameSensor end as valuee,' +
+                                                    'CAST(AVG(vhd.info) AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                    'FROM VisualitiHistoricData vhd  ' +
+                                                'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                                'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                                'WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'humedadSuelo\' ' +
+                                                    'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE(NOW() -INTERVAL 3 DAY) ' +
+                                                    'GROUP BY DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR))'))
                                             
             horizontal  = []
             first = True
@@ -1314,21 +1514,42 @@ def createInforme(request):
             plotBand = [{'from': 0, 'to': dato['cc'], 'color': 'rgba(255, 0, 0, 0.2)', 'label': {'text': 'Déficit hídrico', 'style': {'color': '#000000'}}}, {'from': dato['cc'], 'to': dato['pmp'], 'color': 'rgba(0, 150, 50, 0.2)', 'label': {'text': 'Rango de humedad ideal', 'style': {'color': '#000000'}}}]
 
             if plataforma == '4':
-                iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
-                endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
-                result = conn.execute(text('SELECT ' +
-                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
-                                            ' case when t.value is not null then  t.value  ' +
-                                            ' else vhd.nameSensor end as valuee, ' +
-                                            ' CAST(AVG(vhd.info) AS DECIMAL(10,2))  value, ' +
-                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                        ' FROM VisualitiHistoricData vhd ' +
-                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                        ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Humedad del suelo\''  + 
-                                            ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
-                                        ' ORDER by vh.createdAt ASC '))
+                if ('gb-' in dispositivo):
+                    dispositivo = dispositivo.split('-')[1]
+                    column = None
+                    result = conn2.execute(text('CALL getColumnValueFromTable("t_estacion_sensor", "ID_VARIABLE", "ID_XBEE_ESTACION = ' + dispositivo + ' AND UPPER(VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\')")'))
+                    for row in result:
+                        column = row[0]
+
+                    result = conn2.execute(text('SELECT ' +
+                                                    'tad.INICIO AS time,' + 
+                                                    'NOMBRE,' +
+                                                    'CAST(AVG(tad.' + str(column) + ') AS DECIMAL(10,2)) value,' +
+                                                    'CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                                'FROM t_acumulado_diario tad ' + 
+                                                'INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID ' +
+                                                'LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                'WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\' ' +
+                                                    'AND UPPER(tes.VARIABLE) in (\'HUMEDAD_SUELO\', \'T_HUMEDAD_SUELO\') ' +
+                                                    'AND tad.INICIO >= \'' + dateIni + ' 00:00:00\' AND tad.INICIO <= \'' + dateFin + ' 23:59:59\' ' +
+                                                'GROUP BY DATE(tad.INICIO), NOMBRE, t.unidadMedida, t.simboloUnidad ' +
+                                                'ORDER BY tad.INICIO ASC '))
+                else:
+                    iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+                    endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+                    result = conn.execute(text('SELECT ' +
+                                                ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
+                                                ' case when t.value is not null then  t.value  ' +
+                                                ' else vhd.nameSensor end as valuee, ' +
+                                                ' CAST(AVG(vhd.info) AS DECIMAL(10,2))  value, ' +
+                                                ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                            ' FROM VisualitiHistoricData vhd ' +
+                                            ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                            ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                            ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND t.value like \'Humedad del suelo\''  + 
+                                                ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
+                                            ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                            ' ORDER by vh.createdAt ASC '))
 
             horizontal  = []
             first = True
@@ -2264,11 +2485,12 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex.origen = \'1\'' + where +
                                         ' GROUP BY td.dev_eui, ex.nombre'))
         elif plataforma == '3':
-            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombre ' +
+            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombreEstacion ' +
                                         ' FROM wl_stations ws '+
                                         ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
                                         ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
-                                                        ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\' ' + where + ')'))
+                                                        ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\' ' + where + ')' +
+                                        ' GROUP BY ws.station_id, nombreEstacion'))
         elif plataforma == '4':
             result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
                                         ' FROM EstacionVisualiti ev ' +
@@ -2387,7 +2609,7 @@ def getDispositivosGrupo(request):
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                         ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'solar_rad_avg\''  + 
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
-                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 30 HOUR)'))
+                                            ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR)'))
                                         
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
@@ -2406,7 +2628,7 @@ def getDispositivosGrupo(request):
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
                                         ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
                                             ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
-                                            ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 30 HOUR) '))
+                                            ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR) '))
 
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -2425,7 +2647,7 @@ def getDispositivosGrupo(request):
                                         ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
                                         ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
-                                            ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 30 HOUR) '))
+                                            ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR) '))
 
         correcto = False
         i = 0
