@@ -286,7 +286,8 @@ def processForm(request):
             
             if ('gb-' in dispositivo):
                 dispositivo = dispositivo.split('-')[1]
-                resultSensores = conn2.execute(text('SELECT ID_VARIABLE' +
+                red = red.split('-')[1]
+                resultSensores = conn2.execute(text('SELECT ID_VARIABLE, tes.NOMBRE' +
                                         ' FROM t_estacion_sensor tes ' +
                                         ' WHERE ID_XBEE_ESTACION = ' + dispositivo + ''))
             else:
@@ -352,7 +353,7 @@ def processForm(request):
                 red = red.split('-')[1]
                 dispositivo = dispositivo.split('-')[1]
                 sensor = sensor.split('-')[1]
-                resultSensores = conn2.execute(text('SELECT ID_VARIABLE' +
+                resultSensores = conn2.execute(text('SELECT ID_VARIABLE, tes.NOMBRE' +
                                                     ' FROM t_estacion_sensor tes ' +
                                                     ' WHERE ID_XBEE_ESTACION = ' + dispositivo + '' +
                                                         ' AND ID_VARIABLE = ' + sensor))
@@ -364,6 +365,7 @@ def processForm(request):
                                                     ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
                                                         ' AND vhd.nameSensor like \'' + sensor + '\''  +
                                                     ' GROUP BY vhd.nameSensor '))
+    
     primerSensor = True
     for rowSensor in resultSensores:
         horizontal = []
@@ -419,12 +421,15 @@ def processForm(request):
                                                 ' CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))) AS hora,' +
                                                 ' tes.NOMBRE,' +
                                                 ' CAST(AVG(tad.' + str(rowSensor[0]) + ') AS DECIMAL(10,2)) value,' +
-                                                ' \'\' medida' +
+                                                ' CONCAT(t.unidadMedida, \' \', t.simboloUnidad) medida' +
                                             ' FROM t_acumulado_diario tad' +
                                             ' INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID' +
+                                            ' LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE'
                                             ' WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\'  AND tes.PAN_ID = \'' + red + '\' ' +
-                                                ' AND tad.fechaLlegada > \'' + dateIni + ' 00:00:00\' ' +
-                                                ' AND tad.fechaLlegada < \'' + dateFin + ' 00:00:00\' '))
+                                                ' AND tad.INICIO >= \'' + dateIni + ' 00:00:00\' ' +
+                                                ' AND tad.INICIO <= \'' + dateFin + ' 23:59:59\' ' +
+                                                ' AND tes.NOMBRE LIKE \'' + rowSensor[1] + '\'' +
+                                            ' GROUP BY CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))), tes.NOMBRE,t.unidadMedida, t.simboloUnidad'))
             else:
                 iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
                 endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
@@ -599,19 +604,28 @@ def downloadExcel(request):
             if red == '0' or red == 'null':
                 return JsonResponse({'datos invalidos'})
             
-            resultSensores = conn.execute(text('SELECT' +
-                                                    ' vhd.nameSensor, ' +
-                                                    ' CASE WHEN t.id is not null then' +
-                                                        ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
-                                                        ' else vhd.nameSensor ' +
-                                                    ' end nombre, ' +
-                                                    ' ev.nombre ' +
-                                                ' FROM VisualitiHistoricData vhd ' +
-                                                ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                                ' INNER JOIN EstacionVisualiti ev ON ev.estacionVisualiti_id = vh.estacionVisualiti_id  ' +
-                                                ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                                ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
-                                                ' GROUP BY vhd.nameSensor '))
+            if ('gb-' in dispositivo):
+                dispositivo = dispositivo.split('-')[1]
+                red = red.split('-')[1]
+                resultSensores = conn2.execute(text('SELECT ID_VARIABLE, CONCAT(tes.NOMBRE, \' \',t.unidadMedida, \' \', t.simboloUnidad) medida, te.NOMBRE_ESTACION, tes.NOMBRE' +
+                                                    ' FROM t_estacion_sensor tes ' +
+                                                    ' INNER JOIN t_estacion te ON te.ID_XBEE_ESTACION = tes.ID_XBEE_ESTACION ' +
+                                                    ' LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                    ' WHERE tes.ID_XBEE_ESTACION = ' + dispositivo + ''))
+            else:            
+                resultSensores = conn.execute(text('SELECT' +
+                                                        ' vhd.nameSensor, ' +
+                                                        ' CASE WHEN t.id is not null then' +
+                                                            ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                            ' else vhd.nameSensor ' +
+                                                        ' end nombre, ' +
+                                                        ' ev.nombre ' +
+                                                    ' FROM VisualitiHistoricData vhd ' +
+                                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                                    ' INNER JOIN EstacionVisualiti ev ON ev.estacionVisualiti_id = vh.estacionVisualiti_id  ' +
+                                                    ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                                    ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
+                                                    ' GROUP BY vhd.nameSensor '))
     else:
         if plataforma == '1':
             resultSensores = conn.execute(text('SELECT ' +
@@ -664,20 +678,31 @@ def downloadExcel(request):
             if red == '0' or red == 'null':
                 return JsonResponse({'datos invalidos'})
             
-            resultSensores = conn.execute(text('SELECT' +
-                                                    ' vhd.nameSensor, ' +
-                                                    ' CASE WHEN t.id is not null then' +
-                                                        ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
-                                                        ' else vhd.nameSensor ' +
-                                                    ' end nombre, ' +
-                                                    ' ev.nombre ' +
-                                                ' FROM VisualitiHistoricData vhd ' +
-                                                ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                                ' INNER JOIN EstacionVisualiti ev ON ev.estacionVisualiti_id = vh.estacionVisualiti_id  ' +
-                                                ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                                ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
-                                                    ' AND vhd.nameSensor like \'' + sensor + '\''  +
-                                                ' GROUP BY vhd.nameSensor '))
+            if ('gb-' in dispositivo):
+                red = red.split('-')[1]
+                dispositivo = dispositivo.split('-')[1]
+                sensor = sensor.split('-')[1]
+                resultSensores = conn2.execute(text('SELECT ID_VARIABLE, CONCAT(tes.NOMBRE, \' \',t.unidadMedida, \' \', t.simboloUnidad) medida, te.NOMBRE_ESTACION, tes.NOMBRE' +
+                                                    ' FROM t_estacion_sensor tes ' +
+                                                    ' INNER JOIN t_estacion te ON te.ID_XBEE_ESTACION = tes.ID_XBEE_ESTACION ' +
+                                                    ' LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE ' +
+                                                    ' WHERE tes.ID_XBEE_ESTACION = ' + dispositivo + '' +
+                                                        ' AND ID_VARIABLE = ' + sensor))
+            else:            
+                resultSensores = conn.execute(text('SELECT' +
+                                                        ' vhd.nameSensor, ' +
+                                                        ' CASE WHEN t.id is not null then' +
+                                                            ' CONCAT(t.value, CONCAT(\' - \',CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\')))))' +
+                                                            ' else vhd.nameSensor ' +
+                                                        ' end nombre, ' +
+                                                        ' ev.nombre ' +
+                                                    ' FROM VisualitiHistoricData vhd ' +
+                                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                                    ' INNER JOIN EstacionVisualiti ev ON ev.estacionVisualiti_id = vh.estacionVisualiti_id  ' +
+                                                    ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                                    ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
+                                                        ' AND vhd.nameSensor like \'' + sensor + '\''  +
+                                                    ' GROUP BY vhd.nameSensor '))
     
     primerSensor = True
     for rowSensor in resultSensores:
@@ -728,25 +753,40 @@ def downloadExcel(request):
                                             ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
                                         ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
         elif plataforma == '4':
-            iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
-            endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
-            result = conn.execute(text('SELECT ' +
-                                            ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
-                                            ' case when t.value is not null then  t.value  ' +
-                                            ' else vhd.nameSensor end as valuee, ' +
-                                            ' case when vhd.nameSensor LIKE \'volFluido\' then' +
-                                                ' CAST(SUM(vhd.info) AS DECIMAL(10,2))' +
-                                            ' ELSE' +
-                                                ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) ' +
-                                            ' END AS value, '
-                                            ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
-                                        ' FROM VisualitiHistoricData vhd ' +
-                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                        ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
-                                            ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
-                                        ' ORDER by vh.createdAt ASC '))
+            if ('gb-' in request.POST.get('id_red')):
+                result = conn2.execute(text('SELECT ' +
+                                                ' CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))) AS hora,' +
+                                                ' tes.NOMBRE,' +
+                                                ' CAST(AVG(tad.' + str(rowSensor[0]) + ') AS DECIMAL(10,2)) value,' +
+                                                ' CONCAT(t.unidadMedida, \' \', t.simboloUnidad) medida' +
+                                            ' FROM t_acumulado_diario tad' +
+                                            ' INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID' +
+                                            ' LEFT JOIN visualitiApisDB.translates t on t.name = tes.VARIABLE'
+                                            ' WHERE tes.ID_XBEE_ESTACION = \'' + dispositivo + '\'  AND tes.PAN_ID = \'' + red + '\' ' +
+                                                ' AND tad.INICIO >= \'' + dateIni + ' 00:00:00\' ' +
+                                                ' AND tad.INICIO <= \'' + dateFin + ' 23:59:59\' ' +
+                                                ' AND tes.NOMBRE LIKE \'' + rowSensor[3] + '\'' +
+                                            ' GROUP BY CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))), tes.NOMBRE,t.unidadMedida, t.simboloUnidad'))
+            else:
+                iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
+                endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+                result = conn.execute(text('SELECT ' +
+                                                ' CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))) AS hora,' +
+                                                ' case when t.value is not null then  t.value  ' +
+                                                ' else vhd.nameSensor end as valuee, ' +
+                                                ' case when vhd.nameSensor LIKE \'volFluido\' then' +
+                                                    ' CAST(SUM(vhd.info) AS DECIMAL(10,2))' +
+                                                ' ELSE' +
+                                                    ' CAST(AVG(vhd.info) AS DECIMAL(10,2)) ' +
+                                                ' END AS value, '
+                                                ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
+                                            ' FROM VisualitiHistoricData vhd ' +
+                                            ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                            ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                            ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
+                                                ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
+                                            ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
+                                            ' ORDER by vh.createdAt ASC '))
 
         # Sheet body, remaining rows
         font_style = xlwt.XFStyle()
@@ -767,36 +807,36 @@ def downloadExcel(request):
 
         row_num = 0
         # siguiente hoja grafica barras
-        tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + rowSensor[0] + '\' AND t.tipo_operacion_id != 1'))
-        for tipoOperacion in tipoOperacionSql:
-            if tipoOperacion[0] == 2:
-                if plataforma == '2':
-                    result = conn.execute(text('SELECT ' +
-                                        ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
-                                        ' case when t.value is not null then  t.value  ' +
-                                        ' else tds.name_sensor end as valuee,' +
-                                        ' SUM(tds.precipitacion) value' +
-                                        ' FROM TtnData td ' +
-                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
-                                        ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
-                                        ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
-                                        ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
-                                        ' AND tds.name_sensor like \'' + rowSensor[0] + '\''  + 
-                                        ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
-                                        ' ORDER BY received_at'))
+        if ('gb-' not in request.POST.get('id_red')):
+            tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + rowSensor[0] + '\' AND t.tipo_operacion_id != 1'))
+            for tipoOperacion in tipoOperacionSql:
+                if tipoOperacion[0] == 2:
+                    if plataforma == '2':
+                        result = conn.execute(text('SELECT ' +
+                                            ' CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) AS hora,' +
+                                            ' case when t.value is not null then  t.value  ' +
+                                            ' else tds.name_sensor end as valuee,' +
+                                            ' SUM(tds.precipitacion) value' +
+                                            ' FROM TtnData td ' +
+                                            ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                            ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
+                                            ' WHERE td.dev_eui = \'' + dispositivo + '\' AND DATE_SUB(received_at, INTERVAL 5 HOUR) >= \'' + dateIni + ' 00:00:00\' ' +
+                                            ' AND DATE_SUB(received_at, INTERVAL 5 HOUR) <= \'' + dateFin + ' 23:59:59\' ' +
+                                            ' AND tds.name_sensor like \'' + rowSensor[0] + '\''  + 
+                                            ' GROUP BY CONCAT(DATE(DATE_SUB(received_at, INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_SUB(received_at, INTERVAL 5 HOUR)))) , t.value, tds.name_sensor, t.unidadMedida, t.simboloUnidad' + 
+                                            ' ORDER BY received_at'))
 
-                    # Sheet body, remaining rows
-                    font_style = xlwt.XFStyle()
-                    for row in result:
-                        row_num = row_num + 1
-                        if (row[2] == None):
-                            ws.write(row_num, (column_num+2), '0', font_style)
-                        else:
-                            ws.write(row_num, (column_num+2), row[2], font_style)
-                    column_num = column_num + 1
-                    columns.append("Precipitacion - milímetros(mm)")
-                    row_num = 0
-
+                        # Sheet body, remaining rows
+                        font_style = xlwt.XFStyle()
+                        for row in result:
+                            row_num = row_num + 1
+                            if (row[2] == None):
+                                ws.write(row_num, (column_num+2), '0', font_style)
+                            else:
+                                ws.write(row_num, (column_num+2), row[2], font_style)
+                        column_num = column_num + 1
+                        columns.append("Precipitacion - milímetros(mm)")
+                        row_num = 0
 
     #write column headers in sheet
     for col_num in range(len(columns)):

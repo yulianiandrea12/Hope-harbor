@@ -82,7 +82,7 @@
                         {# <input type="text" class="form-control" data-style="btn-success" id="day" name="day" placeholder="yyyy-mm-dd"> #}
                         <div class="input-group input-daterange">
                             <span class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></span>
-                            <input type="text" class="start-date form-control" data-style="btn-success" id="dateIni" name="dateIni" value="2023-04-01">
+                            <input type="text" class="start-date form-control" data-style="btn-success" id="dateIni" name="dateIni" value="2022-04-01">
                             <div class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></div>
                             <input type="text" class="end-date form-control" data-style="btn-success" id="dateFin" name="dateFin" value="2023-04-30">
                         </div>
@@ -250,7 +250,7 @@
                 rightArrow: '<i class="fa fa-chevron-right"></i>'
             },
             format: "yyyy-mm-dd",
-            startDate: '2023-04-01',
+            startDate: '2022-04-01',
             keyboardNavigation: false,
             autoclose: true,
             todayHighlight: true,
@@ -264,7 +264,7 @@
                 rightArrow: '<i class="fa fa-chevron-right"></i>'
             },
             format: "yyyy-mm-dd",
-            startDate: '2023-04-01',
+            startDate: '2022-04-01',
             keyboardNavigation: false,
             autoclose: true,
             todayHighlight: true,
@@ -276,7 +276,7 @@
 
         $('.start-date').datepicker().on("changeDate", function() {
             var startDate = $('.start-date').datepicker('getDate');
-            var oneDayFromStartDate = '2023-04-01';
+            var oneDayFromStartDate = '2022-04-01';
             $('.end-date').datepicker('setStartDate', oneDayFromStartDate);
             $('.end-date').datepicker('setDate', oneDayFromStartDate);
         });
