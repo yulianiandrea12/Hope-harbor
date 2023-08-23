@@ -2514,12 +2514,12 @@ def getDispositivosGrupo(request):
         
 
         if plataforma == '1':
-            result = conn.execute(text('SELECT ed.deviceid, ed.name ' +
+            result = conn.execute(text('SELECT distinct ed.deviceid, ed.name ' +
                                         ' FROM ewl_device ed  ' +
                                         ' INNER JOIN estacion_xcliente ex ON ex.estacion = ed.deviceid  ' +
                                         ' WHERE ex.origen = \'3\'' + where))
         elif plataforma == '2':
-            result = conn.execute(text('SELECT td.dev_eui, ex.nombre ' +
+            result = conn.execute(text('SELECT distinct td.dev_eui, ex.nombre ' +
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN estacion_xcliente ex ON ex.estacion = td.dev_eui  ' +
                                         ' WHERE ex.origen = \'1\'' + where +
@@ -2530,9 +2530,9 @@ def getDispositivosGrupo(request):
                                         ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
                                         ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
                                                         ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\' ' + where + ')' +
-                                        ' GROUP BY ws.station_id, nombreEstacion'))
+                                        ' GROUP BY ws.station_id, ex1.nombre,nombreEstacion'))
         elif plataforma == '4':
-            result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
+            result = conn.execute(text('SELECT distinct ev.estacionVisualiti_id, ev.nombre ' +
                                         ' FROM EstacionVisualiti ev ' +
                                         ' WHERE ev.estado = \'1\' ' + where))
     else:
@@ -2550,12 +2550,13 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex.origen = \'1\'' + where + '= ex.estacion)' +
                                         ' GROUP BY td.dev_eui, ex.nombre'))
         elif plataforma == '3':
-            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombre ' +
+            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombreEstacion ' +
                                         ' FROM wl_stations ws '+
                                         ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
                                         ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
                                                         ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\') ' +
-                                        where + '= ws.station_id)'))
+                                        where + '= ws.station_id)' +
+                                        ' GROUP BY ws.station_id, nombreEstacion'))
         elif plataforma == '4':
             result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
                                         ' FROM EstacionVisualiti ev ' +
