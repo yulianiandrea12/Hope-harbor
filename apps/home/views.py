@@ -402,11 +402,14 @@ def processForm(request):
         elif plataforma == '3':
             iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
             endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+            column = 'wdh.value'
+            if 'temp' in rowSensor[0]:
+                column = '((wdh.value - 32) * 5/9)'
             result = conn.execute(text('SELECT ' +
                                             ' CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))) AS hora,' +
                                             ' case when t.value is not null then  t.value  ' +
                                             ' else wdh.name end as valuee, ' +
-                                            ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
+                                            ' CAST(AVG(' + column + ') AS DECIMAL(10,2)) value, ' +
                                             ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -739,11 +742,14 @@ def downloadExcel(request):
         elif plataforma == '3':
             iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
             endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
+            column = 'wdh.value'
+            if 'temp' in rowSensor[0]:
+                column = '((wdh.value - 32) * 5/9)'
             result = conn.execute(text('SELECT ' +
                                             ' CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))) AS hora,' +
                                             ' case when t.value is not null then  t.value  ' +
                                             ' else wdh.name end as valuee, ' +
-                                            ' CAST(AVG(wdh.value) AS DECIMAL(10,2)) value, ' +
+                                            ' CAST(AVG(' + column + ') AS DECIMAL(10,2)) value, ' +
                                             ' CONCAT(t.unidadMedida, CONCAT(\'(\', CONCAT(t.simboloUnidad, \')\'))) medida ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -2722,6 +2728,7 @@ def getDispositivosGrupo(request):
                                         ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
                                             ' AND eh.createdAt = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
                                             ' AND eh.currentHumidity < 10 AND eh.currentHumidity > 100 '))
+        
         elif plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
                                             ' COUNT(*) value ' +
@@ -2809,6 +2816,7 @@ def getDispositivosGrupo(request):
                                         ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
                                             ' AND eh.createdAt = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
                                             ' AND eh.currentTemperature < 10 AND eh.currentTemperature > 100 '))
+        
         elif plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
                                             ' COUNT(*) value ' +
@@ -2827,6 +2835,7 @@ def getDispositivosGrupo(request):
                                             ' AND tds.info < 10 AND tds.info > 40 '))
         
         elif plataforma == '3':
+            # Las medidas estan en °F y no en °C, por eso 50°F -> 10°C & 104°F -> 40°C
             resultRule = conn.execute(text('SELECT ' +
                                             ' COUNT(ws.station_id) n ' +
                                         ' FROM wl_sensors ws ' +
@@ -2835,7 +2844,7 @@ def getDispositivosGrupo(request):
                                         ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
                                             ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value >= 10 AND wdh.value <= 40 ' +
+                                            ' AND wdh.value >= 50 AND wdh.value <= 104 ' +
                                         ' UNION ALL' +
                                         ' SELECT ' +
                                             ' COUNT(ws.station_id) n ' +
@@ -2845,7 +2854,7 @@ def getDispositivosGrupo(request):
                                         ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
                                             ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value < 10 AND wdh.value > 40 '))
+                                            ' AND wdh.value < 50 AND wdh.value > 104 '))
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +

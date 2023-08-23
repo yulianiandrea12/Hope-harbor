@@ -407,6 +407,8 @@
                     $('#detallesEquipo').text(estacion[3]);
                 });
 
+                $('#titleCasosTable').text('Datos Estacion: ' + estacionnombre);
+
                 if (data.datos.length < 1) {
                     $('#casosTable').hide();
                     general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
@@ -442,8 +444,6 @@
                             ]
                         }).clear().rows.add(data.datos).draw();
                     }
-
-                    $('#titleCasosTable').text('Datos Estacion: ' + estacionnombre);
                     $('#casosTable').show();
                 }
             }
