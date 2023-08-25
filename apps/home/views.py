@@ -112,11 +112,12 @@ def getDispositivos(request):
         where = ''
         if request.session['cliente_id'] != '6':
             where = ' AND ex1.cliente_id = ' + request.session['cliente_id']
-        result = conn.execute(text('SELECT ws.station_id, case when ex.nombre is not null then ex.nombre else ws.station_name end as nombre' +
+        result = conn.execute(text('SELECT ws.station_id, case when ex.nombre is null or ex.nombre = \'\' then ws.station_name else ex.nombre end as nombreEstacion' +
                                     ' FROM wl_stations ws ' +
                                     ' LEFT JOIN estacion_xcliente ex ON ex.estacion = ws.station_id  ' +
                                     ' WHERE ex.origen = \'2\' AND EXISTS (SELECT ex1.estacion_xcliente_id FROM estacion_xcliente ex1 ' +
-                                                    ' WHERE ex1.estacion = ws.station_id AND ex1.origen = \'2\'' + where + ')'))
+                                                    ' WHERE ex1.estacion = ws.station_id AND ex1.origen = \'2\'' + where + ')' +
+                                    ' GROUP BY ws.station_id, nombreEstacion ORDER BY nombreEstacion '))
     elif plataforma == '4':
         red = request.POST.get('id_red')
         if ('gb-' in red):
@@ -195,15 +196,14 @@ def processForm(request):
     plataforma = request.POST.get('id_plataforma')
     dispositivo = request.POST.get('id_dispositivo')
     sensor = request.POST.get('id_sensor')
-    dateIni = request.POST.get('dateIni')
-    dateFin = request.POST.get('dateFin')
+    fecha = request.POST.get('fecha')
     todoSensor = 'false'
     
     verticalHoras = []
     horizontalDatos = []
     verticalHoras2 = []
     horizontalDatos2 = []
-    if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
+    if plataforma == '0' or dispositivo == '0' or sensor == '0':
         return JsonResponse({'datos invalidos'})
     if (sensor == '999'):
         todoSensor = 'true'
@@ -212,10 +212,10 @@ def processForm(request):
     elif todoSensor == 'true' and plataforma == '2':
         todoSensor = 'false'
 
-    dateIni = datetime.strptime(dateIni, '%Y-%m-%d')
+    dateIni = datetime.strptime((fecha.split(' - ')[0]), '%d/%m/%Y')
     dateIni = dateIni.strftime("%Y-%m-%d")
 
-    dateFin = datetime.strptime(dateFin, '%Y-%m-%d')
+    dateFin = datetime.strptime((fecha.split(' - ')[1]), '%d/%m/%Y')
     dateFin = dateFin.strftime("%Y-%m-%d")
 
     medidas = []
@@ -417,7 +417,8 @@ def processForm(request):
                                         ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + rowSensor[0] + '\''  + 
                                             ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
+                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER BY wh.ts '))
         elif plataforma == '4':
             if ('gb-' in request.POST.get('id_dispositivo')):
                 result = conn2.execute(text('SELECT ' +
@@ -432,7 +433,8 @@ def processForm(request):
                                                 ' AND tad.INICIO >= \'' + dateIni + ' 00:00:00\' ' +
                                                 ' AND tad.INICIO <= \'' + dateFin + ' 23:59:59\' ' +
                                                 ' AND tes.NOMBRE LIKE \'' + rowSensor[1] + '\'' +
-                                            ' GROUP BY CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))), tes.NOMBRE,t.unidadMedida, t.simboloUnidad'))
+                                            ' GROUP BY CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))), tes.NOMBRE,t.unidadMedida, t.simboloUnidad' +
+                                            ' ORDER BY tad.INICIO '))
             else:
                 iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
                 endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
@@ -511,20 +513,20 @@ def downloadExcel(request):
     plataforma = request.POST.get('id_dispositivo')
     dispositivo = request.POST.get('id_plataforma')
     sensor = request.POST.get('id_sensor')
-    dateIni = request.POST.get('dateIni')
-    dateFin = request.POST.get('dateFin')
+    fecha = request.POST.get('fecha')
     todoSensor = request.POST.get('todoSensor')
     
-    if plataforma == '0' or dispositivo == '0' or sensor == '0' or dateIni == '' or dateFin == '':
+    if plataforma == '0' or dispositivo == '0' or sensor == '0':
         return JsonResponse({'datos invalidos'})
     elif (sensor == '0' or sensor == 'null') and todoSensor == 'false':
         return JsonResponse({'datos invalidos'})
-    dateIni = datetime.strptime(dateIni, '%Y-%m-%d')
+    
+    dateIni = datetime.strptime((fecha.split(' - ')[0]), '%d/%m/%Y')
     dateIni = dateIni.strftime("%Y-%m-%d")
 
-    dateFin = datetime.strptime(dateFin, '%Y-%m-%d')
+    dateFin = datetime.strptime((fecha.split(' - ')[1]), '%d/%m/%Y')
     dateFin = dateFin.strftime("%Y-%m-%d")
-                                    
+
     # content-type of response
     response = HttpResponse(content_type='application/ms-excel')
     #decide file name
@@ -757,7 +759,8 @@ def downloadExcel(request):
                                         ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + rowSensor[0] + '\''  + 
                                             ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
-                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
+                                        ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad' +
+                                        ' ORDER BY wh.ts '))
         elif plataforma == '4':
             if ('gb-' in request.POST.get('id_red')):
                 result = conn2.execute(text('SELECT ' +
@@ -772,7 +775,8 @@ def downloadExcel(request):
                                                 ' AND tad.INICIO >= \'' + dateIni + ' 00:00:00\' ' +
                                                 ' AND tad.INICIO <= \'' + dateFin + ' 23:59:59\' ' +
                                                 ' AND tes.NOMBRE LIKE \'' + rowSensor[3] + '\'' +
-                                            ' GROUP BY CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))), tes.NOMBRE,t.unidadMedida, t.simboloUnidad'))
+                                            ' GROUP BY CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))), tes.NOMBRE,t.unidadMedida, t.simboloUnidad' +
+                                            ' ORDER BY tad.INICIO '))
             else:
                 iniTime = int(datetime.strptime(dateIni, '%Y-%m-%d').strftime("%s"))
                 endTIme = int(datetime.strptime(dateFin + ' 23:59:59', '%Y-%m-%d %H:%M:%S').strftime("%s"))
@@ -2531,7 +2535,7 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex.origen = \'1\'' + where +
                                         ' GROUP BY td.dev_eui, ex.nombre'))
         elif plataforma == '3':
-            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombreEstacion ' +
+            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is null or ex1.nombre = \'\' then ws.station_name else ex1.nombre end as nombreEstacion ' +
                                         ' FROM wl_stations ws '+
                                         ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
                                         ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
@@ -2556,7 +2560,7 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex.origen = \'1\'' + where + '= ex.estacion)' +
                                         ' GROUP BY td.dev_eui, ex.nombre'))
         elif plataforma == '3':
-            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is not null then ex1.nombre else ws.station_name end as nombreEstacion ' +
+            result = conn.execute(text('SELECT ws.station_id, case when ex1.nombre is null or ex1.nombre = \'\' then ws.station_name else ex1.nombre end as nombreEstacion' +
                                         ' FROM wl_stations ws '+
                                         ' LEFT JOIN estacion_xcliente ex1 ON ex1.estacion = ws.station_id  ' +
                                         ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
@@ -2607,7 +2611,13 @@ def getDispositivosGrupo(request):
         # Validar precipitación
         resultRule = []
         if plataforma == '2':
-            resultRule = conn.execute(text('SELECT SUM(vw.value) value FROM ' +
+            resultRule = conn.execute(text('SELECT ' +
+                                                ' COUNT(*) value ' +
+                                            ' FROM TtnData td ' +
+                                            ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                            ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'Count\'' +
+                                            ' UNION ALL ' +
+                                            ' SELECT SUM(vw.value) value FROM ' +
                                             '(SELECT ' +
                                                 ' SUM(tds.precipitacion) value ' +
                                             ' FROM TtnData td ' +
@@ -2618,6 +2628,13 @@ def getDispositivosGrupo(request):
 
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'rainfall_mm\'' +
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
                                             ' CAST(SUM(wdh.value) AS DECIMAL(10,2)) value ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -2627,22 +2644,40 @@ def getDispositivosGrupo(request):
 
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
-                                            'CAST(SUM(vhd.info) AS DECIMAL(10,2)) n  ' +
+                                            'COUNT(*) n ' +
+                                        'FROM VisualitiHistoricData vhd  ' +
+                                        'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
+                                        'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
+                                        'WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Precipitación\' ' +
+                                        ' UNION ALL' + 
+                                        ' SELECT ' +
+                                            'CAST(SUM(vhd.info) AS DECIMAL(10,2)) n ' +
                                         'FROM VisualitiHistoricData vhd  ' +
                                         'INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id  ' +
                                         'LEFT JOIN translates t on t.name = vhd.nameSensor  ' +
                                         'WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Precipitación\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE_SUB(NOW(), INTERVAL 15 DAY)'))
         
+        i = 0
         for rowRule in resultRule:
-            if (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600):
-                incorrectos+=1
-                estadoActual = '<li>La precipitación de las ultimas dos semanas es 0 o mayor a 600.</li>'
+            if (i == 0 and rowRule[0] == 0):
+                break
+            else:
+                if (i == 1 and (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600)):
+                    incorrectos+=1
+                    estadoActual = '<li>La precipitación de las ultimas dos semanas es 0 o mayor a 600.</li>'
+            i+=1
 
         # Validar Radiacion Solar
         resultRule = []
         if plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'solar_rad_avg\''  +
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
                                             ' COUNT(*) value ' +
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
@@ -2660,6 +2695,13 @@ def getDispositivosGrupo(request):
                                         
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
                                             ' COUNT(*) n ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -2684,6 +2726,13 @@ def getDispositivosGrupo(request):
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
                                         ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
+                                        ' UNION ALL' +
+                                        ' SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
                                         ' UNION ALL' +
@@ -2700,6 +2749,10 @@ def getDispositivosGrupo(request):
         i = 0
         for rowRule in resultRule:
             if (i == 0):
+                if (rowRule[0] != None and rowRule[0] == 0):
+                    correcto = True
+                    break
+            elif (i == 1):
                 if (rowRule[0] != None and rowRule[0] > 0):
                     correcto = True
             else:
@@ -2715,7 +2768,9 @@ def getDispositivosGrupo(request):
         # Validar Humedad Relativa
         resultRule = []
         if plataforma == '1':
-            resultRule = conn.execute(text('SELECT ' +
+            resultRule = conn.execute(text('SELECT  1 value ' +
+                                        ' UNION ALL ' + 
+                                        ' SELECT ' +
                                             ' COUNT(*) value ' +
                                         ' FROM ewl_historic eh' +
                                         ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
@@ -2735,6 +2790,12 @@ def getDispositivosGrupo(request):
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                         ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'hum_out\''  + 
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'hum_out\''  + 
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
                                             ' AND tds.info >= 10 AND tds.info <= 100 ' +
                                         ' UNION ALL' +
@@ -2748,6 +2809,13 @@ def getDispositivosGrupo(request):
         
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(ws.station_id) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'hum_out\'' +
+                                        ' UNION ALL ' +
+                                        'SELECT ' +
                                             ' COUNT(ws.station_id) n ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -2772,6 +2840,12 @@ def getDispositivosGrupo(request):
                                             ' COUNT(vhd.visualitiHistoric_id) n ' +
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'humedadRelativa\'' +
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'humedadRelativa\''  + 
                                             ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
                                             ' AND vhd.nameSensor >= 10 AND vhd.nameSensor <= 100 ' +
@@ -2788,6 +2862,10 @@ def getDispositivosGrupo(request):
         i = 0
         for rowRule in resultRule:
             if (i == 0):
+                if (rowRule[0] != None and rowRule[0] == 0):
+                    correcto = True
+                    break
+            elif (i == 1):
                 if (rowRule[0] != None and rowRule[0] > 0):
                     correcto = True
             else:
@@ -2803,7 +2881,9 @@ def getDispositivosGrupo(request):
         # Validar Temperatura Ambiente
         resultRule = []
         if plataforma == '1':
-            resultRule = conn.execute(text('SELECT ' +
+            resultRule = conn.execute(text('SELECT  1 value ' +
+                                        ' UNION ALL ' + 
+                                        ' SELECT ' +
                                             ' COUNT(*) value ' +
                                         ' FROM ewl_historic eh' +
                                         ' WHERE eh.deviceid = \'' + str(row[0]) + '\'' + 
@@ -2823,6 +2903,12 @@ def getDispositivosGrupo(request):
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                         ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'temp_out\''  + 
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
+                                            ' COUNT(*) value ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'temp_out\''  + 
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
                                             ' AND tds.info >= 10 AND tds.info <= 40 ' +
                                         ' UNION ALL' +
@@ -2837,6 +2923,14 @@ def getDispositivosGrupo(request):
         elif plataforma == '3':
             # Las medidas estan en °F y no en °C, por eso 50°F -> 10°C & 104°F -> 40°C
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(ws.station_id) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
+                                        ' UNION ALL ' + 
+                                        ' SELECT ' +
                                             ' COUNT(ws.station_id) n ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -2862,6 +2956,12 @@ def getDispositivosGrupo(request):
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'temperaturaAmbiente\''  + 
+                                        ' UNION ALL ' + 
+                                        ' SELECT ' +
+                                            ' COUNT(vhd.visualitiHistoric_id) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'temperaturaAmbiente\''  + 
                                             ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
                                             ' AND vhd.info >= 10 AND vhd.info <= 40 ' +
                                         ' UNION ALL' +
@@ -2877,6 +2977,10 @@ def getDispositivosGrupo(request):
         i = 0
         for rowRule in resultRule:
             if (i == 0):
+                if (rowRule[0] != None and rowRule[0] == 0):
+                    correcto = True
+                    break
+            elif (i == 1):
                 if (rowRule[0] != None and rowRule[0] > 0):
                     correcto = True
             else:
@@ -2893,6 +2997,12 @@ def getDispositivosGrupo(request):
         resultRule = []
         if plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n  ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'wind_speed_avg\''  + 
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
                                             ' MAX(CAST(tds.info AS UNSIGNED)) - MIN(CAST(tds.info AS UNSIGNED)) n  ' +
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
@@ -2902,6 +3012,14 @@ def getDispositivosGrupo(request):
         
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_speed_avg\''  + 
+                                        ' UNION ALL ' +
+                                        'SELECT ' +
                                             ' MAX(CAST(wdh.value AS UNSIGNED)) - MIN(CAST(wdh.value AS UNSIGNED)) n ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
@@ -2913,6 +3031,12 @@ def getDispositivosGrupo(request):
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'velocidadViento\''  +
+                                        ' UNION ALL ' + 
+                                        ' SELECT ' +
                                             ' MAX(CAST(vhd.info AS UNSIGNED)) - MIN(CAST(vhd.info AS UNSIGNED)) n ' +
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
@@ -2920,15 +3044,25 @@ def getDispositivosGrupo(request):
                                             ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
                                             ' AND vhd.info > 0 '))
         
+        i = 0
         for rowRule in resultRule:
-            if (rowRule[0] != None and rowRule[0] == 0):
+            if (i == 0 and rowRule[0] == 0):
+                break
+            elif (i == 1 and rowRule[0] != None and rowRule[0] == 0):
                 incorrectos+=1
                 estadoActual = estadoActual + '<li>La velocidad del viento no tuvo variación el dia de ayer.</li>'
+            i+=1
 
         # Validar Direccion del viento
         resultRule = []
         if plataforma == '2':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n  ' +
+                                        ' FROM TtnData td ' +
+                                        ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'wind_dir_of_prevail\''  + 
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
                                             ' MAX(CAST(tds.info AS UNSIGNED)) - MIN(CAST(tds.info AS UNSIGNED)) n  ' +
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
@@ -2938,17 +3072,29 @@ def getDispositivosGrupo(request):
         
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM wl_sensors ws ' +
+                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_dir_of_prevail\''  + 
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
                                             ' MAX(CAST(wdh.value AS UNSIGNED)) - MIN(CAST(wdh.value AS UNSIGNED)) n ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_dir_of_prevail\''  + 
                                             ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
                                             ' AND wdh.value > 0'))
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
+                                            ' COUNT(*) n ' +
+                                        ' FROM VisualitiHistoricData vhd ' +
+                                        ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.nameSensor like \'direccionViento\''  + 
+                                        ' UNION ALL ' +
+                                        ' SELECT ' +
                                             ' MAX(CAST(vhd.info AS UNSIGNED)) - MIN(CAST(vhd.info AS UNSIGNED)) n ' +
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
@@ -2956,10 +3102,14 @@ def getDispositivosGrupo(request):
                                             ' AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
                                             ' AND vhd.info > 0 '))
         
+        i = 0
         for rowRule in resultRule:
-            if (rowRule[0] != None and rowRule[0] == 0):
+            if (i == 0 and rowRule[0] == 0):
+                break
+            elif (i == 1 and (rowRule[0] != None and rowRule[0] == 0) or (rowRule[0] == None)):
                 incorrectos+=1
                 estadoActual = estadoActual + '<li>La direccion del viento no tuvo variacion el dia de ayer.</li>'
+            i+=1
 
         color = 'alert-bueno'
         if (incorrectos == 1):

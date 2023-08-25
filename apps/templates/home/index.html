@@ -80,11 +80,13 @@
                         <label>Seleccione fecha inicial y final</label>
                         {# <div class="input-group date datepicker" data-date-format="yyyy-mm-dd"> #}
                         {# <input type="text" class="form-control" data-style="btn-success" id="day" name="day" placeholder="yyyy-mm-dd"> #}
-                        <div class="input-group input-daterange">
-                            <span class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></span>
-                            <input type="text" class="start-date form-control" data-style="btn-success" id="dateIni" name="dateIni" value="2022-04-01">
-                            <div class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></div>
-                            <input type="text" class="end-date form-control" data-style="btn-success" id="dateFin" name="dateFin" value="2023-04-30">
+                        <div class="input-group" id="fecDiv">
+                            <span class="input-group-btn">
+                                <button class="btn btn-default" type="button">
+                                    <i class="fa fa-calendar"></i>
+                                </button>
+                            </span>
+                            <input id="fecha" type="text" class="form-control" data-style="btn-success">
                         </div>
 
                     </div>
@@ -244,6 +246,8 @@
         $(".graficaMulti").hide()
         $("#divRed").hide();
 
+        general.rangeDatePicker("fecDiv", "fecha", true);
+
         $('.start-date').datepicker({
             templates: {
                 leftArrow: '<i class="fa fa-chevron-left"></i>',
@@ -387,8 +391,7 @@
             var plataformaId = $('#id_plataforma').val();
             var sensorId = $('#id_sensor').val();
             var redId = $('#id_red').val();
-            var dateIni = $('#dateIni').val();
-            var dateFin = $('#dateFin').val();
+            var fecha = $('#fecha').val();
             var todoSensor = $('#todoSensor').is(':checked');
             $.ajax({
                 type: "POST",
@@ -399,8 +402,7 @@
                     'id_plataforma': plataformaId,
                     'id_sensor': sensorId,
                     'id_red': redId,
-                    'dateIni': dateIni,
-                    'dateFin': dateFin,
+                    'fecha': fecha,
                     'todoSensor': todoSensor
                 },
                 success: function(data) {
@@ -414,7 +416,7 @@
                         $('#title-sensor-line').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
                         // general.initLineCharts('chartLine', data.vertical, data.horizontal, "Valor del sensor " + data.medida, data.medida, 'Hora');
 
-                        general.initMultipleAxesHighCharts('chart-graficaMulti', data.vertical, data.horizontal, data.medidas, data.sensores, ('Grafico de ' + $('#id_dispositivo option:selected').text() + ' - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val()));
+                        general.initMultipleAxesHighCharts('chart-graficaMulti', data.vertical, data.horizontal, data.medidas, data.sensores, ('Grafico de ' + $('#id_dispositivo option:selected').text() + ' - Fechas ' + fecha));
                     }
                     // if (data.vertical2.length == 0) {
                     //     $(".graficas1").hide()
@@ -433,11 +435,10 @@
             var plataformaId = $('#id_dispositivo').val();
             var sensorId = $('#id_sensor').val();
             var redId = $('#id_red').val();
-            var dateIni = $('#dateIni').val();
-            var dateFin = $('#dateFin').val();
+            var fecha = $('#fecha').val();
             var todoSensor = $('#todoSensor').is(':checked');
 
-            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + plataformaId + '&id_sensor=' + sensorId + '&id_red=' + redId + '&dateIni=' + dateIni + '&dateFin=' + dateFin + '&todoSensor=' + todoSensor;
+            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + plataformaId + '&id_sensor=' + sensorId + '&id_red=' + redId + '&fecha=' + fecha + '&todoSensor=' + todoSensor;
             xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
                 var a, today;

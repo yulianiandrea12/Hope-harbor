@@ -411,7 +411,7 @@ general = {
         var date = new Date();
         var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
         var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-        var maxDate = (maxToday) ? (date.getMonth() + 1) + "/" + (date.getDate() - 1) + "/" + date.getFullYear() : '01/01/3000';
+        var maxDate = (maxToday) ? (date.getMonth() + 1) + "/" + (date.getDate()) + "/" + date.getFullYear() : '01/01/3000';
 
         $('#' + div).daterangepicker({
             format: 'DD/MM/YYYY',
@@ -434,6 +434,8 @@ general = {
         }, function(start, end, label) {
             $('#' + input).val(start.format('DD/MM/YYYY') + ' - ' + end.format('DD/MM/YYYY'));
         });
+
+        $('#' + input).val((moment().startOf('month').format('DD/MM/YYYY')) + ' - ' + (moment().format('DD/MM/YYYY')));
     }
 
 };
