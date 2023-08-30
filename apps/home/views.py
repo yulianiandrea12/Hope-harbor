@@ -416,7 +416,7 @@ def processForm(request):
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
                                         ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + rowSensor[0] + '\''  + 
-                                            ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + dateIni + ' 00:00:00\' AND FROM_UNIXTIME(wh.ts) <= \'' + dateFin + ' 23:59:59\' '
                                         ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad' +
                                         ' ORDER BY wh.ts '))
         elif plataforma == '4':
