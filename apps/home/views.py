@@ -158,16 +158,16 @@ def getSensors(request):
                                     ' GROUP BY t.value, tds.name_sensor' +
                                     ' ORDER by valuee '))
     elif plataforma == '3':
-        result = conn.execute(text('SELECT wdh.name,' +
-                                    ' case when t.value is not null then  (CONCAT(UPPER(SUBSTRING(t.value,1,1)),LOWER(SUBSTRING(t.value,2))))  ' +
-                                    ' else wdh.name end as valuee' +
-                                    ' FROM wl_sensors ws ' +
-                                    'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                    'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                    'LEFT JOIN translates t on t.name = wdh.name ' +
-                                    'WHERE ws.station_id = ' + dispositivo +
-                                    ' GROUP by t.value, wdh.name ' +
-                                    'ORDER by valuee '))
+        result = conn.execute(text('SELECT wdhVw.name,' +
+                                    ' case when t.value is not null then t.value ' +
+                                    ' else wdhVw.name end as valuee' +
+                                    ' FROM (SELECT wdh.name FROM wl_sensors ws ' +
+                                            'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                            'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                            'WHERE ws.station_id = ' + dispositivo +
+                                            ' GROUP BY wdh.name) wdhVw' +
+                                    ' LEFT JOIN translates t on t.name = wdhVw.name ' +
+                                    ' GROUP BY wdhVw.name ORDER by valuee '))
         datos.append(("999", "Gráfico de clima"))
     elif plataforma == '4':
         if ('gb-' in dispositivo):
