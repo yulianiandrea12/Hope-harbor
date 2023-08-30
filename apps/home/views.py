@@ -758,7 +758,7 @@ def downloadExcel(request):
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
                                         ' LEFT JOIN translates t on t.name = wdh.name ' +
                                         ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'' + rowSensor[0] + '\''  + 
-                                            ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + dateIni + ' 00:00:00\' AND FROM_UNIXTIME(wh.ts) <= \'' + dateFin + ' 23:59:59\' ' +
                                         ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad' +
                                         ' ORDER BY wh.ts '))
         elif plataforma == '4':
@@ -2042,7 +2042,7 @@ def createInforme(request):
                                             ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
                                             ' LEFT JOIN translates t on t.name = wdh.name ' +
                                             ' WHERE ws.station_id = \'' + dispositivo + '\' AND wdh.name like \'solar_rad_avg\''  + 
-                                                ' AND wh.ts >= ' + str(iniTime) + ' AND wh.ts <= ' +  str(endTIme) +
+                                                ' AND FROM_UNIXTIME(wh.ts) >= \'' + dateIni + ' 00:00:00\' AND FROM_UNIXTIME(wh.ts) <= \'' + dateFin + ' 23:59:59\' ' +
                                             ' GROUP by CONCAT(DATE(FROM_UNIXTIME(wh.ts)) , CONCAT(\' \', HOUR(FROM_UNIXTIME(wh.ts)))), t.value, wdh.name, t.unidadMedida, t.simboloUnidad'))
 
             elif plataforma == '4':
@@ -2572,11 +2572,15 @@ def getDispositivosGrupo(request):
                                         ' FROM EstacionVisualiti ev ' +
                                         ' WHERE ev.estado = \'1\' ' + where + '= ev.estacionVisualiti_id)'))
     
+    jx = 0
     for row in result:
         estadoActual = ''
         incorrectos = 0
         opacity = 'opacity: 0.5;'
         resultRule = None
+        jx += 1 
+        if (jx > 1):
+            continue
 
         # Validar si esta Online el dispositivo
         if plataforma == '1':
@@ -2681,7 +2685,7 @@ def getDispositivosGrupo(request):
                                             ' COUNT(*) value ' +
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
-                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'solar_rad_avg\''  + 
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.info > 0 AND tds.name_sensor like \'solar_rad_avg\''  + 
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
                                         ' UNION ALL' +
@@ -2689,7 +2693,7 @@ def getDispositivosGrupo(request):
                                             ' COUNT(*) value ' +
                                         ' FROM TtnData td ' +
                                         ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
-                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.name_sensor like \'solar_rad_avg\''  + 
+                                        ' WHERE td.dev_eui = \'' + str(row[0]) + '\' AND tds.info > 0 AND tds.name_sensor like \'solar_rad_avg\''  + 
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR)'))
                                         
@@ -2706,7 +2710,7 @@ def getDispositivosGrupo(request):
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.value > 0 AND wdh.name like \'solar_rad_avg\''  + 
                                             ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
                                             ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
                                         ' UNION ALL' +
@@ -2715,7 +2719,7 @@ def getDispositivosGrupo(request):
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.value > 0 AND wdh.name like \'solar_rad_avg\''  + 
                                             ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
                                             ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR) '))
 
@@ -2732,7 +2736,7 @@ def getDispositivosGrupo(request):
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.info > 0 AND t.value like \'Radiación solar\''  + 
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
                                         ' UNION ALL' +
@@ -2741,7 +2745,7 @@ def getDispositivosGrupo(request):
                                         ' FROM VisualitiHistoricData vhd ' +
                                         ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                         ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Radiación solar\''  + 
+                                        ' WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND vhd.info > 0 AND t.value like \'Radiación solar\''  + 
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
                                             ' AND DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR) '))
 
@@ -2763,7 +2767,7 @@ def getDispositivosGrupo(request):
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
-            estadoActual = estadoActual + '<li>La radiación solar del dia de ayer no tiene datos entre las 8:00am y las 4:00pm o hay datos entre el dia de ayer a las 8:00pm y hoy a las 6:00am.</li>'
+            estadoActual = estadoActual + '<li>La radiación solar del dia de ayer no tiene datos entre las 8:00am y las 4:00pm o hay datos entre el dia de ayer a las 8:00pm y hoy a las 4:00am.</li>'
 
         # Validar Humedad Relativa
         resultRule = []
