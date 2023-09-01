@@ -13,7 +13,7 @@ from django.utils.safestring import mark_safe
 from django.views.decorators.http import require_POST
 from apps.authentication.db import conn, conn2
 from sqlalchemy import func, Sequence,text
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import json
 
 from .forms import PlataformasForm
@@ -2566,12 +2566,22 @@ def getDispositivosGrupo(request):
                                         ' WHERE ex1.origen = \'2\' AND EXISTS (SELECT ex.estacion_xcliente_id FROM estacion_xcliente ex ' +
                                                         ' WHERE ex.estacion = ws.station_id AND ex.origen = \'2\') ' +
                                         where + '= ws.station_id)' +
-                                        ' GROUP BY ws.station_id, nombreEstacion'))
+                                        ' GROUP BY ws.station_id, nombreEstacion order by nombreEstacion '))
         elif plataforma == '4':
             result = conn.execute(text('SELECT ev.estacionVisualiti_id, ev.nombre ' +
                                         ' FROM EstacionVisualiti ev ' +
                                         ' WHERE ev.estado = \'1\' ' + where + '= ev.estacionVisualiti_id)'))
     
+    today = date.today()
+
+    yesterday = today - timedelta(days = 1)
+    yesterday = yesterday.strftime("%Y-%m-%d")
+
+    days15Before = today - timedelta(days = 15)
+    days15Before = days15Before.strftime("%Y-%m-%d")
+
+    today = today.strftime("%Y-%m-%d")
+
     jx = 0
     for row in result:
         estadoActual = ''
@@ -2579,8 +2589,8 @@ def getDispositivosGrupo(request):
         opacity = 'opacity: 0.5;'
         resultRule = None
         jx += 1 
-        if (jx > 1):
-            continue
+        # if (jx < 2 or jx > 8):
+        #     continue
 
         # Validar si esta Online el dispositivo
         if plataforma == '1':
@@ -2632,19 +2642,15 @@ def getDispositivosGrupo(request):
 
         elif plataforma == '3':
             resultRule = conn.execute(text('SELECT ' +
-                                            ' COUNT(*) value ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'rainfall_mm\'' +
-                                        ' UNION ALL ' +
-                                        ' SELECT ' +
+                                            ' (SELECT COUNT(wh1.dth_id) n  ' +
+                                            ' FROM wl_historic wh1 ' +
+                                            ' WHERE wh1.lsid = ws.lsid) n, ' +
                                             ' CAST(SUM(wdh.value) AS DECIMAL(10,2)) value ' +
                                         ' FROM wl_sensors ws ' +
                                         ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
                                         ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'rainfall_mm\''  + 
-                                            ' AND FROM_UNIXTIME(wh.ts) > DATE_SUB(NOW(), INTERVAL 15 DAY)'))
+                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name = \'rainfall_mm\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + days15Before + ' 00:00:00\' '))
 
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -2662,15 +2668,23 @@ def getDispositivosGrupo(request):
                                         'WHERE vh.estacionVisualiti_id = \'' + str(row[0]) + '\' AND t.value like \'Precipitación\' ' +
                                                 'AND DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) > DATE_SUB(NOW(), INTERVAL 15 DAY)'))
         
-        i = 0
-        for rowRule in resultRule:
-            if (i == 0 and rowRule[0] == 0):
-                break
-            else:
-                if (i == 1 and (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600)):
+        if plataforma == '3':
+            for rowRule in resultRule:
+                if (rowRule[0] == 0):
+                    break
+                elif ((rowRule[1] == None or rowRule[1] == 0 or rowRule[1] > 600)):
                     incorrectos+=1
                     estadoActual = '<li>La precipitación de las ultimas dos semanas es 0 o mayor a 600.</li>'
-            i+=1
+        else:
+            i = 0
+            for rowRule in resultRule:
+                if (i == 0 and rowRule[0] == 0):
+                    break
+                else:
+                    if (i == 1 and (rowRule[0] == None or rowRule[0] == 0 or rowRule[0] > 600)):
+                        incorrectos+=1
+                        estadoActual = '<li>La precipitación de las ultimas dos semanas es 0 o mayor a 600.</li>'
+                i+=1
 
         # Validar Radiacion Solar
         resultRule = []
@@ -2698,30 +2712,23 @@ def getDispositivosGrupo(request):
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR)'))
                                         
         elif plataforma == '3':
-            resultRule = conn.execute(text('SELECT ' +
-                                            ' COUNT(*) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'solar_rad_avg\''  + 
-                                        ' UNION ALL' +
-                                        ' SELECT ' +
-                                            ' COUNT(*) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.value > 0 AND wdh.name like \'solar_rad_avg\''  + 
-                                            ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 8 HOUR) ' +
-                                            ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 16 HOUR) ' +
-                                        ' UNION ALL' +
-                                        ' SELECT ' +
-                                            ' COUNT(*) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.value > 0 AND wdh.name like \'solar_rad_avg\''  + 
-                                            ' AND FROM_UNIXTIME(wh.ts) >= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 20 HOUR) ' +
-                                            ' AND FROM_UNIXTIME(wh.ts) <= DATE_ADD(DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)), INTERVAL 28 HOUR) '))
+            resultRule = conn.execute(text('SELECT DISTINCT ' +
+                                            ' (SELECT COUNT(wh1.dth_id) value FROM wl_historic wh1 WHERE  wh1.lsid = ws.lsid) n, ' +
+                                            ' (SELECT COUNT(wh1.dth_id) value FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.value > 0 AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 08:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 16:00:00\') nn, ' +
+                                            ' (SELECT COUNT(wh1.dth_id) value FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.value > 0 AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 20:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + today + ' 04:00:00\') nnn ' +
+                                        ' FROM wl_sensors ws, ' +
+                                            ' wl_historic wh, ' +
+                                            ' wl_data_historic wdh ' +
+                                        ' WHERE wh.lsid = ws.lsid AND wdh.dth_id = wh.dth_id ' +
+                                            ' AND ws.station_id = \'' + str(row[0]) + '\' AND wdh.value > 0 AND wdh.name = \'solar_rad_avg\'' +
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + yesterday + ' 08:00:00\' ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + today + ' 04:00:00\' '))
 
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -2751,19 +2758,29 @@ def getDispositivosGrupo(request):
 
         correcto = False
         i = 0
-        for rowRule in resultRule:
-            if (i == 0):
+        if plataforma == '3':
+            for rowRule in resultRule:
                 if (rowRule[0] != None and rowRule[0] == 0):
-                    correcto = True
-                    break
-            elif (i == 1):
-                if (rowRule[0] != None and rowRule[0] > 0):
-                    correcto = True
-            else:
-                if (rowRule[0] != None and rowRule[0] > 0):
-                    correcto = False
+                        correcto = True
+                        break
+                if (rowRule[1] != None and rowRule[1] > 0):
+                        correcto = True
+                if (rowRule[2] != None and rowRule[2] > 0):
+                        correcto = False
+        else:
+            for rowRule in resultRule:
+                if (i == 0):
+                    if (rowRule[0] != None and rowRule[0] == 0):
+                        correcto = True
+                        break
+                elif (i == 1):
+                    if (rowRule[0] != None and rowRule[0] > 0):
+                        correcto = True
+                else:
+                    if (rowRule[0] != None and rowRule[0] > 0):
+                        correcto = False
 
-            i+=1
+                i+=1
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
@@ -2811,33 +2828,24 @@ def getDispositivosGrupo(request):
                                             ' AND DATE_SUB(td.received_at, INTERVAL 5 HOUR)  = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY))' +
                                             ' AND tds.info < 10 AND tds.info > 100 '))
         
-        elif plataforma == '3':
-            resultRule = conn.execute(text('SELECT ' +
-                                            ' COUNT(ws.station_id) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'hum_out\'' +
-                                        ' UNION ALL ' +
-                                        'SELECT ' +
-                                            ' COUNT(ws.station_id) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'hum_out\''  + 
-                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value >= 10 AND wdh.value <= 100 ' +
-                                        ' UNION ALL' +
-                                        ' SELECT ' +
-                                            ' COUNT(ws.station_id) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'hum_out\''  + 
-                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value < 10 AND wdh.value > 100 '))
+        elif plataforma == '3':            
+            resultRule = conn.execute(text('SELECT DISTINCT ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 WHERE wh1.lsid = ws.lsid) n, ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id  ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.value >= 10 AND wdh1.value <= 100 AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 23:59:59\') nn, ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id  ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.value < 10 AND wdh1.value > 100 AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 23:59:59\') nnn ' +
+                                        ' FROM wl_sensors ws, ' +
+                                            ' wl_historic wh, ' +
+                                            ' wl_data_historic wdh ' +
+                                        ' WHERE wh.lsid = ws.lsid AND wdh.dth_id = wh.dth_id ' +
+                                            ' AND ws.station_id = \'' + str(row[0]) + '\' AND wdh.name = \'hum_out\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) <= \'' + yesterday + ' 23:59:59\''))
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -2864,19 +2872,29 @@ def getDispositivosGrupo(request):
         
         correcto = False
         i = 0
-        for rowRule in resultRule:
-            if (i == 0):
+        if plataforma == '3':
+            for rowRule in resultRule:
                 if (rowRule[0] != None and rowRule[0] == 0):
-                    correcto = True
-                    break
-            elif (i == 1):
-                if (rowRule[0] != None and rowRule[0] > 0):
-                    correcto = True
-            else:
-                if (rowRule[0] != None and rowRule[0] > 0):
-                    correcto = False
+                        correcto = True
+                        break
+                if (rowRule[1] != None and rowRule[1] > 0):
+                        correcto = True
+                if (rowRule[2] != None and rowRule[2] > 0):
+                        correcto = False
+        else:
+            for rowRule in resultRule:
+                if (i == 0):
+                    if (rowRule[0] != None and rowRule[0] == 0):
+                        correcto = True
+                        break
+                elif (i == 1):
+                    if (rowRule[0] != None and rowRule[0] > 0):
+                        correcto = True
+                else:
+                    if (rowRule[0] != None and rowRule[0] > 0):
+                        correcto = False
 
-            i+=1
+                i+=1
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
@@ -2926,33 +2944,23 @@ def getDispositivosGrupo(request):
         
         elif plataforma == '3':
             # Las medidas estan en °F y no en °C, por eso 50°F -> 10°C & 104°F -> 40°C
-            resultRule = conn.execute(text('SELECT ' +
-                                            ' COUNT(ws.station_id) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
-                                        ' UNION ALL ' + 
-                                        ' SELECT ' +
-                                            ' COUNT(ws.station_id) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
-                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value >= 50 AND wdh.value <= 104 ' +
-                                        ' UNION ALL' +
-                                        ' SELECT ' +
-                                            ' COUNT(ws.station_id) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'temp_out\''  + 
-                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value < 50 AND wdh.value > 104 '))
+            resultRule = conn.execute(text('SELECT DISTINCT ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 WHERE wh1.lsid = ws.lsid) n, ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id  ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.value >= 50 AND wdh1.value <= 104 AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 23:59:59\') nn, ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id  ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.value < 50 AND wdh1.value > 104 AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 23:59:59\') nnn ' +
+                                        ' FROM wl_sensors ws, ' +
+                                            ' wl_historic wh, ' +
+                                            ' wl_data_historic wdh ' +
+                                        ' WHERE wh.lsid = ws.lsid AND wdh.dth_id = wh.dth_id ' +
+                                            ' AND ws.station_id = \'' + str(row[0]) + '\' AND wdh.name = \'temp_out\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) <= \'' + yesterday + ' 23:59:59\''))
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -2979,19 +2987,29 @@ def getDispositivosGrupo(request):
         
         correcto = False
         i = 0
-        for rowRule in resultRule:
-            if (i == 0):
+        if plataforma == '3':
+            for rowRule in resultRule:
                 if (rowRule[0] != None and rowRule[0] == 0):
-                    correcto = True
-                    break
-            elif (i == 1):
-                if (rowRule[0] != None and rowRule[0] > 0):
-                    correcto = True
-            else:
-                if (rowRule[0] != None and rowRule[0] > 0):
-                    correcto = False
+                        correcto = True
+                        break
+                if (rowRule[1] != None and rowRule[1] > 0):
+                        correcto = True
+                if (rowRule[2] != None and rowRule[2] > 0):
+                        correcto = False
+        else:
+            for rowRule in resultRule:
+                if (i == 0):
+                    if (rowRule[0] != None and rowRule[0] == 0):
+                        correcto = True
+                        break
+                elif (i == 1):
+                    if (rowRule[0] != None and rowRule[0] > 0):
+                        correcto = True
+                else:
+                    if (rowRule[0] != None and rowRule[0] > 0):
+                        correcto = False
 
-            i+=1
+                i+=1
 
         if resultRule != [] and correcto == False:
             incorrectos+=1
@@ -3015,23 +3033,20 @@ def getDispositivosGrupo(request):
                                             ' AND tds.info > 0 '))
         
         elif plataforma == '3':
-            resultRule = conn.execute(text('SELECT ' +
-                                            ' COUNT(*) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_speed_avg\''  + 
-                                        ' UNION ALL ' +
-                                        'SELECT ' +
-                                            ' MAX(CAST(wdh.value AS UNSIGNED)) - MIN(CAST(wdh.value AS UNSIGNED)) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' LEFT JOIN translates t on t.name = wdh.name ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_speed_avg\''  + 
-                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value > 0'))
+            resultRule = conn.execute(text('SELECT DISTINCT ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 WHERE wh1.lsid = ws.lsid) n, ' +
+                                            ' (SELECT (MAX(CAST(wdh1.value AS DECIMAL(10,0))) - MIN(CAST(wdh1.value AS DECIMAL(10,0)))) nn ' +
+                                            ' FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 23:59:59\') nn '+
+                                        ' FROM wl_sensors ws, ' +
+                                            ' wl_historic wh,' +
+                                            ' wl_data_historic wdh' +
+                                        ' WHERE wh.lsid = ws.lsid AND wdh.dth_id = wh.dth_id ' +
+                                            ' AND ws.station_id = \'' + str(row[0]) + '\' AND wdh.name = \'wind_speed_avg\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) <= \'' + yesterday + ' 23:59:59\''))
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -3049,13 +3064,22 @@ def getDispositivosGrupo(request):
                                             ' AND vhd.info > 0 '))
         
         i = 0
-        for rowRule in resultRule:
-            if (i == 0 and rowRule[0] == 0):
-                break
-            elif (i == 1 and rowRule[0] != None and rowRule[0] == 0):
-                incorrectos+=1
-                estadoActual = estadoActual + '<li>La velocidad del viento no tuvo variación el dia de ayer.</li>'
-            i+=1
+        if plataforma == '3':
+            for rowRule in resultRule:
+                if (rowRule[0] == 0):
+                    break
+                elif (rowRule[1] != None and rowRule[1] == 0):
+                    incorrectos+=1
+                    estadoActual = estadoActual + '<li>La velocidad del viento no tuvo variación el dia de ayer.</li>'
+                i+=1
+        else:
+            for rowRule in resultRule:
+                if (i == 0 and rowRule[0] == 0):
+                    break
+                elif (i == 1 and rowRule[0] != None and rowRule[0] == 0):
+                    incorrectos+=1
+                    estadoActual = estadoActual + '<li>La velocidad del viento no tuvo variación el dia de ayer.</li>'
+                i+=1
 
         # Validar Direccion del viento
         resultRule = []
@@ -3075,21 +3099,21 @@ def getDispositivosGrupo(request):
                                             ' AND tds.info > 0 '))
         
         elif plataforma == '3':
-            resultRule = conn.execute(text('SELECT ' +
-                                            ' COUNT(*) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_dir_of_prevail\''  + 
-                                        ' UNION ALL ' +
-                                        ' SELECT ' +
-                                            ' MAX(CAST(wdh.value AS UNSIGNED)) - MIN(CAST(wdh.value AS UNSIGNED)) n ' +
-                                        ' FROM wl_sensors ws ' +
-                                        ' INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                        ' INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                        ' WHERE ws.station_id = \'' + str(row[0]) + '\' AND wdh.name like \'wind_dir_of_prevail\''  + 
-                                            ' AND DATE(FROM_UNIXTIME(wh.ts)) = DATE(DATE_SUB(NOW(), INTERVAL 1 DAY)) ' +
-                                            ' AND wdh.value > 0'))
+            resultRule = []
+            resultRule = conn.execute(text('SELECT DISTINCT ' +
+                                            ' (SELECT COUNT(*) value FROM wl_historic wh1 WHERE wh1.lsid = ws.lsid) n, ' +
+                                            ' (SELECT (MAX(CAST(wdh1.value AS DECIMAL(10,0))) - MIN(CAST(wdh1.value AS DECIMAL(10,0)))) nn ' +
+                                            ' FROM wl_historic wh1 INNER JOIN wl_data_historic wdh1 on wdh1.dth_id = wh1.dth_id ' +
+                                            ' WHERE wh1.lsid = ws.lsid AND wdh1.name = wdh.name ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                                ' AND FROM_UNIXTIME(wh1.ts) <= \'' + yesterday + ' 23:59:59\') nn '+
+                                        ' FROM wl_sensors ws, ' +
+                                            ' wl_historic wh,' +
+                                            ' wl_data_historic wdh' +
+                                        ' WHERE wh.lsid = ws.lsid AND wdh.dth_id = wh.dth_id ' +
+                                            ' AND ws.station_id = \'' + str(row[0]) + '\' AND wdh.name = \'wind_dir_of_prevail\''  + 
+                                            ' AND FROM_UNIXTIME(wh.ts) >= \'' + yesterday + ' 00:00:00\' ' +
+                                            ' AND FROM_UNIXTIME(wh.ts) <= \'' + yesterday + ' 23:59:59\''))
             
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT ' +
@@ -3107,13 +3131,22 @@ def getDispositivosGrupo(request):
                                             ' AND vhd.info > 0 '))
         
         i = 0
-        for rowRule in resultRule:
-            if (i == 0 and rowRule[0] == 0):
-                break
-            elif (i == 1 and (rowRule[0] != None and rowRule[0] == 0) or (rowRule[0] == None)):
-                incorrectos+=1
-                estadoActual = estadoActual + '<li>La direccion del viento no tuvo variacion el dia de ayer.</li>'
-            i+=1
+        if plataforma == '3':
+            for rowRule in resultRule:
+                if (rowRule[0] == 0):
+                    break
+                elif (rowRule[1] != None and rowRule[1] == 0):
+                    incorrectos+=1
+                    estadoActual = estadoActual + '<li>La direccion del viento no tuvo variación el dia de ayer.</li>'
+                i+=1
+        else:
+            for rowRule in resultRule:
+                if (i == 0 and rowRule[0] == 0):
+                    break
+                elif (i == 1 and (rowRule[0] != None and rowRule[0] == 0) or (rowRule[0] == None)):
+                    incorrectos+=1
+                    estadoActual = estadoActual + '<li>La direccion del viento no tuvo variacion el dia de ayer.</li>'
+                i+=1
 
         color = 'alert-bueno'
         if (incorrectos == 1):
