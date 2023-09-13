@@ -269,19 +269,23 @@ def processForm(request):
             if red == '0' or red == 'null':
                 return JsonResponse({'datos invalidos'})
             
-            if ('gb-' in dispositivo):
-                dispositivo = dispositivo.split('-')[1]
-                red = red.split('-')[1]
-                resultSensores = conn2.execute(text('SELECT ID_VARIABLE, tes.NOMBRE' +
-                                        ' FROM t_estacion_sensor tes ' +
-                                        ' WHERE ID_XBEE_ESTACION = ' + dispositivo + ''))
-            else:
-                resultSensores = conn.execute(text('SELECT' +
-                                                        ' vhd.nameSensor '
-                                                    ' FROM VisualitiHistoricData vhd ' +
-                                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                                    ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
-                                                    ' GROUP BY vhd.nameSensor '))
+            resultSensores = []
+            resultSensors = conn2.execute(text('SELECT CONCAT(\'gb-\', ID_VARIABLE), tes.NOMBRE' +
+                                    ' FROM t_estacion_sensor tes ' +
+                                    ' WHERE ID_XBEE_ESTACION = ' + dispositivo + ''))
+            
+            for rowSensor in resultSensors:
+                resultSensores.append((rowSensor[0], rowSensor[1]))
+
+            resultSensors = conn.execute(text('SELECT' +
+                                                    ' vhd.nameSensor '
+                                                ' FROM VisualitiHistoricData vhd ' +
+                                                ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                                ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
+                                                ' GROUP BY vhd.nameSensor '))
+            for rowSensor in resultSensors:
+                resultSensores.append((rowSensor[0]))
+
     else:
         if plataforma == '1':
             resultSensores = conn.execute(text('SELECT ' +
@@ -334,22 +338,25 @@ def processForm(request):
             if red == '0' or red == 'null':
                 return JsonResponse({'datos invalidos'})
             
-            if ('gb-' in dispositivo):
-                red = red.split('-')[1]
-                dispositivo = dispositivo.split('-')[1]
-                sensor = sensor.split('-')[1]
-                resultSensores = conn2.execute(text('SELECT ID_VARIABLE, tes.NOMBRE' +
-                                                    ' FROM t_estacion_sensor tes ' +
-                                                    ' WHERE ID_XBEE_ESTACION = ' + dispositivo + '' +
-                                                        ' AND ID_VARIABLE = ' + sensor))
-            else:
-                resultSensores = conn.execute(text('SELECT' +
-                                                        ' vhd.nameSensor '
-                                                    ' FROM VisualitiHistoricData vhd ' +
-                                                    ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
-                                                    ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
-                                                        ' AND vhd.nameSensor like \'' + sensor + '\''  +
-                                                    ' GROUP BY vhd.nameSensor '))
+            resultSensores = []
+            resultSensors = conn2.execute(text('SELECT CONCAT(\'gb-\', ID_VARIABLE), tes.NOMBRE' +
+                                                ' FROM t_estacion_sensor tes ' +
+                                                ' WHERE ID_XBEE_ESTACION = ' + dispositivo + '' +
+                                                    ' AND ID_VARIABLE = ' + sensor))
+            
+            for rowSensor in resultSensors:
+                resultSensores.append((rowSensor[0], rowSensor[1]))
+
+            resultSensors = conn.execute(text('SELECT' +
+                                                    ' vhd.nameSensor '
+                                                ' FROM VisualitiHistoricData vhd ' +
+                                                ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
+                                                ' WHERE vh.estacionVisualiti_id = ' + dispositivo +
+                                                    ' AND vhd.nameSensor like \'' + sensor + '\''  +
+                                                ' GROUP BY vhd.nameSensor '))
+
+            for rowSensor in resultSensors:
+                resultSensores.append((rowSensor[0]))
     
     primerSensor = True
     for rowSensor in resultSensores:
@@ -405,11 +412,12 @@ def processForm(request):
                                         ' GROUP BY hora' +
                                         ' ORDER BY wh.ts '))
         elif plataforma == '4':
-            if ('gb-' in request.POST.get('id_dispositivo')):
+            if ('gb-' in rowSensor[0]):
+                sensorId = rowSensor[0].split('-')[1]
                 result = conn2.execute(text('SELECT ' +
                                                 ' CONCAT(DATE(tad.INICIO) , CONCAT(\' \', HOUR(tad.INICIO))) AS hora,' +
                                                 ' tes.NOMBRE,' +
-                                                ' CAST(AVG(tad.' + str(rowSensor[0]) + ') AS DECIMAL(10,2)) value,' +
+                                                ' CAST(AVG(tad.' + str(sensorId) + ') AS DECIMAL(10,2)) value,' +
                                                 ' CONCAT(t.unidadMedida, \' \', t.simboloUnidad) medida' +
                                             ' FROM t_acumulado_diario tad' +
                                             ' INNER JOIN t_estacion_sensor tes ON tes.PAN_ID  = tad.PANID' +
@@ -436,7 +444,7 @@ def processForm(request):
                                             ' FROM VisualitiHistoricData vhd ' +
                                             ' INNER JOIN VisualitiHistoric vh ON vh.visualitiHistoric_id = vhd.visualitiHistoric_id ' +
                                             ' LEFT JOIN translates t on t.name = vhd.nameSensor ' +
-                                            ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor[0] + '\''  + 
+                                            ' WHERE vh.estacionVisualiti_id = \'' + dispositivo + '\' AND vhd.nameSensor like \'' + rowSensor + '\''  + 
                                                 ' AND vh.createdAt >= ' + str(iniTime) + ' AND vh.createdAt <= ' +  str(endTIme) +
                                             ' GROUP by CONCAT(DATE(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)) , CONCAT(\' \', HOUR(DATE_ADD(FROM_UNIXTIME(vh.createdAt), INTERVAL 5 HOUR)))), t.value, vhd.nameSensor, t.unidadMedida, t.simboloUnidad' +
                                             ' ORDER by vh.createdAt ASC '))
@@ -457,7 +465,7 @@ def processForm(request):
         primerSensor = False
 
         horizontalDatos.append(horizontal)
-        if ('gb-' not in request.POST.get('id_dispositivo')):
+        if ('gb-' not in rowSensor[0]):
             tipoOperacionSql = conn.execute(text('SELECT t.tipo_operacion_id FROM translates t WHERE t.name like \'' + sensor + '\' AND t.tipo_operacion_id != 1'))
             for tipoOperacion in tipoOperacionSql:
                 horizontal = [];
@@ -860,21 +868,20 @@ def getTipoInformes(request):
                                     ' INNER JOIN TtnDataSensors tds ON tds.id_ttn_data = td.id_ttn_data ' +
                                     ' LEFT JOIN translates t on t.name = tds.name_sensor ' +
                                     ' WHERE td.dev_eui = \'' + dispositivo + '\' ' + 
-                                        ' AND t.value in (\'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\', \'Pluviometria/Cantidad de pulsos\')' + 
+                                        ' AND t.value in (\'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\', \'Pluviometria\')' + 
                                     ' GROUP BY t.value, tds.name_sensor' +
                                     ' ORDER by valuee '))
     elif plataforma == '3':
-        result = conn.execute(text('SELECT wdh.name,' +
-                                    ' case when t.value is not null then  (CONCAT(UPPER(SUBSTRING(t.value,1,1)),LOWER(SUBSTRING(t.value,2))))  ' +
-                                    ' else wdh.name end as valuee' +
-                                    ' FROM wl_sensors ws ' +
-                                    'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
-                                    'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
-                                    'LEFT JOIN translates t on t.name = wdh.name ' +
-                                    'WHERE ws.station_id = ' + dispositivo +
-                                        ' AND t.value in (\'Precipitación\', \'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\')' + 
-                                    ' GROUP by t.value, wdh.name ' +
-                                    'ORDER by valuee '))
+        result = conn.execute(text('SELECT  DISTINCT wdhVw.name,' +
+                                    ' t.value ' +
+                                    ' FROM (SELECT wdh.name FROM wl_sensors ws ' +
+                                            'INNER JOIN wl_historic wh on wh.lsid = ws.lsid ' +
+                                            'INNER JOIN wl_data_historic wdh on wdh.dth_id = wh.dth_id ' +
+                                            'WHERE ws.station_id = ' + dispositivo +
+                                            ' GROUP BY wdh.name) wdhVw' +
+                                    ' INNER JOIN translates t on t.name = wdhVw.name ' +
+                                    ' WHERE t.value in (\'Precipitación\', \'Humedad del suelo\', \'Radiación solar\', \'Distancia\', \'Volumen de agua\') ' +
+                                    ' GROUP BY wdhVw.name '))
     elif plataforma == '4':
         
         result = conn2.execute(text('SELECT 0, UPPER(VARIABLE) FROM t_estacion_sensor tes ' +
@@ -2596,7 +2603,7 @@ def getDispositivosGrupo(request):
                                             'FROM wl_historic wh ' +
                                             'INNER JOIN wl_sensors ws ON ws.lsid = wh.lsid ' +
                                             'WHERE ws.station_id = \'' + str(row[0]) + '\' ' +
-                                                'AND DATE_ADD(FROM_UNIXTIME(wh.ts), INTERVAL 5 HOUR) >= DATE_SUB(NOW(), INTERVAL 3 HOUR)'))
+                                                'AND FROM_UNIXTIME(wh.ts) >= DATE_SUB(NOW(), INTERVAL 3 HOUR)'))
 
         elif plataforma == '4':
             resultRule = conn.execute(text('SELECT COUNT(*) n ' +
@@ -2608,6 +2615,10 @@ def getDispositivosGrupo(request):
             if (rowRule[0] > 0):
                 opacity = ''
 
+        if opacity != '':
+            datos.append((row[0], row[1], 'alert-catastrofico', opacity, plataforma, '<li>El dispositivo esta offline.</li>'))
+            continue
+        
         # Validar precipitación
         resultRule = []
         if plataforma == '2':
