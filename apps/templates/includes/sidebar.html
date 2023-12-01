@@ -30,6 +30,18 @@
                     <p style="color:black;">Supervisor de Hardware</p>
                 </a>
             </li>
+            <li class="{% if 'datalogger' in segment %} active {% endif %} ">
+                <a href="/datalogger">
+                    <i style="color:black;" class="tim-icons icon-upload"></i>
+                    <p style="color:black;">Datalogger</p>
+                </a>
+            </li>
+            <li class="{% if 'controlTotal' in segment %} active {% endif %} ">
+                <a href="/controlTotal">
+                    <i style="color:black;" class="tim-icons icon-alert-circle-exc"></i>
+                    <p style="color:black;">Control Total</p>
+                </a>
+            </li>
             <!-- <li class="{% if 'icons' in segment %} active {% endif %}">
                     <a href="/icons>
                         <i class="tim-icons icon-atom"></i>

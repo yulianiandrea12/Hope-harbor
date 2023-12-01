@@ -78,8 +78,9 @@
                         </div>
                     </div>
                     {% if cliente == '6' %}
-                    <button type="button" class="btn btn-success" onClick="frmCrearCaso();">Crear Caso</button>
+                        <button type="button" class="btn btn-success" onClick="frmCrearCaso();">Crear Caso</button>
                     {% endif %}
+                    <button type="button" class="btn btn-success" onClick="linkAccesoPublico();">Generar Link Publico</button>
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -170,6 +171,7 @@
                                     </th>
                                     <th>ACCIONES</th>
                                     <th>FECHA SOLUCION</th>
+                                    <th>EDITAR</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -270,7 +272,7 @@
                             <div class="mb-4">
                                 <div class="form-group">
                                     <label>Estado</label>
-                                    <select id="estado" class="form-control selectpicker" data-live-search="true" data-style="btn-success">
+                                    <select id="optEstado" class="form-control selectpicker" data-live-search="true" data-style="btn-success">
                                         <option selected>Creado</option>
                                         <option>Actualizado</option>
                                         <option>En Mantenimiento</option>
@@ -281,7 +283,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-lg-6">
+                        <div class="col-lg-6" id="solucionDiv">
                             <div class="mb-4">
                                 <div class="form-group">
                                     <label>Solucion</label>
@@ -304,7 +306,36 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-success" onclick="crear();">Crear</button>
+                <button id="btnCrear" type="button" class="btn btn-success" onclick="crear();">Crear</button>
+                <button id="btnModificar" type="button" class="btn btn-success" onclick="modificar();">Modificar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL LINK -->
+<div class="modal fade in" id="linkModal" tabindex="-1" role="dialog" aria-labelledby="linkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h5 class="card-title">LINK PUBLICO</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="input-group">
+                        <span id="copyButton" class="input-group-addon btn" title="Click to copy">
+                            <i class="fa fa-clipboard" aria-hidden="true"></i>
+                        </span>
+                        <input type="text" id="copyTarget" class="form-control" value="mylinkTEST.com">
+                        <span class="copied">Copied !</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -334,6 +365,7 @@
         background-color: #21b198;
         border-color: #21b198;
     }
+
 </style>
 {% endblock content %}
 
@@ -344,6 +376,7 @@
     var x = 'hola';
     var chart_chartBig1;
     var medida;
+    var id;
     var cantDivs = 0,
         contDivs = 1;
     var idsCharts = [];
@@ -370,7 +403,7 @@
                     html_data += `<option value="${data[0]}">${data[1]}</option>`
                 });
                 $("#id_grupo").html(html_data);
-                $("#id_grupo").selectpicker("refresh");
+                $("#id_grupo").selectpicker("refresh"); 
             }
         });
     }
@@ -455,6 +488,9 @@
 
         $('#frmCaso')[0].reset();
 
+        $("#solucionDiv").hide();
+        $('#btnCrear').show();
+        $('#btnModificar').hide();
         $('#casosModal').modal('show');
     }
 
@@ -468,18 +504,108 @@
                 'id_estacion': estacionid,
                 'soporte': $('#soporte').val(),
                 'contacto': $('#contacto').val(),
-                'tipo': $('#tipo  option:selected').text(),
+                'tipo': $('#tipo option:selected').text(),
                 'problema': $('#problema').val(),
-                'estado': $('#estado option:selected').text(),
+                'estado': $('#optEstado option:selected').text(),
                 'solucion': $('#solucion').val(),
                 'evidencia': $('#evidencia').val()
             },
             success: function(data) {
                 $('#casosModal').modal('hide');
                 general.showNotificationOwn('top', 'right', 'success', 'Caso Registrado', 'ATENCION');
-                getCasosEstacion(plataformaid, estacionid, estacionnombre);
+                getCasosEstacion(plataformaid, estacionid, estacionnombre,('s' + estado), activo, estadoActual);
             }
         });
+    }
+
+    function frmModificar(idCaso, estacion, agente, contacto, idEvidencia, tipoProblema, problema, estado) {
+        id = idCaso;
+        $('#soporte').val(agente);
+        $('#contacto').val(contacto);
+        $('#tipo').val(tipoProblema).change();
+        $('#problema').val(problema);
+        $('#optEstado').val(estado).change();
+        $('#evidencia').val(idEvidencia);
+
+        $('#casosModalLabel').text('Modificar Caso Estacion: ' + estacion);
+        $("#solucionDiv").hide();
+        $('#btnCrear').hide();
+        $('#btnModificar').show();
+        $('#casosModal').modal('show');
+    }
+
+    function modificar() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-update-caso-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': id,
+                'soporte': $('#soporte').val(),
+                'contacto': $('#contacto').val(),
+                'tipo': $('#tipo option:selected').text(),
+                'problema': $('#problema').val(),
+                'estado': $('#optEstado option:selected').text(),
+                'solucion': $('#solucion').val(),
+                'evidencia': $('#evidencia').val()
+            },
+            success: function(data) {
+                $('#casosModal').modal('hide');
+                general.showNotificationOwn('top', 'right', 'success', 'Caso Modificado', 'ATENCION');
+                getCasosEstacion(plataformaid, estacionid, estacionnombre,('s' + estado), activo, estadoActual);
+            }
+        });
+    }
+    
+    function linkAccesoPublico() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-link-publico' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_plataforma': plataformaid,
+                'id_estacion': estacionid,
+            },
+            success: function(data) {
+                $('#copyTarget').val("https://appgricultor.com/public/show?token=" + data.token);
+                $('#linkModal').modal('show');
+            }
+        });
+
+    }
+
+    function copyToClipboard() {
+        var target = document.getElementById("copyTarget");
+
+        // select the content
+        var currentFocus = document.activeElement;
+
+        target.focus();
+        target.setSelectionRange(0, target.value.length);
+
+        // copy the selection
+        var succeed;
+
+        try {
+        succeed = document.execCommand("copy");
+        } catch (e) {
+        console.warn(e);
+
+        succeed = false;
+        }
+
+        // Restore original focus
+        if (currentFocus && typeof currentFocus.focus === "function") {
+            currentFocus.focus();
+        }
+
+        if (succeed) {
+            $(".copied").animate({ top: -25, opacity: 0 }, 700, function() {
+                $(this).css({ top: 0, opacity: 1 });
+            });
+        }
+
+        return succeed;
     }
 
     $(document).ready(function() {
@@ -489,6 +615,10 @@
         $("#id_plataforma").change(function() {
             getGrupos();
 
+        });
+
+        $("#copyButton, #copyTarget").on("click", function() {
+            copyToClipboard();
         });
 
         $("#form_btn").click(function() {
@@ -545,6 +675,14 @@
                     }
                 }
             });
+        });
+
+        $("#optEstado").change(function() {
+            if ($('#optEstado option:selected').text() == 'Resuelto') {
+                $("#solucionDiv").show();
+            } else {
+                $("#solucionDiv").hide();
+            }
         });
 
     });

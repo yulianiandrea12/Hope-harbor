@@ -82,6 +82,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
+# Configuración del servidor SMTP para Gmail como ejemplo
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.hostinger.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'controltotal@visualiti.co'  # Reemplaza con tu dirección de correo electrónico
+EMAIL_HOST_PASSWORD = 'aq&2p#Lx$8@o!Z9v1'  # Reemplaza con tu contraseña
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 

@@ -1,0 +1,165 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Datalogger {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .input-group-addon {
+        color: #00f2c3;
+        border-color: #00f2c3;
+        border: none
+    }
+
+    .input-group-addon:focus {
+        outline: 0 !important
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <div class="row"></div>
+    <form id="form">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <div class="row card">
+            <br>
+            <br>
+            <div class="col-lg-6">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label class="form-label">Seleccion el archivo:</label>                        
+                        <div class="input-group">
+                            <div class="custom-file">
+                                <input style="color:#00f2c3" type="file" class="custom-file-input" id="inputFile" lang="es" accept=".txt">
+                                <label style="color:#00f2c3" class="custom-file-label" data-sty  data-browse="Adjuntar" for="inputFile">Seleccionar Archivo</label>
+                              </div>
+                        </div>                          
+                    </div>
+                </div>
+                <div id="divCargando" style="display: none;">
+                    <h2>Cargando...</h2>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-md-center">
+            <div class="col-lg-4">
+                <!-- <input type="button" value="Cargar" class="form-control btn btn-success" id="form_btn"> -->
+            </div>
+        </div>
+
+    </form>
+    <br>
+    <div id="contenido">
+    </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    var medida;
+    var id;
+    var cantDivs = 0,
+        contDivs = 1;
+    
+    $(document).ready(function() {
+        $('#inputFile').on('change', function (event) {
+            // Obtener el archivo seleccionado por el usuario
+            const file = event.target.files[0];
+            $('#divCargando').show();
+
+            if (file) {
+                // Crear un objeto FileReader para leer el archivo
+                const reader = new FileReader();
+
+                // Configurar la función que se ejecutará cuando se cargue el archivo
+                reader.onload = function (e) {
+                    // Obtener el contenido del archivo como texto
+                    const contenido = e.target.result;
+                    // Dividir el contenido en líneas
+                    const lineas = contenido.split('\n');
+
+                    var sensores = null;
+                    var medidas = null;
+                    var data = [];
+                    var ids = [];
+                    var error = false;
+
+                    // Recorrer y procesar cada línea
+                    lineas.forEach(function (linea, i) {
+                        var columna = linea.split(";");
+                        if (i == 0) {
+                            //En la primer linea los sensores
+                            sensores = columna;
+                            if (sensores.length < 3) {
+                                general.showNotificationOwn('top', 'right', 'warning', '<ul><li>Todas las lineas deben contener al menos una variable como tercer dato.</li></ul>', 'ERROR');
+                                error = true;
+                                return;
+                            }
+                        } else if (i == 1) {
+                            //En la segunda linea las medidas
+                            medidas = columna;
+                            if (medidas.length != sensores.length) {
+                                general.showNotificationOwn('top', 'right', 'warning', '<ul><li>Todas las lineas deben contener la misma cantidad de columnas.</li></ul>', 'ERROR');
+                                error = true;
+                                return;
+                            }
+                        } else {
+                            data.push(columna);
+                            if (!(ids.includes(columna[0]))) {
+                                ids.push(columna[0]);
+                            }
+                            if (columna.length == 0) {
+                                general.showNotificationOwn('top', 'right', 'warning', '<ul><li>Línea ${i + 1}: No contiene informacion.</li></ul>', 'ERROR');
+                                error = true;
+                                return;
+                            }else if (columna.length != sensores.length) {
+                                general.showNotificationOwn('top', 'right', 'warning', '<ul><li>Todas las lineas deben contener la misma cantidad de columnas.</li></ul>', 'ERROR');
+                                error = true;
+                                return;
+                            }
+                        }
+                        // Imprimir cada línea en la consola
+                        // console.log(`Línea ${i + 1}: ${linea}`);
+                    });
+
+                    if (!error) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'set-datalogger' %}",
+                            data: {
+                                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                                'sensores': JSON.stringify(sensores),
+                                'medidas': JSON.stringify(medidas),
+                                'data': JSON.stringify(data),
+                                'ids': JSON.stringify(ids)
+                            },
+                            success: function(data) {
+                                $('#divCargando').hide();
+                                general.showNotificationOwn('top', 'right', 'success', 'Archivo Registrado Correctamente', 'ATENCION');
+                            }
+                        });
+                    }
+                };
+
+                // Leer el archivo como texto
+                reader.readAsText(file);
+            }
+        });
+
+    });
+</script>
+
+{% endblock javascripts %}

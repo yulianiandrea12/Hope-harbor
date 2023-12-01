@@ -1,0 +1,145 @@
+{% extends "layouts/base-fullscreen.html" %}
+
+{% block title %} Datos Estacion Actual {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .input-group-addon {
+        color: #00f2c3;
+        border-color: #00f2c3;
+        border: none
+    }
+
+    .input-group-addon:focus {
+        outline: 0 !important
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<br>
+<br>
+<div class="content">
+    <div class="row"></div>
+    {# <h1>Hello {{ firstname }}</h1> #}
+    <form id="formGrafica">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+        
+        <div class="row">
+            <div class="col-lg-6">
+                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="300" width="300">
+            </div>
+            <div class="col-lg-6">
+                <h1 class="col-lg-6 text-center" id="txtEstacion">Estación</h1>
+            </div>
+            <br>
+            <br>
+            <div class="col-lg-6">
+                <h3 class="col-lg-6 text-center" id="txtFecha">Tiempo</h3>
+            </div>
+            <div class="col-lg-6">
+                <h3 class="col-lg-6 text-center" id="txtUbicacion">Ubicación: No Disponible</h3>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table tablesorter " id="sensoresTable">
+                <thead class="text-primary">
+                    <tr>
+                        <th>SENSOR</th>
+                        <th>VALOR</th>
+                        <th>MEDIDA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+    </form>
+    <br>
+    <div id="contenido">
+    </div>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    var idPlataforma, idEstacion = '';
+
+    function datosEstacion() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-data-actual-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_plataforma': idPlataforma,
+                'id_estacion': idEstacion,
+            },
+            success: function(data) {
+                $('#txtEstacion').html(data['estacion']);
+                $('#txtFecha').html(data['fecha']);
+                if (data['link'] != "") {
+                    $('#txtUbicacion').html("Ubicación: <a href='" + data['link'] + "'> Ubicación en Maps </a>");
+                }
+                var datos = data;
+                if (data.sensores.length < 1) {
+                    $('#sensoresTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#sensoresTable')) {
+                        var myTable = $('#sensoresTable').DataTable().clear().rows.add(data.sensores).draw();
+
+                    } else {
+                        var myTable = $('#sensoresTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.sensores).draw();
+                    }
+                    $('#sensoresTable').show();
+                }
+            }
+        });
+
+    }
+    
+    $(document).ready(function() {
+        idPlataforma = {{ plataforma }};
+        idEstacion =  '{{ estacion }}';
+
+        datosEstacion();
+    });
+</script>
+
+{% endblock javascripts %}

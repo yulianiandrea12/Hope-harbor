@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from .forms import LoginForm, SignUpForm
 from werkzeug.security import generate_password_hash, check_password_hash
-from apps.authentication.db import conn
+from apps.authentication.db import execute_query
 from sqlalchemy import func, text
 
 def login_view(request):
@@ -24,13 +24,13 @@ def login_view(request):
             username = form.cleaned_data.get("username")
             password1 = form.cleaned_data.get("password")
 
-            resultCliente = conn.execute(text('SELECT c.cliente_id FROM clientes c  ' +
+            resultCliente = execute_query(1,('SELECT c.cliente_id FROM clientes c  ' +
                                     ' WHERE c.nombre like upper(\'' + cliente + '\') '))
             
             msg = 'Cliente Invalido'
             for rowCli in resultCliente:
                 clienteId = str(rowCli[0])
-                result = conn.execute(text('SELECT password FROM usuarios u  ' +
+                result = execute_query(1,('SELECT password FROM usuarios u  ' +
                                         ' WHERE u.cliente_id = ' + clienteId + ' AND u.usuario like \'' + username + '\' '))
                 
                 user = authenticate(username='connor', password='Asdfqwer1234')
@@ -76,6 +76,6 @@ def register_user(request):
 
 def cambiar_contrasena(request):
     password = generate_password_hash(request.POST.get('pass'), 'pbkdf2:sha256:30', 30)
-    result = conn.execute(text('UPDATE usuarios  set password=\'' + password + '\'' +
+    result = execute_query(1,('UPDATE usuarios  set password=\'' + password + '\'' +
                                     ' WHERE cliente_id = ' + request.session['cliente_id'] + ' AND usuario like \'' + request.session['username'] + '\' '))
     return JsonResponse({'status': 1})

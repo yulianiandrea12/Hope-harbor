@@ -6,13 +6,13 @@ Copyright (c) 2019 - present AppSeed.us
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from apps.authentication.db import conn
+from apps.authentication.db import conn, execute_query
 from sqlalchemy import func,text
 from .models import Cliente
 
 # getClientes
 def getClientes():
-    clientes = conn.execute(text('SELECT c.cliente_id, c.nombre ' +
+    clientes = execute_query(1,('SELECT c.cliente_id, c.nombre ' +
                                     ' FROM clientes c  ' +
                                     ' WHERE c.estado = 1 and EXISTS (SELECT u.usuario_id FROM usuarios u ' +
                                                                     ' WHERE u.cliente_id = c.cliente_id)' +

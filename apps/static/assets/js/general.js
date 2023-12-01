@@ -213,7 +213,7 @@ general = {
 
 
     },
-    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '', tipo = 'spline', plotBand = null) {
+    initMultipleAxesHighCharts: function(idDiv, labels, data, medidas = [], sensores = [], titleY = '', titleX = '', tipo = 'spline', plotBand = null, plotBandRepet = false) {
         function toNumber(value) {
             return Number(value);
         }
@@ -222,12 +222,13 @@ general = {
         i = 0;
         opposite = false;
         data.forEach(dato => {
+            tipoBarra = tipo;
             if (sensores.at(i).localeCompare("precipitación") === 0 || sensores.at(i).localeCompare("Precipitación") === 0 || sensores.at(i).localeCompare("precipitacion") === 0) {
-                tipo = 'column';
+                tipoBarra = 'column';
             }
             var serie = {
                 name: sensores.at(i),
-                type: tipo,
+                type: tipoBarra,
                 yAxis: i,
                 data: dato.map(toNumber),
                 marker: {
@@ -264,6 +265,17 @@ general = {
                     color: 'rgba(0, 150, 50, 0.2)'
                 };
                 varSeries.push(titlePlotBand);
+                titlePlotBand = {
+                    marker: {
+                        symbol: 'square',
+                        radius: 4
+                    },
+                    type: 'scatter',
+                    plotBandsIndex: 2,
+                    name: 'Exceso Hídrico',
+                    color: 'rgba(0, 0, 255, 0.2)'
+                };
+                varSeries.push(titlePlotBand);
             }
 
 
@@ -288,6 +300,9 @@ general = {
             yAxises.push(yAxis);
 
             opposite = !opposite;
+            if (!plotBandRepet) {
+                plotBand = null;
+            }
             i++;
 
         });
@@ -436,6 +451,12 @@ general = {
         });
 
         $('#' + input).val((moment().startOf('month').format('DD/MM/YYYY')) + ' - ' + (moment().format('DD/MM/YYYY')));
+    },
+    obtenerFrm(div) {
+        return $("#" + div).serializeArray().reduce(function(obj, item) {
+            obj[item.name] = item.value;
+            return obj;
+        }, {});
     }
 
 };

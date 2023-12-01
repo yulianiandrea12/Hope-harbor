@@ -321,6 +321,8 @@
             case "23":
             case "28":
             case "29":
+            case "34":
+            case "35":
                 html = '<div class="row">' +
                     '<div class="col-lg-2">' +
                     '<div class="mb-2">' +
@@ -368,6 +370,44 @@
                     'script>';
                 break;
             case "10":
+                html = '<div class="row">' +
+                    '<div class="col-lg-4">' +
+                    '<div class="mb-4">' +
+                    '<div class="form-group">' +
+                    '<label>Seleccione Fecha</label>' +
+                    '<div class="input-group" id="fecDiv' + contDiv + '">' +
+                    '<span class="input-group-btn">' +
+                    '<button class="btn btn-default" type="button">' +
+                    '<i class="fa fa-calendar"></i>' +
+                    '</button>' +
+                    '</span>' +
+                    '<input id="fecha' + contDiv + '" type="text" class="form-control" data-style="btn-success">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="col-lg-4">' +
+                    '<div class="mb-4">' +
+                    '<div class="form-group">' +
+                    '<label>PMP</label>' +
+                    '<input id="cc' + contDiv + '" type="number" value="-10" max="0" class="form-control" data-style="btn-success">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="col-lg-4">' +
+                    '<div class="mb-4">' +
+                    '<div class="form-group">' +
+                    '<label>CC</label>' +
+                    '<input id="pmp' + contDiv + '" type="number" value="-40" max="0" class="form-control" data-style="btn-success">' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<script>' +
+                    'general.rangeDatePicker("fecDiv' + contDiv + '", "fecha' + contDiv + '", true); </' +
+                    'script>';
+                break;
+            case "32":
                 html = '<div class="row">' +
                     '<div class="col-lg-4">' +
                     '<div class="mb-4">' +

@@ -1,0 +1,227 @@
+{% extends "layouts/base-fullscreen.html" %}
+
+{% block title %} Control Total {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <form id="formData">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <br>
+        <br>
+        <br>
+        
+        <div class="row">
+            <div class="col-lg-4">
+                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="300" width="300">
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Cod Caso:</label>
+                    <h3 id="txtCod"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label>Fecha Creación:</label>
+                        <h3 id="txtFecha" name="txtFecha"></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <h3 id="txtTipo" name="txtTipo"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Correo:</label>
+                    <h3 id="txtCorreo" name="txtCorreo"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Detalle:</label>
+                    <h3 id="txtDetalle" name="txtDetalle"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Lugar:</label>
+                    <h3 id="txtLugar" name="txtLugar"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Cedula:</label>
+                    <h3 id="txtCedula" name="txtCedula"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <h3 id="txtNombre" name="txtNombre"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Observacion:</label>
+                    <h3 id="txtObservacion" name="txtObservacion"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="form-group">
+                    <label>Fecha Modificación:</label>
+                    <h3 id="txtFechaMod" name="txtFechaMod"></h3>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div id="imgFirma" class="form-group">
+                </div>
+            </div>
+        </div>
+        
+        <div id="frmImagen">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label>Observación</label>
+                            <textarea id="observacion" name="observacion" class="form-control" required data-parsley-validate="true"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label>Firma</label>
+                            <div>
+                                <canvas id="signature-pad" style='border:1px solid #000' class="img-responsive signature-pad" height=200 width=500></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-md-center">
+                <div class="col-lg-4">
+                    <button id="btn" type="button" class="btn btn-success" onclick="cargarData();">Enviar</button>
+                </div>
+            </div>
+        </div>
+
+    </form>
+    <br>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script>
+    var data;
+    var ruta;
+    var signaturePad;
+
+    function datos() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-data-caso-control' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': data['id']
+            },
+            success: function(data) {
+                $('#txtCod').html(data.datos[0]);
+                $('#txtTipo').html(data.datos[1]);
+                $('#txtCorreo').html(data.datos[2]);
+                $('#txtFecha').html(data.datos[3]);
+                $('#txtDetalle').html(data.datos[4]);
+                $('#txtLugar').html(data.datos[5]);
+                $('#txtCedula').html(data.datos[7]);
+                $('#txtNombre').html(data.datos[6]);
+                if (data.OK != "0") {
+                    $('#frmImagen').hide();
+                    $('#imgFirma').show();
+                    $('#txtObservacion').html(data.datos[8]);
+                    $('#txtFechaMod').html(data.datos[9]);
+                    $('#imgFirma').append('<label>Firma:</label><img src="https://appgricultor.com/mostrar_firma?nombre_archivo=firma_' + data.datos[0] + '.png" class="img-fluid" height="300" width="300">');
+                } else {
+                    $('#frmImagen').show();
+                    $('#imgFirma').hide();
+                }
+            }
+        });
+
+    }
+    
+    function cargarData() {
+        if (signaturePad.isEmpty()) {
+            general.showNotificationOwn('top', 'right', 'warning', 'SIN FIRMAR', 'ATENCION');
+        } else {
+            var imageData = signaturePad.toDataURL();  // Obtén la firma como datos de imagen base64
+            $.ajax({
+                type: "POST",
+                url: "{% url 'set-firma' %}",
+                data: { 
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'imagen': imageData,
+                    'id': data['id']
+                },
+                success: function(response) {
+                    console.log(response);
+                    ruta = response['ruta']
+                    actualizar()
+                }
+            });
+        }
+
+    }
+
+    function actualizar() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-update-caso-control' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'ruta': ruta,
+                'id': data['id'],
+                'observacion': $('#observacion').val()
+            },
+            success: function(data) {
+                $('#casoModal').modal('hide');
+                general.showNotificationOwn('top', 'right', 'success', 'Caso Modificado', 'ATENCION');
+                datos();
+            }
+        });
+    }
+    
+    $(document).ready(function() {
+        data = '{{ datos_token }}'
+        var tempElement = document.createElement('div');
+        tempElement.innerHTML = data;
+        var unescapedJsonString = tempElement.textContent || tempElement.innerText;
+        data = JSON.parse(unescapedJsonString);
+
+        var canvas = document.querySelector("canvas");
+        signaturePad = new SignaturePad(canvas);
+
+        datos();
+    });
+</script>
+{% endblock javascripts %}

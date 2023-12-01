@@ -1,0 +1,308 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Supervisor de Hardware {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .input-group-addon {
+        color: #00f2c3;
+        border-color: #00f2c3;
+        border: none
+    }
+
+    .input-group-addon:focus {
+        outline: 0 !important
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <div class="row">
+        <p>
+            <a href="javascript:;" onclick="frmNuevo();" data-toggle="tooltip" title="Crear Caso" class="btn btn-inverse btn-icon btn-circle" data-original-title="Crear Caso"><i class="tim-icons icon-simple-add"></i></a>
+            <a href="javascript:;" onclick="getConsultaCasos();" data-toggle="tooltip" title="Consultar Casos" class="btn btn-inverse btn-icon btn-circle" data-original-title="Consultar Casos"><i class="tim-icons icon-refresh-02"></i></a>
+        </p>
+    </div>
+    <form id="form">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg-4">
+                <!-- <input type="button" value="Cargar" class="form-control btn btn-success" id="form_btn"> -->
+            </div>
+        </div>
+
+    </form>
+
+    <br>
+
+    <div class="row" id="divCasoTable">
+        <div class="col-md-12">
+            <div class="card ">
+                <div class="card-header">
+                    <h4 class="card-title" id="titleCasoTable">Casos</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table tablesorter " id="casoTable">
+                            <thead class="text-primary">
+                                <tr>
+                                    <th>COD</th>
+                                    <th>TIPO</th>
+                                    <th>CORREO</th>
+                                    <th>FECHA CREACION</th>
+                                    <th>DETALLE</th>
+                                    <th>LUGAR</th>
+                                    <th>NOMBRE</th>
+                                    <th>CEDULA</th>
+                                    <th>OBSERVACION</th>
+                                    <th>FIRMA</th>
+                                    <th>FECHA FIRMA</th>
+                                    <th>LINK</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CASO -->
+<div class="modal fade in" id="casoModal" tabindex="-1" role="dialog" aria-labelledby="casoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <form id="frmCaso" data-parsley-validate="true" onsubmit="return false;">
+                <div class="modal-header">
+                    <h5 class="card-title" id="casoModalLabel">Crear Caso</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Tipo</label>
+                                    <select id="optTipo" name="optTipo" class="form-control selectpicker" data-live-search="true" data-style="btn-success"  required data-parsley-validate="true">
+                                        <option value="" disabled selected>Seleccione</option>
+                                        <option value="Formato autorización">Formato autorización</option>
+                                        <option value="Acta recepción">Acta recepción</option>
+                                        <option value="Acta inicio servicio">Acta inicio servicio</option>
+                                        <option value="Acta cierre servicio">Acta cierre servicio</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Correo</label>
+                                    <input id="txtCorreo" name="txtCorreo" type='email' class="form-control" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Detalle</label>
+                                    <textarea id="detalle" name="detalle" class="form-control" required data-parsley-validate="true"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Lugar</label>
+                                    <input type="text" class="form-control" id="lugar" name="lugar" placeholder="Lugar" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Cedula Firmante</label>
+                                    <input type="number" id="cedula" name="cedula" class="form-control" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Nombre Firmante</label>
+                                    <input type="text" id="nombre" name="nombre" class="form-control" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                    <button id="btnCrear" type="submit" class="btn btn-success">Generar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL LINK -->
+<div class="modal fade in" id="linkModal" tabindex="-1" role="dialog" aria-labelledby="linkModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h5 class="card-title">LINK PUBLICO</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="input-group">
+                        <span id="copyButton" class="input-group-addon btn" title="Click to copy">
+                            <i class="fa fa-clipboard" aria-hidden="true"></i>
+                        </span>
+                        <input type="text" id="copyTarget" class="form-control" value="mylinkTEST.com">
+                        <span class="copied">Copied !</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    var accion = 1;
+
+    function frmNuevo() {
+        accion = 2;
+        $('#casoModalLabel').text('Crear Caso');
+        $('#btnCrear').show();
+        $('#casoModal').modal('show');
+    }
+
+    function linkAccesoPublico(id) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-token-publico' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'data': JSON.stringify({'id': id}),
+            },
+            success: function(data) {
+                $('#copyTarget').val("https://appgricultor.com/public/controlTotal?token=" + data.token);
+                $('#linkModal').modal('show');
+            }
+        });
+
+    }
+
+    function crearCaso() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-caso-control' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'frm': JSON.stringify(general.obtenerFrm("frmCaso"))
+            },
+            success: function(data) {
+                $('#casoModal').modal('hide');
+                general.showNotificationOwn('top', 'right', 'success', 'Caso Registrado', 'ATENCION');
+                getConsultaCasos();
+            }
+        });
+    }
+
+    function getConsultaCasos() {
+
+        $('#divTables').show();
+        $("#divCasoTable").hide();
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-caso-control' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+                $("#divCasoTable").show();
+
+                if (data.datos.length < 1) {
+                    $('#casoTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#casoTable')) {
+                        var myTable = $('#casoTable').DataTable().clear().rows.add(data.datos).draw();
+
+                    } else {
+                        var myTable = $('#casoTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.datos).draw();
+                    }
+                    $('#casoTable').show();
+                }
+            }
+        })
+    }
+    
+    $(document).ready(function() {
+        $('#frmCaso').parsley().on('form:submit', function () {
+            if (accion == 2) {
+                crearCaso();
+            }
+        });
+
+        getConsultaCasos();
+    });
+</script>
+
+{% endblock javascripts %}
