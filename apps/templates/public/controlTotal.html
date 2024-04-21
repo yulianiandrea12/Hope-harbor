@@ -109,6 +109,14 @@
                 <div class="col-lg-6">
                     <div class="mb-4">
                         <div class="form-group">
+                            <label>Confirmar su Cedula</label>
+                            <input type="number" id="cedula" name="cedula" class="form-control" required data-parsley-validate="true"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="mb-4">
+                        <div class="form-group">
                             <label>Firma</label>
                             <div>
                                 <canvas id="signature-pad" style='border:1px solid #000' class="img-responsive signature-pad" height=200 width=500></canvas>
@@ -201,7 +209,8 @@
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
                 'ruta': ruta,
                 'id': data['id'],
-                'observacion': $('#observacion').val()
+                'observacion': $('#observacion').val(),
+                'cedula2': $('#cedula').val()
             },
             success: function(data) {
                 $('#casoModal').modal('hide');

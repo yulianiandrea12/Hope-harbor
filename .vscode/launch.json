@@ -15,6 +15,25 @@
             ],
             "justMyCode": true,
             "django": true
+        },
+        {
+            "name": "Python: Django GUNICORN",
+            "request": "launch",
+            "type": "python",
+            "program": "/home/Projects/visualiti-py/prod/bin/gunicorn",
+            "args": [
+                "-w",
+                "6",
+                "--timeout",
+                "300",
+                "-b",
+                "0.0.0.0:55555",
+                "--access-logfile",
+                "access.log",
+                "core.wsgi:application"
+            ],
+            "justMyCode": true,
+            "django": true
         }
     ]
 }

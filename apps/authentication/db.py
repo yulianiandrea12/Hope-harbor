@@ -54,3 +54,26 @@ def insert_update_query(tipo, query):
                 continue
             else:
                 raise e
+
+def next_sequence(sequence):
+    engineForConn = engine
+    
+    call = ('CALL getNextSequenceValue(\'' + sequence + '\', @next_value)')
+    query = ('SELECT @next_value AS next_value;')
+
+
+    while True:
+        try:
+            # Intenta ejecutar la consulta
+            with engineForConn.connect() as connx:
+                connx.execute(text(call))
+                connx.commit()
+                result = connx.execute(text(query))
+                # Realiza cualquier otra operación necesaria aquí
+                return result.fetchall()
+        except OperationalError as e:
+            if "Lost connection to MySQL server during query" in str(e):
+                # Reconexión si se perdió la conexión durante la consulta
+                continue
+            else:
+                raise e

@@ -1,0 +1,1539 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Checklist {% endblock %}
+
+{% block content %}
+
+<div class="content">
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <br>
+        <br>
+        <br>
+        
+        <div class="row">
+            <div class="col-lg-1">
+            </div>
+            <div class="col-lg-5">
+                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="400" width="400">
+            </div>
+            <div class="col-lg-6">
+                <div class="mb-6">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Cliente:</label>
+                        <h2 class="col-lg-4 text-center" id="txtCliente">Visualiti SAS</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        
+        <div class="row">
+            <div class="col-lg-12 col-sm-12 text-center" id="div1">
+                <div class="card  card-tasks text-left">
+                    <div class="card-header text-left">
+                        <h6 class="title d-inline">Checklist A - Alistamiento</h6>
+                    </div>
+                    <div class="card-body ">
+                        <form id="formA">
+                            {% csrf_token %}
+                            
+
+                            {% comment %} <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="mb-4">
+                                        <div class="form-group">
+                                            <label>Seleccione Plataforma IoT</label>
+                                            {{ form.platafromas}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="divRed" class="col-lg-6">
+                                    <div class="mb-4">
+                                        <div class="form-group">
+                                            <label>Seleccione Red</label>
+                                            <select id="id_red" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="state">
+                                                <option selected disabled value="0">Seleccione</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="mb-4">
+                                        <div class="form-group">
+                                            <label>Seleccione estación/dispositivo/equipo</label>
+                                            <select id="id_dispositivo" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="state">
+                                                <option selected disabled value="0">Seleccione</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br> {% endcomment %}
+                            <div class="table-full-width table-responsive">
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center">Seleccione Plataforma IoT</td>
+                                            <td class="text-center"> {{ form.platafromas}} </td>
+                                        </tr>
+                                        <tr id="divRed">
+                                            <td class="text-center">Seleccione Red</td>
+                                            <td class="text-center">
+                                                <select id="id_red" class="form-control selectpicker" data-live-search="true" data-style="btn-success">
+                                                    <option selected disabled value="0">Seleccione</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">Seleccione estación/dispositivo/equipo</td>
+                                            <td class="text-center">
+                                                <select id="id_dispositivo" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="estacion">
+                                                    <option selected disabled value="0">Seleccione</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA1" value="Multímetro Digital: NO" id="hDcheckA1" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA1" onchange="hdValueChk('A1')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Multímetro Digital" id="txtA1" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Multímetro Digital</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA2" value="Llave expansiva: NO" id="hDcheckA2" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA2" onchange="hdValueChk('A2')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Llave expansiva" id="txtA2" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Llave expansiva</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA3" value="Flexómetro: NO" id="hDcheckA3" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA3" onchange="hdValueChk('A3')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Flexómetro" id="txtA3" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Flexómetro</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA4" value="Destornillador de pala: NO" id="hDcheckA4" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA4" onchange="hdValueChk('A4')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Destornillador de pala" id="txtA4" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Destornillador de pala</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA5" value="Destornillador de estrella: NO" id="hDcheckA5" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA5" onchange="hdValueChk('A5')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Destornillador de estrella" id="txtA5" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Destornillador de estrella</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA6" value="Destornillador perillero (Pala pequeño): NO" id="hDcheckA6" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA6" onchange="hdValueChk('A6')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Destornillador perillero (Pala pequeño)" id="txtA6" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Destornillador perillero (Pala pequeño)</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA7" value="Cinta aislante: NO" id="hDcheckA7" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA7" onchange="hdValueChk('A7')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Cinta aislante" id="txtA7" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Cinta aislante</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA8" value="Bisturí: NO" id="hDcheckA8" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA8" onchange="hdValueChk('A8')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Bisturí" id="txtA8" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Bisturí</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA9" value="Pinzas: NO" id="hDcheckA9" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA9" onchange="hdValueChk('A9')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Pinzas" id="txtA9" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Pinzas</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA10" value="Amares plásticos: NO" id="hDcheckA10" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA10" onchange="hdValueChk('A10')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Amares plásticos" id="txtA10" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Amares plásticos</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA11" value="Cepillo para limpieza: NO" id="hDcheckA11" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA11" onchange="hdValueChk('A11')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Cepillo para limpieza" id="txtA11" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Cepillo para limpieza</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA12" value="Brújula: NO" id="hDcheckA12" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA12" onchange="hdValueChk('A12')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Brújula" id="txtA12" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Brújula</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA13" value="Nivel de burbuja: NO" id="hDcheckA13" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA13" onchange="hdValueChk('A13')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Nivel de burbuja" id="txtA13" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Nivel de burbuja</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA14" value="Spray con agua limpia: NO" id="hDcheckA14" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA14" onchange="hdValueChk('A14')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Spray con agua limpia" id="txtA14" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Spray con agua limpia</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkA15" value="Toalla pequeña o paño limpio: NO" id="hDcheckA15" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxA15" onchange="hdValueChk('A15')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Toalla pequeña o paño limpio" id="txtA15" />
+                                                <p class="title">Alistamiento de Herramientas</p>
+                                                <p class="text-muted">Toalla pequeña o paño limpio</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12 col-sm-12 text-center" id="div2" style="display: none;">
+                <div class="card  card-tasks text-left">
+                    <div class="card-header text-left">
+                        <h6 class="title d-inline">Checklist B - Revisión</h6>
+                    </div>
+                    <div class="card-body ">
+                        <form id="formB">
+                            {% csrf_token %}
+                            <div class="table-full-width table-responsive">
+                                <table class="table">
+                                    <tbody>
+                                        <tr>
+                                            <td class="text-center" width="5%">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB1" value="Revisión, Tomar una fotografía INICIAL que permita apreciar la estación y el lugar/zona en donde se encuentra: NO" id="hDcheckB1" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB1" onchange="hdValueChk('B1')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Revisión, Tomar una fotografía INICIAL que permita apreciar la estación y el lugar/zona en donde se encuentra" id="txtB1" />
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Tomar una fotografía INICIAL que permita apreciar la estación y el lugar/zona en donde se encuentra.</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB2" value="Revisión, Realizar una limpieza del perímetro alrededor de la estación y retire maleza, rocas, basura, etc: NO" id="hDcheckB2" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB2" onchange="hdValueChk('B2')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Revisión, Realizar una limpieza del perímetro alrededor de la estación y retire maleza, rocas, basura, etc" id="txtB2" />
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Realizar una limpieza del perímetro alrededor de la estación y retire maleza, rocas, basura, etc.</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB3" value="Revisión, Apagar el equipo (desconectar cable rojo de la batería): NO" id="hDcheckB3" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB3" onchange="hdValueChk('B3')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Revisión, Apagar el equipo (desconectar cable rojo de la batería)" id="txtB3" />
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Apagar el equipo (desconectar cable rojo de la batería)</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB4" value="Revisión, Con el nivel de burbuja verificar que el soporte central de la estación se encuentra vertical: NO" id="hDcheckB4" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB4" onchange="hdValueChk('B4')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Revisión, Con el nivel de burbuja verificar que el soporte central de la estación se encuentra vertical" id="txtB4" />
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Con el nivel de burbuja verificar que el soporte central de la estación se encuentra vertical </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB5" value="Revisión, Tomar una fotografía INTERNA que permita apreciar el interior del gabinete de la estación: NO" id="hDcheckB5" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB5" onchange="hdValueChk('B5')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Revisión, Tomar una fotografía INTERNA que permita apreciar el interior del gabinete de la estación" id="txtB5" />
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Tomar una fotografía INTERNA que permita apreciar el interior del gabinete de la estación </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza.</p>
+                                            </td>
+                                            <td width="30%">
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB6" value="Revisión, Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza. Insectos: NO" id="hDcheckB6" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB6" onchange="hdValueChk('B6')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza. Insectos" id="txtB6" />
+                                                            <p class="text-muted">Insectos</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB7" value="Revisión, Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza. Humedad: NO" id="hDcheckB7" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB7" onchange="hdValueChk('B7')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza. Humedad" id="txtB7" />
+                                                            <p class="text-muted">Humedad</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB8" value="Revisión, Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza. Anormalidad: NO" id="hDcheckB8" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB8" onchange="hdValueChk('B8')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Inspeccionar el interior del ganinete y realizar cuidadosamente limpieza. Anormalidad" id="txtB8" />
+                                                            <p class="text-muted">Anormalidad</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Validar el estado de la carcasa exterior del gabinete.</p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB9" value="Revisión, Validar el estado de la carcasa exterior del gabinete. Golpes o Fracturas: NO" id="hDcheckB9" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB9" onchange="hdValueChk('B9')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Validar el estado de la carcasa exterior del gabinete. Golpes o Fracturas" id="txtB9" />
+                                                            <p class="text-muted">Golpes o Fracturas</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB10" value="Revisión, Validar el estado de la carcasa exterior del gabinete. La tapa cierra correctamente: NO" id="hDcheckB10" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB10" onchange="hdValueChk('B10')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Validar el estado de la carcasa exterior del gabinete. La tapa cierra correctamente" id="txtB10" />
+                                                            <p class="text-muted">La tapa cierra correctamente</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB11" value="Revisión, Validar el estado de la carcasa exterior del gabinete. Panel solar en buen estado: NO" id="hDcheckB11" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB11" onchange="hdValueChk('B11')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Validar el estado de la carcasa exterior del gabinete. Panel solar en buen estado" id="txtB11" />
+                                                            <p class="text-muted">Panel solar en buen estado </p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Revisión, Tomar el voltaje de la batería" id="txtB12" />
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Tomar el voltaje de la batería </p>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="checkB12" value="Revisión, Tomar el voltaje de la batería: NO" id="hDcheckB12" />
+                                                <input class="form-control" id="txtInputB12" placeholder="Ingrese Voltaje" type"number" onkeyup="hdValueText('B12')">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Veleta</p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB13" value="Revisión, Veleta. Instalado: NO" id="hDcheckB13" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB13" onchange="hdValueChk('B13')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. Instalado" id="txtB13" />
+                                                            <p class="text-muted">Instalado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB13" value="Revisión, Veleta. Buen estado: NO" id="hDcheckB13" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB13" onchange="hdValueChk('B13')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. Buen estado" id="txtB13" />
+                                                            <p class="text-muted">Buen estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB14" value="Revisión, Veleta. Limpio: NO" id="hDcheckB14" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB14" onchange="hdValueChk('B14')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. Limpio" id="txtB14" />
+                                                            <p class="text-muted">Limpio</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB15" value="Revisión, Veleta. Nivelado: NO" id="hDcheckB15" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB15" onchange="hdValueChk('B15')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. Nivelado" id="txtB15" />
+                                                            <p class="text-muted">Nivelado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <input type="hidden" name="checkB16" value="Revisión, Veleta. Gira libremente: NO" id="hDcheckB16" />
+                                                                <input class="form-check-input" type="checkbox" id="checkboxB16" onchange="hdValueChk('B16')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. Gira libremente" id="txtB16" />
+                                                            <p class="text-muted">Gira libremente</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB17" value="Revisión, Veleta. Cable en perfecto estado: NO" id="hDcheckB17" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB17" onchange="hdValueChk('B17')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. Cable en perfecto estado" id="txtB17" />
+                                                            <p class="text-muted">Cable en perfecto estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB18" value="Revisión, Veleta. La veleta apunta al norte: NO" id="hDcheckB18" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB18" onchange="hdValueChk('B18')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Veleta. La veleta apunta al norte" id="txtB18" />
+                                                            <p class="text-muted">La veleta apunta al norte</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Anemómetro</p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB19" value="Revisión, Anemómetro. Instalado: NO" id="hDcheckB19" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB19" onchange="hdValueChk('B19')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Anemómetro. Instalado" id="txtB19" />
+                                                            <p class="text-muted">Instalado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB20" value="Revisión, Anemómetro. Buen estado: NO" id="hDcheckB20" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB20" onchange="hdValueChk('B20')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Anemómetro. Buen estado" id="txtB20" />
+                                                            <p class="text-muted">Buen estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB21" value="Revisión, Anemómetro. Limpio: NO" id="hDcheckB21" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB21" onchange="hdValueChk('B21')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Anemómetro. Limpio" id="txtB21" />
+                                                            <p class="text-muted">Limpio</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB22" value="Revisión, Anemómetro. Nivelado: NO" id="hDcheckB22" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB22" onchange="hdValueChk('B22')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Anemómetro. Nivelado" id="txtB22" />
+                                                            <p class="text-muted">Nivelado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB23" value="Revisión, Anemómetro. Gira libremente: NO" id="hDcheckB23" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB23" onchange="hdValueChk('B23')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Anemómetro. Gira libremente" id="txtB23" />
+                                                            <p class="text-muted">Gira libremente</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB24" value="Revisión, Anemómetro. Cable en perfecto estado: NO" id="hDcheckB24" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB24" onchange="hdValueChk('B24')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Anemómetro. Cable en perfecto estado" id="txtB24" />
+                                                            <p class="text-muted">Cable en perfecto estado</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Pluviometro</p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB25" value="Revisión, Pluviometro. Instalado: NO" id="hDcheckB25" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB25" onchange="hdValueChk('B25')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Pluviometro. Instalado" id="txtB25" />
+                                                            <p class="text-muted">Instalado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB26" value="Revisión, Pluviometro. Buen estado: NO" id="hDcheckB26" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB26" onchange="hdValueChk('B26')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Pluviometro. Buen estado" id="txtB26" />
+                                                            <p class="text-muted">Buen estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB27" value="Revisión, Pluviometro. Limpio: NO" id="hDcheckB27" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB27" onchange="hdValueChk('B27')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Pluviometro. Limpio" id="txtB27" />
+                                                            <p class="text-muted">Limpio</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB28" value="Revisión, Pluviometro. Nivelado: NO" id="hDcheckB28" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB28" onchange="hdValueChk('B28')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Pluviometro. Nivelado" id="txtB28" />
+                                                            <p class="text-muted">Nivelado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB29" value="Revisión, Pluviometro. Cable en perfecto estado: NO" id="hDcheckB29" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB29" onchange="hdValueChk('B29')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Pluviometro. Cable en perfecto estado" id="txtB29" />
+                                                            <p class="text-muted">Cable en perfecto estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB30" value='Revisión, Pluviometro. El sistema  interno "basculante" se mueve librementeo: NO' id="hDcheckB30" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB30" onchange="hdValueChk('B30')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value='Revisión, Pluviometro. El sistema  interno "basculante" se mueve librementeo' id="txtB30" />
+                                                            <p class="text-muted">El sistema  interno "basculante" se mueve libremente</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Radiación solar</p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB31" value="Revisión, Radiación solar. Instalado: NO" id="hDcheckB31" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB31" onchange="hdValueChk('B31')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Radiación solar. Instalado" id="txtB31" />
+                                                            <p class="text-muted">Instalado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB32" value="Revisión, Radiación solar. Buen estado: NO" id="hDcheckB32" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB32" onchange="hdValueChk('B32')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Radiación solar. Buen estado" id="txtB32" />
+                                                            <p class="text-muted">Buen estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB33" value="Revisión, Radiación solar. Limpio: NO" id="hDcheckB33" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB33" onchange="hdValueChk('B33')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Radiación solar. Limpio" id="txtB33" />
+                                                            <p class="text-muted">Limpio</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB34" value="Revisión, Radiación solar. Nivelado: NO" id="hDcheckB34" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB34" onchange="hdValueChk('B34')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Radiación solar. Nivelado" id="txtB34" />
+                                                            <p class="text-muted">Nivelado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB35" value="Revisión, Radiación solar. Cable en perfecto estado: NO" id="hDcheckB35" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB35" onchange="hdValueChk('B35')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Radiación solar. Cable en perfecto estado" id="txtB35" />
+                                                            <p class="text-muted">Cable en perfecto estado</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Humedad y temperatura </p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB36" value="Revisión, Humedad y temperatura. Instalado: NO" id="hDcheckB36" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB36" onchange="hdValueChk('B36')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Humedad y temperatura. Instalado" id="txtB36" />
+                                                            <p class="text-muted">Instalado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB37" value="Revisión, Humedad y temperatura. Buen estado: NO" id="hDcheckB37" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB37" onchange="hdValueChk('B37')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Humedad y temperatura. Buen estado" id="txtB37" />
+                                                            <p class="text-muted">Buen estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB38" value="Revisión, Humedad y temperatura. Limpio: NO" id="hDcheckB38" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB38" onchange="hdValueChk('B38')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Humedad y temperatura. Limpio" id="txtB38" />
+                                                            <p class="text-muted">Limpio</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB39" value="Revisión, Humedad y temperatura. Cable en perfecto estado: NO" id="hDcheckB39" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB39" onchange="hdValueChk('B39')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Humedad y temperatura. Cable en perfecto estado" id="txtB39" />
+                                                            <p class="text-muted">Cable en perfecto estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB40" value="Revisión, Humedad y temperatura. El interior del escudo de radiación esta libre de nidos y suciedad: NO" id="hDcheckB40" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB40" onchange="hdValueChk('B40')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Humedad y temperatura. El interior del escudo de radiación esta libre de nidos y suciedad" id="txtB40" />
+                                                            <p class="text-muted">El interior del escudo de radiación esta libre de nidos y suciedad</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input class="form-check-input" type="checkbox" value="">
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="title">Revisión</p>
+                                                <p class="text-muted">Sensor de humedad del suelo</p>
+                                            </td>
+                                            <td>
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB41" value="Revisión, Sensor de humedad del suelo. Instalado: NO" id="hDcheckB41" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB41" onchange="hdValueChk('B41')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Sensor de humedad del suelo. Instalado" id="txtB41" />
+                                                            <p class="text-muted">Instalado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB42" value="Revisión, Sensor de humedad del suelo. Buen estado: NO" id="hDcheckB42" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB42" onchange="hdValueChk('B42')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Sensor de humedad del suelo. Buen estado" id="txtB42" />
+                                                            <p class="text-muted">Buen estado</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-center">
+                                                            <div class="form-check">
+                                                                <label class="form-check-label">
+                                                                    <input type="hidden" name="checkB43" value="Revisión, Sensor de humedad del suelo. Cable en perfecto estado: NO" id="hDcheckB43" />
+                                                                    <input class="form-check-input" type="checkbox" id="checkboxB43" onchange="hdValueChk('B43')" />
+                                                                    <span class="form-check-sign">
+                                                                        <span class="check"></span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                        <td class="text-left">
+                                                            <input type="hidden" value="Revisión, Sensor de humedad del suelo. Cable en perfecto estado" id="txtB43" />
+                                                            <p class="text-muted">Cable en perfecto estado</p>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB44" value="Encender, Encender la estación (conectar nuevamente el cable rojo a la terminal de la batería de donde se desconectó): NO" id="hDcheckB44" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB44" onchange="hdValueChk('B44')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Encender, Encender la estación (conectar nuevamente el cable rojo a la terminal de la batería de donde se desconectó)" id="txtB44" />
+                                                <p class="title">Encender</p>
+                                                <p class="text-muted">Encender la estación (conectar nuevamente el cable rojo a la terminal de la batería de donde se desconectó)</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB45" value="Evidencia, Tomar una fotografía FINAL que permita apreciar la totalidad de la estación y el lugar/zona en donde se encuentra: NO" id="hDcheckB45" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB45" onchange="hdValueChk('B45')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Evidencia, Tomar una fotografía FINAL que permita apreciar la totalidad de la estación y el lugar/zona en donde se encuentra" id="txtB45" />
+                                                <p class="title">Evidencia</p>
+                                                <p class="text-muted">Tomar una fotografía FINAL que permita apreciar la totalidad de la estación y el lugar/zona en donde se encuentra </p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB46" value="Evidencia, Tomar una fotografía del FORMATO clara o escanearlo una vez diligenciado al finalizar el mantenimiento: NO" id="hDcheckB46" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB46" onchange="hdValueChk('B46')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Evidencia, Tomar una fotografía del FORMATO clara o escanearlo una vez diligenciado al finalizar el mantenimiento" id="txtB46" />
+                                                <p class="title">Evidencia</p>
+                                                <p class="text-muted">Tomar una fotografía del FORMATO clara o escanearlo una vez diligenciado al finalizar el mantenimiento</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                                <div class="form-check">
+                                                    <label class="form-check-label">
+                                                        <input type="hidden" name="checkB47" value="Evidencia, Enviar las 4 Fotografías Generadas durante el desarrollo de este documento a bscaro@visualiti.co: NO" id="hDcheckB47" />
+                                                        <input class="form-check-input" type="checkbox" id="checkboxB47" onchange="hdValueChk('B47')" />
+                                                        <span class="form-check-sign">
+                                                            <span class="check"></span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Evidencia, Enviar las 4 Fotografías Generadas durante el desarrollo de este documento a bscaro@visualiti.co" id="txtB47" />
+                                                <p class="title">Evidencia</p>
+                                                <p class="text-muted">Enviar las 4 Fotografías Generadas durante el desarrollo de este documento a bscaro@visualiti.co</p>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                            </td>
+                                            <td class="text-left">
+                                                <input type="hidden" value="Información adicional" id="txtB48" />
+                                                <p class="title">Información adicional</p>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="checkB48" value="Información adicional: NO" id="hDcheckB48" />
+                                                <textarea class="form-control" id="txtInputB48"  placeholder="Ingrese Informacion Adicional(Opcional)" required data-parsley-validate="true" onkeyup="hdValueText('B48')"></textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center">
+                                            </td>
+                                            <td class="text-left">
+                                                <p class="text-muted">Firma de quien diligencia</p>
+                                                <div>
+                                                    <canvas id="signature-pad" style='border:1px solid #000' class="img-responsive signature-pad" height=200 width=500></canvas>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <a id="atrasBtn" class="btn btn-warning back" onclick="accion(1)" style="display: none;">Atras</a>
+            <a id="continuarBtn" class="btn btn-success continue" onclick="accion(2)">Continuar</a>
+            <a id="guardarBtn" class="btn btn-success continue" style="display: none;" onclick="guardar()">Guardar</a>
+        </div>
+</div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+    var signaturePad;
+
+    function accion(accion) {
+        if (accion == 1) {
+            $('#div1').show();
+            $('#div2').hide();
+            $('#atrasBtn').hide();
+            $('#continuarBtn').show();
+            $('#guardarBtn').hide();
+        } else {
+            $('#div1').hide();
+            $('#div2').show();
+            $('#atrasBtn').show();
+            $('#continuarBtn').hide();
+            $('#guardarBtn').show();
+        }
+    }
+
+    function hdValueChk(id) {
+        if ($("#checkbox" + id).is(":checked")) {
+            $("#hDcheck" + id).val($('#txt' + id).val() + ": OK");
+        }
+        else {
+            $("#hDcheck" + id).val($('#txt' + id).val() + ": NO");
+        }
+    }
+
+    function hdValueText(id) {
+        if ($("#txtInput" + id).val() != '') {
+            $("#hDcheck" + id).val($('#txt' + id).val() + ": " + $('#txtInput' + id).val());
+        }
+        else {
+            $("#hDcheck" + id).val($('#txt' + id).val() + ": NO");
+        }
+    }
+
+    function getDispositivos(contDiv = '') {
+        var plataformaId = $('#id_plataforma').val();
+        var redId = $('#id_red').val();
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-dispositivo' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': plataformaId,
+                'id_red': redId
+            },
+            success: function(data) {
+                let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                data.datos.forEach(function(data) {
+                    html_data += `<option value="${data[0]}">${data[1]}</option>`
+                });
+                $("#id_dispositivo" + contDiv).html(html_data);
+                $("#id_dispositivo" + contDiv).selectpicker("refresh");
+            }
+        });
+    }
+
+    function guardar() {
+        var frmA = JSON.stringify(general.obtenerFrm("formA"));
+        var frmB = JSON.stringify(general.obtenerFrm("formB"));
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-checklist-mtto' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'frmA': frmA,
+                'frmB': frmB
+            },
+            success: function(data) {
+                $('#div1').hide();
+                general.showNotificationOwn('top', 'center', 'success', 'Atención', 'Creado');
+                location.href = "/consultaChecklistMtto";
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        var canvas = document.querySelector("canvas");
+        signaturePad = new SignaturePad(canvas);
+
+        $("#divRed").hide();
+
+        $("#id_plataforma").change(function() {
+            var plataformaId = $(this).val();
+            $('#estacionesDiv').html('');
+
+            if (plataformaId == 4) {
+                $("#divRed").show();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'get-red' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id': plataformaId
+                    },
+                    success: function(data) {
+                        let html_data = '<option selected disabled value="0">Seleccione</option>';
+                        data.datos.forEach(function(data) {
+                            html_data += `<option value="${data[0]}">${data[1]}</option>`
+                        });
+                        $("#id_red").html(html_data);
+                        $("#id_red").selectpicker("refresh");
+                    }
+                });
+            } else {
+                $("#divRed").hide();
+                getDispositivos();
+            }
+
+        });
+
+        $("#id_red").change(function() {
+            $('#estacionesDiv').html('');
+            getDispositivos();
+
+        });
+    });
+</script>
+{% endblock javascripts %}

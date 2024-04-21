@@ -34,26 +34,73 @@
         {% endfor %}
         
         <div class="row">
-            <div class="col-lg-6">
-                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="300" width="300">
+            <div class="col-lg-1">
+            </div>
+            <div class="col-lg-5">
+                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="400" width="400">
             </div>
             <div class="col-lg-6">
-                <h1 class="col-lg-6 text-center" id="txtEstacion">Estación</h1>
+                <div class="mb-6">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Estación:</label>
+                        <h3 class="col-lg-4 text-center" id="txtEstacion"></h3>
+                    </div>
+                </div>
             </div>
             <br>
             <br>
             <div class="col-lg-6">
-                <h3 class="col-lg-6 text-center" id="txtFecha">Tiempo</h3>
+                <div class="mb-6">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-calendar-60'></i> Fecha:</label>
+                        <h3 class="col-lg-4 text-center" id="txtFecha"></h3>
+                    </div>
+                </div>
             </div>
             <div class="col-lg-6">
-                <h3 class="col-lg-6 text-center" id="txtUbicacion">Ubicación: No Disponible</h3>
+                <div class="mb-6">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-square-pin'></i> Ubicación:</label>
+                        <h3 class="col-lg-4 text-center" id="txtUbicacion">No Disponible</h3>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <div class="col-lg-6">
+                <label><i class='tim-icons icon-world'></i> Clima:</label>
+                <div class="row">
+                    <h3 class="col" id="pad">Precipitación acumulada día:</h3>
+                    <h3 class="col" id="txtPad">0</h3>
+                </div>
+                <div class="row">
+                    <h3 class="col" id="padM">Precipitación acumulada Mes:</h3>
+                    <h3 class="col" id="txtPadM">0</h3>
+                </div>
+                <div class="row">
+                    <h3 class="col" id="humedad">Humedad:</h3>
+                    <h3 class="col" id="txtHumedad"></h3>
+                </div>
+                <div class="row">
+                    <h3 class="col" id="temperatura">Temperatura:</h3>
+                    <h3 class="col" id="txtTemperatura"></h3>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <label><i class='tim-icons icon-atom'></i> Pronostico:</label>
+                    <h3 class="col-lg-12" id="txtPronostico">No Disponible</h3>
+                </div>
             </div>
         </div>
+
+    </form>
+    <br>
+    <div class="row col-lg-12">
         <div class="table-responsive">
-            <table class="table tablesorter " id="sensoresTable">
+            <table class="table tablesorter table-striped" id="sensoresTable">
                 <thead class="text-primary">
                     <tr>
-                        <th>SENSOR</th>
+                        <th>NOMBRE SENSOR</th>
                         <th>VALOR</th>
                         <th>MEDIDA</th>
                     </tr>
@@ -62,10 +109,6 @@
                 </tbody>
             </table>
         </div>
-
-    </form>
-    <br>
-    <div id="contenido">
     </div>
 </div>
 {% endblock content %}
@@ -89,7 +132,22 @@
                 $('#txtEstacion').html(data['estacion']);
                 $('#txtFecha').html(data['fecha']);
                 if (data['link'] != "") {
-                    $('#txtUbicacion').html("Ubicación: <a href='" + data['link'] + "'> Ubicación en Maps </a>");
+                    $('#txtUbicacion').html("<a href='" + data['link'] + "'>Ubicación en Maps <i class='tim-icons icon-map-big'></i> </a>");
+                }
+                if (data['pronostico'] != "") {
+                    $('#txtPronostico').html("" + data['pronostico'] + "");
+                }
+                if (data['humedad'] != "") {
+                    $('#txtHumedad').html("" + data['humedad'] + "");
+                }
+                if (data['temperatura'] != "") {
+                    $('#txtTemperatura').html("" + data['temperatura'] + "");
+                }
+                if (data['pad'] != "") {
+                    $('#txtPad').html("" + data['pad'] + "");
+                }
+                if (data['padm'] != "") {
+                    $('#txtPadM').html("" + data['padm'] + "");
                 }
                 var datos = data;
                 if (data.sensores.length < 1) {
@@ -108,18 +166,21 @@
                             "dom": 'Bfrtip',
                             "buttons": [{
                                     "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
                                     "exportOptions": {
                                         "orthogonal": 'export'
                                     }
                                 },
                                 {
                                     "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
                                     "exportOptions": {
                                         "orthogonal": 'export'
                                     }
                                 },
                                 {
                                     "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
                                     "exportOptions": {
                                         "orthogonal": 'export'
                                     }

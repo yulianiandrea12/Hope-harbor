@@ -1,0 +1,347 @@
+{% extends "layouts/base-fullscreen.html" %}
+
+{% block title %} Consumo {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .input-group-addon {
+        color: #00f2c3;
+        border-color: #00f2c3;
+        border: none
+    }
+
+    .input-group-addon:focus {
+        outline: 0 !important
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<br>
+<br>
+<div class="content">
+    <div class="row"></div>
+    {# <h1>Hello {{ firstname }}</h1> #}
+    <form id="formGrafica">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+        
+        <div class="row">
+            <div class="col-lg-1">
+            </div>
+            <div class="col-lg-5">
+                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="400" width="400">
+            </div>
+            <div class="col-lg-3">
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Cliente:</label>
+                        <h2 class="col-lg-4 text-center" id="txtCliente"></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Grupo:</label>
+                        <h2 class="col-lg-4 text-center" id="txtGrupo"></h2>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <br>
+        </div>
+
+    </form>
+    <br>
+    <div class="row col-lg-12">
+        <div class="table-responsive">
+            <table class="table tablesorter table-striped" id="estacionesTable">
+                <thead class="text-primary">
+                    <tr>
+                        <th>ESTACION</th>
+                        <th>CONSUMO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="graficas">
+    </div>
+    <div class="tableConsumo" style="display:none">
+        <div class="row col-lg-12">
+            <div class="table-responsive">
+                <table class="table tablesorter table-striped" id="consumoTable">
+                    <thead class="text-primary">
+                        <tr>
+                            <th id="txtTitleTableConsumo" colspan="35">TABLA DE CONSUMO DE AGUA - estación UNDEFINED </th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th class="text-center" colspan="31">DIAS DEL MES DE ABRIL </th>
+                            <th rowspan="2">SEMANA ACTUAL</th>
+                            <th rowspan="2">ACUMULADO MES ABRIL</th>
+                            <th rowspan="2">ACUMULADO MES ANTERIOR MARZO</th>
+                        </tr>
+                        <tr>
+                            <th>Fecha</th>
+                            <th id="th1">1</th>
+                            <th id="th2">2</th>
+                            <th id="th3">3</th>
+                            <th id="th4">4</th>
+                            <th id="th5">5</th>
+                            <th id="th6">6</th>
+                            <th id="th7">7</th>
+                            <th id="th8">8</th>
+                            <th id="th9">9</th>
+                            <th id="th10">10</th>
+                            <th id="th11">11</th>
+                            <th id="th12">12</th>
+                            <th id="th13">13</th>
+                            <th id="th14">14</th>
+                            <th id="th15">15</th>
+                            <th id="th16">16</th>
+                            <th id="th17">17</th>
+                            <th id="th18">18</th>
+                            <th id="th19">19</th>
+                            <th id="th20">20</th>
+                            <th id="th21">21</th>
+                            <th id="th22">22</th>
+                            <th id="th23">23</th>
+                            <th id="th24">24</th>
+                            <th id="th25">25</th>
+                            <th id="th26">26</th>
+                            <th id="th27">27</th>
+                            <th id="th28">28</th>
+                            <th id="th29">29</th>
+                            <th id="th30">30</th>
+                            <th id="th31">31</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Consumo total (M3)</td>
+                            <td id="td1">1</td>
+                            <td id="td2">2</td>
+                            <td id="td3">3</td>
+                            <td id="td4">4</td>
+                            <td id="td5">5</td>
+                            <td id="td6">6</td>
+                            <td id="td7">7</td>
+                            <td id="td8">8</td>
+                            <td id="td9">9</td>
+                            <td id="td10">10</td>
+                            <td id="td11">11</td>
+                            <td id="td12">12</td>
+                            <td id="td13">13</td>
+                            <td id="td14">14</td>
+                            <td id="td15">15</td>
+                            <td id="td16">16</td>
+                            <td id="td17">17</td>
+                            <td id="td18">18</td>
+                            <td id="td19">19</td>
+                            <td id="td20">20</td>
+                            <td id="td21">21</td>
+                            <td id="td22">22</td>
+                            <td id="td23">23</td>
+                            <td id="td24">24</td>
+                            <td id="td25">25</td>
+                            <td id="td26">26</td>
+                            <td id="td27">27</td>
+                            <td id="td28">28</td>
+                            <td id="td29">29</td>
+                            <td id="td30">30</td>
+                            <td id="td31">31</td>
+                            <td>400</td>
+                            <td>5100</td>
+                            <td>113318</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script>
+    var data;
+
+    function datos() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-consumo' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': data['id'],
+                'grupo': data['grupo']
+            },
+            success: function(data) {
+                $('#txtCliente').html(data.datos[0]);
+                $('#txtGrupo').html(data.datos[1]);
+
+                if (data.estaciones.length < 1) {
+                    $('#estacionesTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Este link esta disponible para estaciones con sensores relacionados con variable agua', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#estacionesTable')) {
+                        var myTable = $('#estacionesTable').DataTable().clear().rows.add(data.estaciones).draw();
+
+                    } else {
+                        var myTable = $('#estacionesTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'  
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.estaciones).draw();
+                    }
+                    $('#estacionesTable').show();
+                }
+            }
+        });
+
+    }
+
+    function datosConsumo(plataformaId, estacionId, nombreEstacion) {
+        $('.graficas').html('');
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-consumo-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_plataforma': plataformaId,
+                'id_estacion': estacionId
+            },
+            success: function(data) {
+                if (data.data == 0) {
+                    general.showNotificationOwn('top', 'right', 'warning', 'Sin Información' , 'ERROR')
+                    $(".graficas").hide();
+                } else {
+                    $(".graficas").show();
+                    var i = 1;
+                    idsCharts = [];
+
+                    var currentDate = new Date();
+
+                    // Get the current date
+                    var day = currentDate.getDate();
+                    var month = currentDate.getMonth() + 1; // Months are zero-based, so January is 0
+                    var year = currentDate.getFullYear();
+
+                    // Format the date as desired
+                    var formattedDate = year + '-' + month + '-' + day;
+
+                    data.data.forEach(grafica => {
+
+                        idsCharts.push("chart-grafica" + i + "");
+                        html = '<div class="graficas">' +
+                            '<div class="row">' +
+                            '<div class="col-12">' +
+                            '<div class="card card-chart">' +
+                            '<div class="card-body">' +
+                            '<div id="chart-grafica' + i + '" class="highcharts-background">' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+                        $('.graficas').append(html);
+                        general.initMultipleAxesHighCharts('chart-grafica' + i, grafica.vertical, grafica.horizontal, grafica.medidas, grafica.sensores, ('Grafico de Consumo de agua - ESTACION ' + nombreEstacion + ' - ' + grafica.nombre + ' FECHA DE CONSULTA ' + formattedDate), null, grafica.tipo, grafica.plotBand);
+                        
+                        i = i + 1;
+
+                    });
+
+                    i = 1
+                    if (data.registros.length < 1) {
+                        $('#consumoTable').hide();
+                        general.showNotificationOwn('top', 'right', 'success', 'Sin registros', 'ATENCION');
+                    } else {
+                        if ($.fn.dataTable.isDataTable('#consumoTable')) {
+                            var myTable = $('#consumoTable').DataTable().clear().rows.add(data.registros).draw();
+    
+                        } else {
+                            var myTable = $('#consumoTable').DataTable({
+                                "language": {
+                                    "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                                },
+                                "responsive": true,
+                                "dom": 'Bfrtip',
+                                "buttons": [{
+                                        "extend": 'copyHtml5',
+                                        "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                        "exportOptions": {
+                                            "orthogonal": 'export'
+                                        }
+                                    },
+                                    {
+                                        "extend": 'excelHtml5',
+                                        "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                        "exportOptions": {
+                                            "orthogonal": 'export'
+                                        }
+                                    },
+                                    {
+                                        "extend": 'pdfHtml5',
+                                        "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                        "exportOptions": {
+                                            "orthogonal": 'export'  
+                                        }
+                                    }
+                                ]
+                            }).clear().rows.add(data.registros).draw();
+                        }
+                        $('#consumoTable').show();
+                        $('.tableConsumo').show();
+                    }
+                }
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        data = '{{ datos_token }}'
+        var tempElement = document.createElement('div');
+        tempElement.innerHTML = data;
+        var unescapedJsonString = tempElement.textContent || tempElement.innerText;
+        data = JSON.parse(unescapedJsonString);
+
+        datos();
+    });
+</script>
+{% endblock javascripts %}

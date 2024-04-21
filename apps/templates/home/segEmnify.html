@@ -1,0 +1,290 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Seguimiento Emnify {% endblock %}
+
+{% block content %}
+
+<div class="content">
+    <div class="row">
+        <p>
+            <a href="javascript:;" onclick="tipoConsulta(1);" data-toggle="tooltip" title="SIM" class="btn btn-inverse btn-icon btn-circle" data-original-title="SIM"><i class="tim-icons icon-credit-card"></i></a>
+        </p>
+        <p>
+            <a href="javascript:;" onclick="tipoConsulta(2);" data-toggle="tooltip" title="DISPOSITIVOS" class="btn btn-inverse btn-icon btn-circle" data-original-title="DISPOSITIVOS"><i class="tim-icons icon-mobile"></i></a>
+        </p>
+    </div>
+    <form id="form">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg-4">
+                <!-- <input type="button" value="Cargar" class="form-control btn btn-success" id="form_btn"> -->
+            </div>
+        </div>
+    </form>
+    <br>
+    <div class="row col-lg-12">
+        <div class="table-responsive" id="divSimTable">
+            <table class="table tablesorter table-striped" id="simTable">
+                <thead class="text-primary">
+                    <tr>
+                        <th>SIM ID</th>
+                        <th>ESTADO</th>
+                        <th>FECHA PRODUCCION</th>
+                        <th>FECHA ACTIVACION</th>
+                        <th>DATOS CONSUMO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="table-responsive" id="divDeviceTable" style="display: none;">
+            <table class="table tablesorter table-striped" id="deviceTable">
+                <thead class="text-primary">
+                    <tr>
+                        <th>DEVICE ID</th>
+                        <th>NOMBRE</th>
+                        <th>ETIQUETAS</th>
+                        <th>ESTADO</th>
+                        <th>IP</th>
+                        <th>IMEI</th>
+                        <th>ESTADO IMEI</th>
+                        <th>FECHA CREACION</th>
+                        <th>FECHA ACTUALIZACION</th>
+                        <th>SIM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONSUMO DATOS -->
+<div class="modal" id="consumoDatosModal" tabindex="-1" role="dialog" aria-labelledby="consumoDatosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h5 class="card-title">Consumo Datos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table tablesorter " id="consumoDatosTable">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>MES </th>
+                                <th>CANTIDAD</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    
+    function datosSim() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-sim-emnify' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+
+                if (data.sim.length < 1) {
+                    $('#simTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#simTable')) {
+                        var myTable = $('#simTable').DataTable().clear().rows.add(data.sim).draw();
+
+                    } else {
+                        var myTable = $('#simTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'  
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.sim).draw();
+                    }
+                    $('#simTable').show();
+                }
+            }
+        });
+
+    }
+    
+    function datosDevice() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-device-emnify' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+
+                if (data.device.length < 1) {
+                    $('#deviceTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#deviceTable')) {
+                        var myTable = $('#deviceTable').DataTable().clear().rows.add(data.device).draw();
+
+                    } else {
+                        var myTable = $('#deviceTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'  
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.device).draw();
+                    }
+                    $('#deviceTable').show();
+                }
+            }
+        });
+
+    }
+
+    function tipoConsulta(tipo) {
+        if (tipo == 1) {
+            $('#divDeviceTable').hide()
+            datosSim();
+            $('#divSimTable').show()
+        } else {
+            $('#divSimTable').hide()
+            datosDevice();
+            $('#divDeviceTable').show()
+        }
+    }
+
+    function usoDatos(simId) {
+        $('#consumoDatosModal').modal('show');
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-consumo-sim-emnify' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': simId
+            },
+            success: function(data) {
+
+                if (data.consumo.length < 1) {
+                    $('#consumoDatosTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#consumoDatosTable')) {
+                        var myTable = $('#consumoDatosTable').DataTable().clear().rows.add(data.consumo).draw();
+
+                    } else {
+                        var myTable = $('#consumoDatosTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'  
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.consumo).draw();
+                    }
+                    $('#consumoDatosTable').show();
+                }
+            }
+        });
+
+    }
+
+    $(document).ready(function() {
+        datosSim();
+    });
+</script>
+
+{% endblock javascripts %}

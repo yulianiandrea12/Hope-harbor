@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.http import JsonResponse
 from .forms import LoginForm, SignUpForm
 from werkzeug.security import generate_password_hash, check_password_hash
-from apps.authentication.db import execute_query
+from apps.authentication.db import execute_query, insert_update_query
 from sqlalchemy import func, text
 
 def login_view(request):
@@ -30,7 +30,7 @@ def login_view(request):
             msg = 'Cliente Invalido'
             for rowCli in resultCliente:
                 clienteId = str(rowCli[0])
-                result = execute_query(1,('SELECT password FROM usuarios u  ' +
+                result = execute_query(1,('SELECT password, usuario_id FROM usuarios u  ' +
                                         ' WHERE u.cliente_id = ' + clienteId + ' AND u.usuario like \'' + username + '\' '))
                 
                 user = authenticate(username='connor', password='Asdfqwer1234')
@@ -43,7 +43,11 @@ def login_view(request):
                             login(request, user)
                             request.session['cliente_id']  = clienteId
                             request.session['username']  = username
-                            return redirect("/")
+                            request.session['usuario_id']  = row[1]
+                            if 'next' in request.GET:
+                                return redirect(request.GET['next'])
+                            else:
+                                return redirect("/")
         else:
             msg = 'Error validating the form'
 
@@ -76,6 +80,6 @@ def register_user(request):
 
 def cambiar_contrasena(request):
     password = generate_password_hash(request.POST.get('pass'), 'pbkdf2:sha256:30', 30)
-    result = execute_query(1,('UPDATE usuarios  set password=\'' + password + '\'' +
+    result = insert_update_query(1,('UPDATE usuarios  set password=\'' + password + '\'' +
                                     ' WHERE cliente_id = ' + request.session['cliente_id'] + ' AND usuario like \'' + request.session['username'] + '\' '))
     return JsonResponse({'status': 1})

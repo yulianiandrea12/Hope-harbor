@@ -2,10 +2,143 @@
 
 {% block title %} AgroRecomendador {% endblock %}
 
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
 {% block content %}
 
 <br>
 <br>
+<style>
+    .butn {
+        display: inline-block;
+        font-weight: 600;
+        color: #525f7f;
+        text-align: center;
+        vertical-align: middle;
+        -webkit-user-select: none;
+                user-select: none;
+        background-color: transparent;
+        border: 1px solid transparent;
+        padding: 11px 40px;
+        font-size: 0.875rem;
+        line-height: 1.35em;
+        border-radius: 0.25rem;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .butn {
+            transition: none; } }
+        .butn:hover {
+          color: #525f7f;
+          text-decoration: none; }
+        .butn:focus, .butn.focus {
+          outline: 0;
+          box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08); }
+        .butn.disabled, .butn:disabled {
+          opacity: 0.65;
+          box-shadow: none; }
+        .butn:not(:disabled):not(.disabled):active, .butn:not(:disabled):not(.disabled).active {
+          box-shadow: none; }
+          .butn:not(:disabled):not(.disabled):active:focus, .butn:not(:disabled):not(.disabled).active:focus {
+            box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08); }
+
+    .btn-riego {
+        color: #ffffff;
+        background-color: #00b5e2 !important;
+        border-color: #00b5e2;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .btn-riego:hover {
+            color: #ffffff;
+            background-color: #00cca4;
+            border-color: #00bf9a; }
+        .btn-riego:focus, .btn-riego.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 0 rgba(38, 244, 204, 0.5); }
+        .btn-riego.disabled, .btn-riego:disabled {
+            color: #ffffff;
+            background-color: #00b5e2;
+            border-color: #00b5e2; }
+        .btn-riego:not(:disabled):not(.disabled):active, .btn-riego:not(:disabled):not(.disabled).active,
+        .show > .btn-riego.dropdown-toggle {
+            color: #ffffff;
+            background-color: #00bf9a;
+            border-color: #00b290; }
+            .btn-riego:not(:disabled):not(.disabled):active:focus, .btn-riego:not(:disabled):not(.disabled).active:focus,
+            .show > .btn-riego.dropdown-toggle:focus {
+            box-shadow: 0 0 0 0 rgba(38, 244, 204, 0.5); }
+
+    .btn-fertilizacion {
+        color: #ffffff;
+        background-color: #66ff66 !important;
+        border-color: #66ff66;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .btn-fertilizacion:hover {
+            color: #ffffff;
+            background-color: #00cca4;
+            border-color: #00bf9a; }
+        .btn-fertilizacion:focus, .btn-fertilizacion.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 0 rgba(38, 244, 204, 0.5); }
+        .btn-fertilizacion.disabled, .btn-fertilizacion:disabled {
+            color: #ffffff;
+            background-color: #66ff66;
+            border-color: #66ff66; }
+        .btn-fertilizacion:not(:disabled):not(.disabled):active, .btn-fertilizacion:not(:disabled):not(.disabled).active,
+        .show > .btn-fertilizacion.dropdown-toggle {
+            color: #ffffff;
+            background-color: #00bf9a;
+            border-color: #00b290; }
+            .btn-fertilizacion:not(:disabled):not(.disabled):active:focus, .btn-fertilizacion:not(:disabled):not(.disabled).active:focus,
+            .show > .btn-fertilizacion.dropdown-toggle:focus {
+            box-shadow: 0 0 0 0 rgba(38, 244, 204, 0.5); }
+            
+    .btn-fumigacion {
+        color: #ffffff;
+        background-color: #ffff33 !important;
+        border-color: #ffff33;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .btn-fumigacion:hover {
+          color: #ffffff;
+          background-color: #00cca4;
+          border-color: #00bf9a; }
+        .btn-fumigacion:focus, .btn-fumigacion.focus {
+          box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 0 rgba(38, 244, 204, 0.5); }
+        .btn-fumigacion.disabled, .btn-fumigacion:disabled {
+          color: #ffffff;
+          background-color: #ffff33;
+          border-color: #ffff33; }
+        .btn-fumigacion:not(:disabled):not(.disabled):active, .btn-fumigacion:not(:disabled):not(.disabled).active,
+        .show > .btn-fumigacion.dropdown-toggle {
+          color: #ffffff;
+          background-color: #00bf9a;
+          border-color: #00b290; }
+          .btn-fumigacion:not(:disabled):not(.disabled):active:focus, .btn-fumigacion:not(:disabled):not(.disabled).active:focus,
+          .show > .btn-fumigacion.dropdown-toggle:focus {
+            box-shadow: 0 0 0 0 rgba(38, 244, 204, 0.5); }
+        
+    .btn-cosecha {
+        color: #ffffff;
+        background-color: #ff3333 !important;
+        border-color: #ff3333;
+        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08); }
+        .btn-cosecha:hover {
+            color: #ffffff;
+            background-color: #00cca4;
+            border-color: #00bf9a; }
+        .btn-cosecha:focus, .btn-cosecha.focus {
+            box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11), 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 0 rgba(38, 244, 204, 0.5); }
+        .btn-cosecha.disabled, .btn-cosecha:disabled {
+            color: #ffffff;
+            background-color: #ff3333;
+            border-color: #ff3333; }
+        .btn-cosecha:not(:disabled):not(.disabled):active, .btn-cosecha:not(:disabled):not(.disabled).active,
+        .show > .btn-cosecha.dropdown-toggle {
+            color: #ffffff;
+            background-color: #00bf9a;
+            border-color: #00b290; }
+            .btn-cosecha:not(:disabled):not(.disabled):active:focus, .btn-cosecha:not(:disabled):not(.disabled).active:focus,
+            .show > .btn-cosecha.dropdown-toggle:focus {
+            box-shadow: 0 0 0 0 rgba(38, 244, 204, 0.5); }
+</style>
 <div class="content">
     <div class="row"></div>
     {# <h1>Hello {{ firstname }}</h1> #}
@@ -18,137 +151,405 @@
     {% endfor %}
 
     <div class="row">
-        <p>
-            <a href="javascript:;" onclick="frmNuevo();" data-toggle="tooltip" title="Crear Finca" class="btn btn-inverse btn-icon btn-circle" data-original-title="Crear Finca"><i class="tim-icons icon-simple-add"></i></a>
-            <a href="javascript:;" onclick="getConsultaFincas();" data-toggle="tooltip" title="Consultar Finca" class="btn btn-inverse btn-icon btn-circle" data-original-title="Consultar Finca"><i class="tim-icons icon-single-copy-04"></i></a>
-            <a href="javascript:;" onclick="frmNuevoCultivo();" data-toggle="tooltip" title="Crear Cultivo" class="btn btn-inverse btn-icon btn-circle" data-original-title="Crear Cultivo"><i class="tim-icons icon-simple-add"></i></a>
-            <a href="javascript:;" onclick="getConsultaCultivos();" data-toggle="tooltip" title="Consultar Cultivo" class="btn btn-inverse btn-icon btn-circle" data-original-title="Consultar Cultivo"><i class="tim-icons icon-single-copy-04"></i></a>
-            <a href="javascript:;" onclick="frmNuevoRiego();" data-toggle="tooltip" title="Crear Riego" class="btn btn-inverse btn-icon btn-circle" data-original-title="Crear Riego"><i class="tim-icons icon-simple-add"></i></a>
-            <a href="javascript:;" onclick="getConsultaRiegos();" data-toggle="tooltip" title="Consultar Riego" class="btn btn-inverse btn-icon btn-circle" data-original-title="Consultar Riego"><i class="tim-icons icon-single-copy-04"></i></a>
-            <a href="javascript:;" onclick="frmNuevoFertilizacion();" data-toggle="tooltip" title="Crear Fertilizacion" class="btn btn-inverse btn-icon btn-circle" data-original-title="Crear Fertilizacion"><i class="tim-icons icon-simple-add"></i></a>
-            <a href="javascript:;" onclick="getConsultaFertilizacions();" data-toggle="tooltip" title="Consultar Fertilizacion" class="btn btn-inverse btn-icon btn-circle" data-original-title="Consultar Fertilizacion"><i class="tim-icons icon-single-copy-04"></i></a>
-        </p>
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                    <p class="card-text"></p>
+                    <button class="btn btn-success btn-block" onclick="$('#divRecomendacion').show();$('#divConfiguracion').hide();getFincasOpt('formPrincipal #id_finca');">Panel de recomendaciones</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"></h5>
+                    <p class="card-text"></p>
+                    <button class="btn btn-success btn-block" onclick="$('#divRecomendacion').hide();$('#divConfiguracion').show();">Crear finca, cultivo y labores en campo</button>
+                </div>
+            </div>
+        </div>
     </div>
-    <form id="formPrincipal">
-
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="mb-4">
-                    <div class="form-group">
-                        <label>Seleccione Fincas</label>
-                        {{ form.fincas}}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </form>
     <br>
-    <div id="divTables">
-        <div class="row" id="divFincaTable">
-            <div class="col-md-12">
-                <div class="card ">
-                    <div class="card-header">
-                        <h4 class="card-title" id="titleFincaTable">Fincas</h4>
+    <div class="windows8" style="display: none;">
+        <div class="wBall" id="wBall_1">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_2">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_3">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_4">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_5">
+            <div class="wInnerBall"></div>
+        </div>
+    </div>
+    <br>
+    <div id="divRecomendacion" style="display:none">
+        <form id="formPrincipal">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label>Seleccione Finca</label>
+                            {{ form.fincas}}
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table tablesorter " id="fincaTable">
-                                <thead class="text-primary">
-                                    <tr>
-                                        <th>NOMBRE</th>
-                                        <th>AREA</th>
-                                        <th>DIRECCION</th>
-                                        <th>LINK MAPS</th>
-                                        <th>EDITAR</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+                </div>
+                <div class="col-lg-6">
+                    <div class="mb-4">
+                        <div class="form-group">
+                            <label>Seleccione Cultivo</label>
+                            <select id="id_cultivo" name="id_cultivo" class="form-control selectpicker" data-live-search="true" data-style="btn-success">
+                                <option selected disabled value="0">Seleccione</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <br>
+        <div id="divPaneles">
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="places-buttons">
+                    <div class="row">
+                      <div class="col-lg-12 ml-auto mr-auto">
+                        <div class="row">
+                          <div class="col-md-6">
+                            <button class="butn btn-block btn-riego" onclick="panelRiego();">Panel de recomendaciones riego</button>
+                          </div>
+                          <div class="col-md-6">
+                            <button class="butn btn-block btn-fertilizacion" onclick="panelFertilizacion();">Panel de recomendaciones fertilización</button>
+                          </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                          <div class="col-md-6">
+                            <button class="butn btn-block btn-fumigacion" onclick="panelFumigacion();">Panel de recomendaciones fumigación</button>
+                          </div>
+                          <div class="col-md-6">
+                            <button class="butn btn-block btn-cosecha" onclick="panelCosecha();">Panel de recomendaciones cosecha</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+        </div>
+        <br>
+        <div id="divFormPanel" style="display:none">
+            <div id="divFertilizacionPanel" style="display: none;">
+                <div class="col-lg-12 col-sm-12 text-center" id="div2">
+                    <div class="card  card-tasks text-left">
+                        <div class="card-header text-left">
+                            <h6 class="title d-inline">Fertilizacion</h6>
+                        </div>
+                        <div class="card-body ">
+                            <form id="formFertilizacion">
+                                {% csrf_token %}
+                                <div class="table-full-width table-responsive">
+                                    <table class="table">
+                                        <tbody>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese parámetros de cultivo </p>
+                                                    <p class="text-muted">Densidad aparente (g/cm3)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor g/cm3" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese parámetros de cultivo</p>
+                                                    <p class="text-muted">Profunidad de Raíces (cm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor cm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(M.O.) Materia Organica (%)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor %" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(P) Fósforo (ppm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor ppm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(K) Potasio (cmol(+).kg)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor cmol(+).kg" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(S) Azufre (ppm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor ppm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(Ca) Calcio (cmol(+).kg)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor cmol(+).kg" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(Mg) Magnesio (cmol(+).kg)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor cmol(+).kg" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(Fe) Hierro (ppm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor ppm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(Zn) Zinc (ppm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor ppm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(Cu) Cobre (ppm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor ppm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Ingrese resultados de su análisis de suelo</p>
+                                                    <p class="text-muted">(B) Boro (ppm)</p>
+                                                </td>
+                                                <td>
+                                                    <input class="form-control" id="txtInputB12" placeholder="Ingrese Valor ppm" type"number" onkeyup="hdValueText('B12')">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="text-left">
+                                                    <p class="title">Seleccione la cantidad fertilizantes que desea usar</p>
+                                                </td>
+                                                <td>
+                                                    <select id="fert1" name="fert1" class="form-control selectpicker" data-live-search="true" data-style="btn-success" required data-parsley-validate="true">
+                                                        <option value="" disabled selected>Seleccione</option>
+                                                        <option>NITRASAM</option>
+                                                        <option>FOSFATO DIAMÓNICO (DAP) [(NH4)2HPO4]</option>
+                                                        <option>TRIPLE 18 (18-18-18)</option>
+                                                        <option>CAFETERO (17-6-18-2)</option>
+                                                        <option>TRIPLE 15 (15-15-15)</option>
+                                                        <option>NITRATO DE POTASIO [KNO3]</option>
+                                                        <option>FOSFATO MONOAMÓNICO (MAP) [NH4H2PO4]</option>
+                                                        <option>10-30-10</option>
+                                                        <option>10-20-20</option>
+                                                        <option>18-3-16-7</option>
+                                                        <option>MAP</option>
+                                                        <option>FOSFITO DE POTASIO</option>
+                                                        <option>COSMO ION BORO</option>
+                                                    </select>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="row" id="divCultivoTable">
-            <div class="col-md-12">
-                <div class="card ">
-                    <div class="card-header">
-                        <h4 class="card-title" id="titleCultivoTable">Cultivos</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table tablesorter " id="cultivoTable">
-                                <thead class="text-primary">
-                                    <tr>
-                                        <th>FINCA</th>
-                                        <th>NOMBRE CULTIVO</th>
-                                        <th>AREA</th>
-                                        <th>EDAD</th>
-                                        <th>FECHA CULTIVO</th>
-                                        <th>CANTIDAD</th>
-                                        <th>TIPO DE RIEGO</th>
-                                        <th>EDITAR</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+        <br>
+        <div id="divResult" style="display:none">
+        </div>
+        <br>
+        <div id="divGrafica" style="display:none">
+        </div>
+    </div>
+    <div id="divConfiguracion" style="display:none">
+        <div class="row">
+            <p>
+                <a href="javascript:;" onclick="frmNuevo();" data-toggle="tooltip" title="Crear Finca" class="btn btn-inverse btn-circle" data-original-title="Crear Finca">Crear Finca</a>
+                <a href="javascript:;" onclick="getConsultaFincas();" data-toggle="tooltip" title="Consultar Finca" class="btn btn-inverse btn-circle" data-original-title="Consultar Finca">Consultar Finca</a>
+                <a href="javascript:;" onclick="frmNuevoFincaEstacion();" data-toggle="tooltip" title="Crear Finca - Estacion" class="btn btn-inverse btn-circle" data-original-title="Crear Finca - Estacion">Crear Finca - Estacion</a>
+                <a href="javascript:;" onclick="getConsultaFincaEstacion();" data-toggle="tooltip" title="Consultar Finca - Estacion" class="btn btn-inverse btn-circle" data-original-title="Consultar Finca - Estacion">Consultar Finca - Estacion</a>
+            </p>
+        </div>
+        <br>
+        <div id="divTables">
+            <div class="row" id="divFincaEstacionTable" style="display:none">
+                <div class="col-md-12">
+                    <div class="card ">
+                        <div class="card-header">
+                            <h4 class="card-title" id="titleFincaEstacionTable">Fincas por Estacion</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table tablesorter " id="fincaEstacionTable">
+                                    <thead class="text-primary">
+                                        <tr>
+                                            <th>ESTACION</th>
+                                            <th>FINCA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row" id="divRiegoTable">
-            <div class="col-md-12">
-                <div class="card ">
-                    <div class="card-header">
-                        <h4 class="card-title" id="titleRiegoTable">Riegos</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table tablesorter " id="riegoTable">
-                                <thead class="text-primary">
-                                    <tr>
-                                        <th>FINCA</th>
-                                        <th>CULTIVO</th>
-                                        <th>FECHA INICIO</th>
-                                        <th>FECHA FIN</th>
-                                        <th>CANTIDAD</th>
-                                        <th>DURACION</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+            <div class="row" id="divFincaTable" style="display:none">
+                <div class="col-md-12">
+                    <div class="card ">
+                        <div class="card-header">
+                            <h4 class="card-title" id="titleFincaTable">Fincas</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table tablesorter " id="fincaTable">
+                                    <thead class="text-primary">
+                                        <tr>
+                                            <th>NOMBRE</th>
+                                            <th>AREA</th>
+                                            <th>DIRECCION</th>
+                                            <th>LINK MAPS</th>
+                                            <th>CULTIVOS</th>
+                                            <th>EDITAR</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="row" id="divFertilizacionTable">
-            <div class="col-md-12">
-                <div class="card ">
-                    <div class="card-header">
-                        <h4 class="card-title" id="titleFertilizacionTable">Fertilizacion</h4>
+            <div class="row" id="divCultivoTable" style="display:none">
+                <div class="col-md-12">
+                    <div class="card ">
+                        <div class="card-header">
+                            <h4 class="card-title" id="titleCultivoTable">Cultivos</h4>
+                            <a href="javascript:;" onclick="frmNuevoCultivo();" data-toggle="tooltip" title="Crear Cultivo" class="btn btn-inverse btn-circle" data-original-title="Crear Cultivo">Crear Cultivo</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table tablesorter " id="cultivoTable">
+                                    <thead class="text-primary">
+                                        <tr>
+                                            <th>FINCA</th>
+                                            <th>NOMBRE CULTIVO</th>
+                                            <th>AREA</th>
+                                            <th>EDAD</th>
+                                            <th>FECHA CULTIVO</th>
+                                            <th>CANTIDAD</th>
+                                            <th>TIPO DE RIEGO</th>
+                                            <th>RIEGOS</th>
+                                            <th>FERTILIZACION</th>
+                                            <th>EDITAR</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table tablesorter " id="fertilizacionTable">
-                                <thead class="text-primary">
-                                    <tr>
-                                        <th>FINCA</th>
-                                        <th>CULTIVO</th>
-                                        <th>FECHA INICIO</th>
-                                        <th>FECHA FIN</th>
-                                        <th>PRODUCTO</th>
-                                        <th>DOSIS</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
+                </div>
+            </div>
+            <div class="row" id="divRiegoTable" style="display:none">
+                <div class="col-md-12">
+                    <div class="card ">
+                        <div class="card-header">
+                            <h4 class="card-title" id="titleRiegoTable">Riegos</h4>
+                            <a href="javascript:;" onclick="frmNuevoRiego();" data-toggle="tooltip" title="Crear Riego" class="btn btn-inverse btn-circle" data-original-title="Crear Riego">Crear Riego</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table tablesorter " id="riegoTable">
+                                    <thead class="text-primary">
+                                        <tr>
+                                            <th>FINCA</th>
+                                            <th>CULTIVO</th>
+                                            <th>FECHA INICIO</th>
+                                            <th>FECHA FIN</th>
+                                            <th>CANTIDAD</th>
+                                            <th>DURACION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="divFertilizacionTable" style="display:none">
+                <div class="col-md-12">
+                    <div class="card ">
+                        <div class="card-header">
+                            <h4 class="card-title" id="titleFertilizacionTable">Fertilizacion</h4>
+                            <a href="javascript:;" onclick="frmNuevoFertilizacion();" data-toggle="tooltip" title="Crear Fertilizacion" class="btn btn-inverse btn-circle" data-original-title="Crear Fertilizacion">Crear Fertilizacion</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table tablesorter " id="fertilizacionTable">
+                                    <thead class="text-primary">
+                                        <tr>
+                                            <th>FINCA</th>
+                                            <th>CULTIVO</th>
+                                            <th>FECHA INICIO</th>
+                                            <th>FECHA FIN</th>
+                                            <th>PRODUCTO</th>
+                                            <th>DOSIS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -230,14 +631,6 @@
                 <div class="modal-body">
                         <div class="row">
                             <div class="col-lg-6">
-                                <div class="mb-4">                                
-                                    <div class="form-group">
-                                        <label>Seleccione Fincas</label>
-                                        {{ form.fincas}}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
                                 <div class="mb-4">
                                     <div class="form-group">
                                         <label>Nombre Cultivo/Variedad</label>
@@ -260,7 +653,7 @@
                                     <div class="form-group">
                                         <label>Edad (Meses)</label>
                                         <div class="input-group date edadCultivo">
-                                            <input id="edadCultivo" name="edadCultivo"  type="text" class="form-control"  required data-parsley-validate="true" data-style="btn-success"><span class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></span>>
+                                            <input id="edadCultivo" name="edadCultivo" type="number" class="form-control"  required data-parsley-validate="true">
                                         </div>
                                     </div>
                                 </div>
@@ -270,7 +663,7 @@
                             <div class="col-lg-6">
                                 <div class="mb-4">
                                     <div class="form-group">
-                                        <label>Fecha cultivo</label>
+                                        <label>Fecha de siembra del cultivo</label>
                                         <div class="input-group date fechaCultivo">
                                             <input id="fechaCultivo" name="fechaCultivo"  type="text" class="form-control"  required data-parsley-validate="true" data-style="btn-success"><span class="input-group-addon"><i class="tim-icons icon-calendar-60"></i></span>>
                                         </div>
@@ -305,7 +698,7 @@
                                 <div class="mb-4">
                                     <div class="form-group">
                                         <label>Otro:</label>
-                                        <input id="otroRiegoCultivo" name="otroRiegoCultivo" class="form-control"  required data-parsley-validate="true">
+                                        <input id="otroRiegoCultivo" name="otroRiegoCultivo" class="form-control" >
                                     </div>
                                 </div>
                             </div>
@@ -333,26 +726,6 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="mb-4">                                
-                                    <div class="form-group">
-                                        <label>Seleccione Fincas</label>
-                                        {{ form.fincas}}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="mb-4">
-                                    <div class="form-group">
-                                        <label>Seleccione Cultivo</label>
-                                        <select id="cultivo_id" name="cultivo_id" class="form-control selectpicker" data-live-search="true" data-style="btn-success" onchange="tipoRiego(this.value);"  required data-parsley-validate="true">
-                                            <option value="" disabled selected>Seleccione</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="mb-4">
@@ -387,7 +760,7 @@
                             <div class="col-lg-6">
                                 <div class="mb-4">
                                     <div class="form-group">
-                                        <label>Duracion:</label>
+                                        <label>Duracion (horas de riego):</label>
                                         <input id="duracionRiego" name="duracionRiego" class="form-control"  required data-parsley-validate="true">
                                     </div>
                                 </div>
@@ -416,26 +789,6 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="mb-4">                                
-                                    <div class="form-group">
-                                        <label>Seleccione Fincas</label>
-                                        {{ form.fincas}}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="mb-4">
-                                    <div class="form-group">
-                                        <label>Seleccione Cultivo</label>
-                                        <select id="cultivo_id" name="cultivo_id" class="form-control selectpicker" data-live-search="true" data-style="btn-success" required data-parsley-validate="true">
-                                            <option value="" disabled selected>Seleccione</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="mb-4">
@@ -470,7 +823,7 @@
                             <div class="col-lg-6">
                                 <div class="mb-4">
                                     <div class="form-group">
-                                        <label>Dosis:</label>
+                                        <label>Dosis (gramos/planta):</label>
                                         <input id="dosisFertilizacion" name="dosisFertilizacion" class="form-control"  required data-parsley-validate="true">
                                     </div>
                                 </div>
@@ -487,13 +840,76 @@
     </div>
 </div>
 
+<!-- MODAL FINCA_ESTACION -->
+<div class="modal fade in" id="fincaEstacionModal" tabindex="-1" role="dialog" aria-labelledby="fincaEstacionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <form id="frmFincaEstacion" data-parsley-validate="true" onsubmit="return false;">
+                <div class="modal-header">
+                    <h5 class="card-title" id="fincaEstacionModalLabel">Crear Finca - Estacion</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">                                
+                                <div class="form-group">
+                                    <label>Seleccione Finca</label>
+                                    <select id="finca_opt" name="finca_opt" class="form-control selectpicker" data-live-search="true" data-style="btn-success" required data-parsley-validate="true">
+                                        <option value="" disabled selected>Seleccione</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Seleccione Plataforma IoT</label>
+                                    {{ form.platafromas}}
+                                </div>
+                            </div>
+                        </div>
+                        <div id="divRed" class="col-lg-6" style="display:none">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Seleccione Red</label>
+                                    <select id="id_red" name="id_red" class="form-control selectpicker" data-live-search="true" data-style="btn-success" required data-parsley-validate="false">
+                                        <option selected disabled value="0">Seleccione</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Seleccione Estacion</label>
+                                    <select id="id_dispositivo" name="id_dispositivo" class="form-control selectpicker" data-live-search="true" data-style="btn-success" required data-parsley-validate="true">
+                                        <option value="" disabled selected>Seleccione</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                    <button id="btnCrearFincaEstacion" type="submit" class="btn btn-success">Crear</button>
+                    <button id="btnModificarFincaEstacion" type="submit" class="btn btn-success">Modificar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block javascripts %}
 
-<script>
+<script> 
     var idPlataforma, idEstacion = '';
     var accion = 1;
+    var estacionId, fincaId, cultivoId;
 
     function frmNuevo() {
         accion = 2;
@@ -506,6 +922,7 @@
     function frmNuevoCultivo() {
         accion = 4;
         $('#cultivoModalLabel').text('Crear Cultivo');
+        getFincasOpt("frmCultivo #id_finca");
         $('#btnCreaCultivor').show();
         $('#btnModificarCultivo').hide();
         tipoRiego("");
@@ -515,6 +932,7 @@
     function frmNuevoRiego() {
         accion = 6;
         $('#riegoModalLabel').text('Crear Riego');
+        getFincasOpt("frmRiego #id_finca");
         $('#btnCrearRiego').show();
         $('#btnModificarRiego').hide();
         $('#riegoModal').modal('show');
@@ -523,6 +941,7 @@
     function frmNuevoFertilizacion() {
         accion = 8;
         $('#fertilizacionModalLabel').text('Crear Fertilizacion');
+        getFincasOpt("frmFertilizacion #id_finca");
         $('#btnCrearFertilizacion').show();
         $('#btnModificarFertilizacion').hide();
         $('#fertilizacionModal').modal('show');
@@ -607,8 +1026,8 @@
         });
     }
 
-    function getConsultaCultivos() {
-
+    function getConsultaCultivos(id) {
+        fincaId = id;
         $('#divTables').show();
         $("#divCultivoTable").hide();
 
@@ -616,7 +1035,8 @@
             type: "POST",
             url: "{% url 'get-cultivos-consulta' %}",
             data: {
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'fincaId': fincaId
             },
             success: function(data) {
                 $("#divCultivoTable").show();
@@ -668,7 +1088,8 @@
             url: "{% url 'set-cultivo' %}",
             data: {
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'frm': JSON.stringify(general.obtenerFrm("frmCultivo"))
+                'frm': JSON.stringify(general.obtenerFrm("frmCultivo")),
+                'fincaId': fincaId
             },
             success: function(data) {
                 $('#casosModal').modal('hide');
@@ -679,8 +1100,8 @@
         });
     }
 
-    function getConsultaRiegos() {
-
+    function getConsultaRiegos(id) {
+        cultivoId = id;
         $('#divTables').show();
         $("#divRiegoTable").hide();
 
@@ -688,7 +1109,8 @@
             type: "POST",
             url: "{% url 'get-riegos-consulta' %}",
             data: {
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'cultivoId': cultivoId
             },
             success: function(data) {
                 $("#divRiegoTable").show();
@@ -740,7 +1162,8 @@
             url: "{% url 'set-riego' %}",
             data: {
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'frm': JSON.stringify(general.obtenerFrm("frmRiego"))
+                'frm': JSON.stringify(general.obtenerFrm("frmRiego")),
+                'cultivoId': cultivoId
             },
             success: function(data) {
                 $('#casosModal').modal('hide');
@@ -751,8 +1174,8 @@
         });
     }
 
-    function getConsultaFertilizacions() {
-
+    function getConsultaFertilizacions(id) {
+        cultivoId = id;
         $('#divTables').show();
         $("#divFertilizacionTable").hide();
 
@@ -760,7 +1183,8 @@
             type: "POST",
             url: "{% url 'get-fertilizacions-consulta' %}",
             data: {
-                'csrfmiddlewaretoken': '{{ csrf_token }}'
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'cultivoId': cultivoId
             },
             success: function(data) {
                 $("#divFertilizacionTable").show();
@@ -812,7 +1236,8 @@
             url: "{% url 'set-fertilizacion' %}",
             data: {
                 'csrfmiddlewaretoken': '{{ csrf_token }}',
-                'frm': JSON.stringify(general.obtenerFrm("frmFertilizacion"))
+                'frm': JSON.stringify(general.obtenerFrm("frmFertilizacion")),
+                'cultivoId': cultivoId
             },
             success: function(data) {
                 $('#casosModal').modal('hide');
@@ -822,19 +1247,252 @@
             }
         });
     }
+
+    function frmNuevoFincaEstacion() {
+        accion = 10;
+        $('#fincaEstacionModalLabel').text('Crear Finca - Estacion');
+        $('#btnCrearFincaEstacion').show();
+        $('#btnModificarFincaEstacion').hide();
+        getFincasOpt("frmFincaEstacion #finca_opt");
+        $('#fincaEstacionModal').modal('show');
+    }
+
+    function getFincasOpt(div) {
+        var fincaId = $("#" + div).val();
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-fincas' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+                let html_data = '<option selected disabled value="0">Seleccione</option>';
+                data.datos.forEach(function(data) {
+                    html_data += `<option value="${data[0]}">${data[1]}</option>`
+                });
+                $("#" + div).html(html_data);
+                $("#" + div).selectpicker("refresh");
+            }
+        });
+
+    }
+
+    function crearFincaEstacion() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-finca-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'frm': JSON.stringify(general.obtenerFrm("frmFincaEstacion"))
+            },
+            success: function(data) {
+                $('#fincaEstacionModal').modal('hide');
+                general.showNotificationOwn('top', 'right', 'success', 'Estacion en Finca Registrada', 'ATENCION');
+            }
+        });
+    }
+
+    function getConsultaFincaEstacion() {
+        $('#divTables').show();
+        $("#divFincaEstacionTable").hide();
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-consulta-finca-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+                $("#divFincaEstacionTable").show();
+
+                if (data.datos.length < 1) {
+                    $('#divFincaEstacionTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#fincaEstacionTable')) {
+                        var myTable = $('#fincaEstacionTable').DataTable().clear().rows.add(data.datos).draw();
+
+                    } else {
+                        var myTable = $('#fincaEstacionTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.datos).draw();
+                    }
+                    $('#divFincaEstacionTable').show();
+                }
+            }
+        })
+    }
+
+    function panelRiego() {
+        $("#divFormPanel").html("");
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-variable-riego' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'frm': JSON.stringify(general.obtenerFrm("formPrincipal"))
+            },
+            success: function(data) {
+                html = '';
+                if (data.volAgua == 1) {
+                    html = '<div class="row">' +
+                        '<div class="col-lg-4">' +
+                        '<div class="mb-4">' +
+                        '<div class="form-group">' +
+                        '<label>Ingrese PMP (Punto de Marchitez Permanente)</label>' +
+                        '<input id="pmpVolAgua" name="pmpVolAgua" type="number" value="10" min="0" class="form-control" data-style="btn-success">' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="col-lg-4">' +
+                        '<div class="mb-4">' +
+                        '<div class="form-group">' +
+                        '<label>Ingrese CC</label>' +
+                        '<input id="ccVolAgua" name="ccVolAgua" type="number" value="40" min="0" class="form-control" data-style="btn-success">' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+                } else if(data.humedadSuelo == 1) {
+                    html = '<div class="row">' +
+                        '<div class="col-lg-4">' +
+                        '<div class="mb-4">' +
+                        '<div class="form-group">' +
+                        '<label>Ingrese PMP (Punto de Marchitez Permanente)</label>' +
+                        '<input id="pmpVolAgua" name="pmpVolAgua" type="number" value="-10" max="0" class="form-control" data-style="btn-success">' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="col-lg-4">' +
+                        '<div class="mb-4">' +
+                        '<div class="form-group">' +
+                        '<label>Ingrese CC</label>' +
+                        '<input id="ccVolAgua" name="ccVolAgua" type="number" value="-40" max="0" class="form-control" data-style="btn-success">' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+                        '</div>';
+
+                }
+               
+                if (html != '') {
+                    html += '<div class="row justify-content-md-center"><div class="col-lg-4"><input type="button" onClick="generarRecomendacionesRiego();" value="Generar" class="form-control btn btn-success" id="form_btn"><name="form_btn"></div></div>';
+                }
+                $("#divFormPanel").html(html);
+                $("#divFormPanel").show();
+            }
+        });
+    }
+
+    function panelFertilizacion() {
+        $("#divFormPanel").html("");
+        html = ''
+
+    }
+
+    function generarRecomendacionesRiego() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'generar-recomendacion-riego' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'frm': JSON.stringify(general.obtenerFrm("formPrincipal")),
+                'pmpVolAgua': $("#pmpVolAgua").val(),
+                'ccVolAgua': $("#ccVolAgua").val()
+            },
+            success: function(data) {
+                $('#divGrafica').html('');
+                msj = '';
+
+                var i = 1;
+                data.data.forEach(grafica => {
+                    if (data.promedioVolAgua > 0) {
+                        txt = ((data.promedioVolAgua - $("#pmpVolAgua").val()) < 6) ? ', Si se recomienda Regar' : ', NO se recomienda Regar';
+                        msj = '<li>El promedio de Volumen de Agua es ' + data.promedioVolAgua + '. El resultado es ' + (data.promedioVolAgua - $("#pmpVolAgua").val()) + txt + '</li>';
+                        if (data.data != 0) {
+                            html = '<div class="graficas">' +
+                                '<div class="row">' +
+                                '<div class="col-12">' +
+                                '<div class="card card-chart">' +
+                                '<div class="card-body">' +
+                                '<div id="chart-grafica' + i + '" class="highcharts-background">' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>';
+                            $('#divGrafica').append(html);
+                            $('#divGrafica').show();
+                            general.initMultipleAxesHighCharts('chart-grafica' + i, grafica.vertical, grafica.horizontal, grafica.medidas, grafica.sensores, ('GRAFICO DE HUMEDAD DE SUELO ' + grafica.nombre), null, grafica.tipo, grafica.plotBand);
+    
+                        }
+                    }
+                    if (data.promedioHumedadSuelo > 0) {
+                        txt = ((data.promedioHumedadSuelo - $("#pmpVolAgua").val()) < 10) ? ', Si se recomienda Regar' : ', NO se recomienda Regar';
+                        msj += '<li>El promedio de Humedad de Suelo es ' + data.promedioHumedadSuelo + '. El resultado es ' + (data.promedioHumedadSuelo - $("#pmpVolAgua").val()) + txt + '</li>';
+                        if (data.data != 0) {
+                            html = '<div class="graficas">' +
+                                '<div class="row">' +
+                                '<div class="col-12">' +
+                                '<div class="card card-chart">' +
+                                '<div class="card-body">' +
+                                '<div id="chart-grafica' + i + '" class="highcharts-background">' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>' +
+                                '</div>';
+                            $('#divGrafica').append(html);
+                            $('#divGrafica').show();
+                            general.initMultipleAxesHighCharts('chart-grafica' + i, grafica.vertical, grafica.horizontal, grafica.medidas, grafica.sensores, ('GRAFICO DE HUMEDAD DE SUELO ' + grafica.nombre), null, grafica.tipo, grafica.plotBand);
+                        }
+                    }
+                    i = i + 1;
+                });
+                if (msj != '') {
+                    $("#divResult").html('<ul><h3>' + msj + '</h3></ul>');
+                    $('#divResult').show();
+                    general.showNotificationOwn('top', 'center', 'success', msj, 'ATENCION');
+                } else {
+                    $('#divResult').hide();
+                    general.showNotificationOwn('top', 'center', 'warning', 'No Aplicable', 'ATENCION');
+                }
+                
+            }
+        });
+    }
     
     $(document).ready(function() {
         $('#divTables').hide();
         $('#divFincaTable').hide();
         $('#divCultivoTable').hide();
 
-
-        $(".input-group.date.edadCultivo").datepicker({
-            format: "mm-yyyy",
-            startView: 1,
-            minViewMode: 1,
-            maxViewMode: 2
-        });
         $(".input-group.date.fechaCultivo").datepicker({
             format: "dd-mm-yyyy",
             startView: 0,
@@ -922,6 +1580,114 @@
             if (accion == 8) {
                 crearFertilizacion();
             }
+        });
+
+        $("#frmFincaEstacion #id_plataforma").change(function() {
+            var plataformaId = $(this).val();
+            $(".windows8").show();
+
+            if (plataformaId == 4) {
+                $("#divRed").show();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'get-red' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id': plataformaId
+                    },
+                    success: function(data) {
+                        $(".windows8").hide();
+                        console.log(data.datos);
+                        let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                        data.datos.forEach(function(data) {
+                            html_data += `<option value="${data[0]}">${data[1]}</option>`
+                        });
+                        $("#frmFincaEstacion #id_red").html(html_data);
+                        $("#frmFincaEstacion #id_red").selectpicker("refresh");
+                    }
+                });
+            } else {
+                $("#divRed").hide();
+                var fincaId = $('#frmFincaEstacion #finca_opt').val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'get-dispositivo-no-finca' %}",
+                    data: {
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                        'id': plataformaId,
+                        'id_finca': fincaId
+                    },
+                    success: function(data) {
+                        $(".windows8").hide();
+                        console.log(data.datos);
+                        let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                        data.datos.forEach(function(data) {
+                            html_data += `<option value="${data[0]}">${data[1]}</option>`
+                        });
+                        $("#frmFincaEstacion #id_dispositivo").html(html_data);
+                        $("#frmFincaEstacion #id_dispositivo").selectpicker("refresh");
+                    }
+                });
+            }
+
+        });
+
+        $("#frmFincaEstacion #id_red").change(function() {
+            var plataformaId = $('#frmFincaEstacion #id_plataforma').val();
+            var redId = $('#frmFincaEstacion #id_red').val();
+            var fincaId = $('#frmFincaEstacion #finca_opt').val();
+            $(".windows8").show();
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'get-dispositivo-no-finca' %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id': plataformaId,
+                    'id_red': redId,
+                    'id_finca': fincaId
+                },
+                success: function(data) {
+                    $(".windows8").hide();
+                    console.log(data.datos);
+                    let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                    data.datos.forEach(function(data) {
+                        html_data += `<option value="${data[0]}">${data[1]}</option>`
+                    });
+                    $("#frmFincaEstacion #id_dispositivo").html(html_data);
+                    $("#frmFincaEstacion #id_dispositivo").selectpicker("refresh");
+                }
+            });
+
+        });
+
+        $('#frmFincaEstacion').parsley().on('form:submit', function () {
+            if (accion == 10) {
+                crearFincaEstacion();
+            }
+        });
+
+        $("#formPrincipal #id_finca").change(function() {
+            var fincaId = $(this).val();
+
+            $.ajax({
+                type: "POST",
+                url: "{% url 'get-cultivo' %}",
+                data: {
+                    'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    'id': fincaId
+                },
+                success: function(data) {
+                    $('#divSensor').show();
+                    let html_data = '<option  selected disabled value="0">Seleccione</option>';
+                    data.datos.forEach(function(data) {
+                        html_data += `<option value="${data[0]}">${data[1]}</option>`
+                    });
+                    $("#formPrincipal #id_cultivo").html(html_data);
+                    $("#formPrincipal #id_cultivo").selectpicker("refresh");
+                }
+            });
+
         });
     });
 </script>

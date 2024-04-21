@@ -32,6 +32,20 @@ def getFincas():
 
     return fincas
 
+def getClientes():
+    clientes = [('0', 'Seleccione')]
+    where = ''
+    # if request.session['cliente_id'] != '6':
+    #     where = ' where f.cliente_id = ' + request.session['cliente_id']
+    result = execute_query(1,('SELECT c.cliente_id, c.nombre ' +
+                                    ' FROM clientes c ' +
+                                    where +
+                                    ' ORDER BY c.nombre '))
+    for row in result:
+        clientes.append((row[0], row[1]))
+
+    return clientes
+
 class PlataformasForm(forms.ModelForm):
     platafromas = forms.ChoiceField(
                     choices = getPlataformas(),
@@ -43,6 +57,12 @@ class PlataformasForm(forms.ModelForm):
                     choices = getFincas(),
                     required = False, label='Fincas',
                     widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'id_finca', 'name': 'id_finca', 'data-live-search': 'true', 'data-style': 'btn-success', 'required': ''}),
+                    )
+    
+    clientes = forms.ChoiceField(
+                    choices = getClientes(),
+                    required = False, label='Clientes',
+                    widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'id_cliente', 'name': 'id_cliente', 'data-live-search': 'true', 'data-style': 'btn-success', 'required': '', 'data-parsley-validate': 'true'}),
                     )
 
     class Meta:

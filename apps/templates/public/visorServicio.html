@@ -1,0 +1,295 @@
+{% extends "layouts/base-fullscreen.html" %}
+
+{% block title %} Visor de Servicio {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <form id="formData">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <br>
+        
+        <div class="row">
+            <div class="col-lg-1">
+            </div>
+            <div class="col-lg-5">
+                <img src="{{ ASSETS_ROOT }}/img/vitisualiti_vitilab.png" class="img-fluid" height="400" width="400">
+            </div>
+            <div class="col-lg-3">
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Cliente:</label>
+                        <h2 class="col-lg-4 text-center" id="txtCliente"></h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+                <div class="mb-3">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Grupo:</label>
+                        <h2 class="col-lg-4 text-center" id="txtGrupo"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Cantidad casos atendidos:</label>
+                        <h3 class="col-lg-1 text-center" id="txtCantAtendidos"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Cantidad casos resueltos:</label>
+                        <h3 class="col-lg-1 text-center" id="txtCantResueltos"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Cantidad casos activos:</label>
+                        <h3 class="col-lg-1 text-center" id="txtCantActivos"></h3>
+                    </div>
+                </div>
+            </div>
+        </div>        
+        <div class="row">
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Mantenimientos ejecutados:</label>
+                        <h3 class="col-lg-1 text-center" id="txtCantMantenimientos"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Estaciones offline:</label>
+                        <h3 class="col-lg-1 text-center" id="txtCantOffline"></h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="mb-4">
+                    <div class="form-group">
+                        <label><i class='tim-icons icon-tablet-2'></i> Refacciones en stock:</label>
+                        <h3 class="col-lg-1 text-center" id="txtCantRefacciones"></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+    <br>
+    <div class="row col-lg-12">
+        <div class="table-responsive">
+            <table class="table tablesorter table-striped" id="estacionesTable">
+                <thead class="text-primary">
+                    <tr>
+                        <th>ESTACION</th>
+                        <th>CASOS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL Casos -->
+<div class="modal " id="casosModal" tabindex="-1" role="dialog" aria-labelledby="casosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h5 class="card-title">Casos Abiertos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table tablesorter " id="casosTable">
+                        <thead class="text-primary">
+                            <tr>
+                                <th>ID CASO</th>
+                                <th>FECHA CASO</th>
+                                <th>ASESOR</th>
+                                <th>ENCARGADO</th>
+                                <th>ESTACION</th>
+                                <th>ID ESTACION</th>
+                                <th>ID CASO INICIAL</th>
+                                <th>TIPO DE CASO</th>
+                                <th>SITUACION</th>
+                                <th class="text-center">
+                                    ESTADO
+                                </th>
+                                <th>ACCIONES</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script>
+    var data;
+    var ruta;
+    var signaturePad;
+
+    function datos() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-visor-servicio' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id': data['id'],
+                'grupo': data['grupo']
+            },
+            success: function(data) {
+                $('#txtCliente').html(data.datos[0]);
+                $('#txtGrupo').html(data.datos[7]);
+                $('#txtCantAtendidos').html(data.datos[1]);
+                $('#txtCantResueltos').html(data.datos[2]);
+                $('#txtCantActivos').html(data.datos[3]);
+                $('#txtCantMantenimientos').html(data.datos[4]);
+                $('#txtCantOffline').html(data.datos[5]);
+                $('#txtCantRefacciones').html(data.datos[6]);
+
+                if (data.estaciones.length < 1) {
+                    $('#estacionesTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#estacionesTable')) {
+                        var myTable = $('#estacionesTable').DataTable().clear().rows.add(data.estaciones).draw();
+
+                    } else {
+                        var myTable = $('#estacionesTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'  
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.estaciones).draw();
+                    }
+                    $('#estacionesTable').show();
+                }
+            }
+        });
+
+    }
+
+    function casosEstacion(plataformaId, estacionId) {
+
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-casos-abiertos-estacion' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'id_plataforma': plataformaId,
+                'id_estacion': estacionId
+            },
+            success: function(data) {
+                if (data.datos.length < 1) {
+                    $('#casosTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    $("#casosModal").modal('show');
+                    if ($.fn.dataTable.isDataTable('#casosTable')) {
+                        var myTable = $('#casosTable').DataTable().clear().rows.add(data.datos).draw();
+
+                    } else {
+                        var myTable = $('#casosTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.datos).draw();
+                    }
+                    $('#casosTable').show();
+                }
+            }
+        })
+    }
+    
+    $(document).ready(function() {
+        data = '{{ datos_token }}'
+        var tempElement = document.createElement('div');
+        tempElement.innerHTML = data;
+        var unescapedJsonString = tempElement.textContent || tempElement.innerText;
+        data = JSON.parse(unescapedJsonString);
+
+        datos();
+    });
+</script>
+{% endblock javascripts %}

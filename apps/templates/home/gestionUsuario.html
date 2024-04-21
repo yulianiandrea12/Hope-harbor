@@ -1,0 +1,168 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Usuarios {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+    .input-group-addon {
+        color: #00f2c3;
+        border-color: #00f2c3;
+        border: none
+    }
+
+    .input-group-addon:focus {
+        outline: 0 !important
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="content">
+    <form id="form">
+        {% csrf_token %}
+
+        {% for error in errors  %}
+        <div class="alert alert-danger mb-4" role="alert">
+            <strong>{{ error }}</strong>
+        </div>
+        {% endfor %}
+
+        <div class="row justify-content-md-center">
+            <div class="col-lg-4">
+                <!-- <input type="button" value="Cargar" class="form-control btn btn-success" id="form_btn"> -->
+            </div>
+        </div>
+    </form>
+    <br>
+    <div class="row col-lg-12">
+        <div class="table-responsive">
+            <table class="table tablesorter table-striped" id="usuarioTable">
+                <thead class="text-primary">
+                    <tr>
+                        <th>CLIENTE</th>
+                        <th>USUARIO</th>
+                        <th>PERFIL</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+
+<script>
+    var accion = 1;
+    var idCli = 0;
+    
+    function datos() {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-usuarios' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+
+                if (data.usuarios.length < 1) {
+                    $('#usuarioTable').hide();
+                    general.showNotificationOwn('top', 'right', 'success', 'Sin Informacion', 'ATENCION');
+                } else {
+                    if ($.fn.dataTable.isDataTable('#usuarioTable')) {
+                        var myTable = $('#usuarioTable').DataTable().clear().rows.add(data.usuarios).draw();
+
+                    } else {
+                        var myTable = $('#usuarioTable').DataTable({
+                            "language": {
+                                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Spanish.json"
+                            },
+                            "responsive": true,
+                            "dom": 'Bfrtip',
+                            "buttons": [{
+                                    "extend": 'copyHtml5',
+                                    "text": "<i class='tim-icons icon-single-copy-04'></i> Copiar",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'excelHtml5',
+                                    "text": "<i class='tim-icons icon-cloud-download-93'></i> Excel",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'
+                                    }
+                                },
+                                {
+                                    "extend": 'pdfHtml5',
+                                    "text": "<i class='tim-icons icon-book-bookmark'></i> PDF",
+                                    "exportOptions": {
+                                        "orthogonal": 'export'  
+                                    }
+                                }
+                            ]
+                        }).clear().rows.add(data.usuarios).draw();
+                    }
+                    $('#usuarioTable').show();
+                }
+            }
+        });
+
+    }
+
+    function perfil(usuario) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'get-perfil' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+                perfiles = [{text: 'Seleccione', value: ''}]
+                data.datos.forEach(function(perfil) {
+                    perfiles.push({text: perfil[1], value: perfil[0]})
+                });
+
+                bootbox.prompt({
+                    title: 'This is a prompt with select!',
+                    inputType: 'select',
+                    inputOptions: perfiles,
+                    callback: function (result) {
+                        setPerfilUsuario(usuario, result)
+                    }
+                });
+            }
+        });
+
+    }
+
+    function setPerfilUsuario(usuario, perfil) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'set-perfil-usuario' %}",
+            data: {
+                'csrfmiddlewaretoken': '{{ csrf_token }}',
+                'usuario': usuario,
+                'perfil': perfil
+            },
+            success: function(data) {
+                general.showNotificationOwn('top', 'center', 'success', 'Atención', 'Perfil Modificado');
+                datos();
+            }
+        });
+
+    }
+    
+    $(document).ready(function() {
+        datos();
+    });
+</script>
+
+{% endblock javascripts %}

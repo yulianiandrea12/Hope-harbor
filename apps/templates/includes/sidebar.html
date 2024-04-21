@@ -18,7 +18,7 @@
                     <p style="color:black;">Dashboard</p>
                 </a>
             </li>
-            <li class="{% if 'infoagroclimatica' in segment %} active {% endif %} ">
+            {% comment %} <li class="{% if 'infoagroclimatica' in segment %} active {% endif %} ">
                 <a href="/infoagroclimatica">
                     <i style="color:black;" class="tim-icons icon-cloud-download-93"></i>
                     <p style="color:black;">GENERADOR DE INFORMES</p>
@@ -42,6 +42,34 @@
                     <p style="color:black;">Control Total</p>
                 </a>
             </li>
+            <li class="{% if 'agrorecomendador' in segment %} active {% endif %} ">
+                <a href="/agrorecomendador">
+                    <i style="color:black;" class="tim-icons icon-vector"></i>
+                    <p style="color:black;">Agrorecomendador</p>
+                </a>
+            </li>
+            {% if '6' in cliente %}
+                <li class="{% if 'gestionEstaciones' in segment %} active {% endif %} ">
+                    <a href="/gestionEstaciones">
+                        <i style="color:black;" class="tim-icons icon-map-big"></i>
+                        <p style="color:black;">Gestion de Estaciones </p>
+                    </a>
+                </li>
+                <li class="{% if 'visorServicio' in segment %} active {% endif %} ">
+                    <a href="/visorServicio">
+                        <i style="color:black;" class="tim-icons icon-bullet-list-67"></i>
+                        <p style="color:black;">Visor de Servicio</p>
+                    </a>
+                </li>
+            {% endif %} {% endcomment %}
+            {% for acceso in access %}
+                <li class="{% if acceso.5 in segment %} active {% endif %} ">
+                    <a href="/{{ acceso.5 }}">
+                        <i style="color:black;" class="{{ acceso.6}}"></i>
+                        <p style="color:black;">{{ acceso.1 }}</p>
+                    </a>
+                </li>
+            {% endfor %}
             <!-- <li class="{% if 'icons' in segment %} active {% endif %}">
                     <a href="/icons>
                         <i class="tim-icons icon-atom"></i>

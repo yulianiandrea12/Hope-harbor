@@ -59,9 +59,27 @@
 
     </form>
     <br>
+    <div class="windows8" style="display: none;">
+        <div class="wBall" id="wBall_1">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_2">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_3">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_4">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_5">
+            <div class="wInnerBall"></div>
+        </div>
+    </div>
+    <br>
     <div id="contenido">
     </div>
-    <div class="row" id="divCasosTable">
+    <div class="row" id="divCasosTable" style="display: none;">
         <div class="col-md-12">
             <div class="card ">
                 <div class="card-header">
@@ -389,6 +407,7 @@
 
     function getGrupos() {
         var plataformaId = $('#id_plataforma').val();
+        $(".windows8").show();
 
         $.ajax({
             type: "POST",
@@ -402,8 +421,9 @@
                 data.datos.forEach(function(data) {
                     html_data += `<option value="${data[0]}">${data[1]}</option>`
                 });
+                $(".windows8").hide();
                 $("#id_grupo").html(html_data);
-                $("#id_grupo").selectpicker("refresh"); 
+                $("#id_grupo").selectpicker("refresh");
             }
         });
     }
@@ -626,6 +646,8 @@
             var grupoId = $('#id_grupo').val();
             $('.graficas').html('');
             $("#divCasosTable").hide();
+            $(".windows8").show();
+            $("#contenido").hide();
 
             $.ajax({
                 type: "POST",
@@ -635,7 +657,9 @@
                     'id_plataforma': plataformaId,
                     'id_grupo': grupoId
                 },
+                timeout: 600000,  // Ajusta el tiempo de espera a 10 segundos (10000 milisegundos)
                 success: function(data) {
+                    $(".windows8").hide();
                     if (data.datos == 0) {
                         general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos o Sin Informacion', 'ERROR');
                         $("#contenido").hide();
@@ -673,6 +697,9 @@
 
                         $('#contenido').html('<div class="col-lg-12 ml-auto mr-auto">' + html + '</div>');
                     }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error en la solicitud AJAX:", textStatus, errorThrown);
                 }
             });
         });

@@ -339,9 +339,9 @@ general = {
                 shared: true
             },
             legend: {
-                layout: 'vertical',
+                layot: 'vertical',
                 align: 'left',
-                x: 80,
+                x: 300,
                 verticalAlign: 'top',
                 y: 55,
                 floating: true,

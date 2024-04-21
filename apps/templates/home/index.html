@@ -121,6 +121,24 @@
 
     </form>
     <br>
+    <div class="windows8" style="display: none;">
+        <div class="wBall" id="wBall_1">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_2">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_3">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_4">
+            <div class="wInnerBall"></div>
+        </div>
+        <div class="wBall" id="wBall_5">
+            <div class="wInnerBall"></div>
+        </div>
+    </div>
+    <br>
     <div class="graficas1">
         <div class="row">
             <div class="col-12">
@@ -294,6 +312,7 @@
 
         $("#id_plataforma").change(function() {
             var plataformaId = $(this).val();
+            $(".windows8").show();
 
             if (plataformaId == 4) {
                 $("#divRed").show();
@@ -305,6 +324,7 @@
                         'id': plataformaId
                     },
                     success: function(data) {
+                        $(".windows8").hide();
                         console.log(data.datos);
                         let html_data = '<option  selected disabled value="0">Seleccione</option>';
                         data.datos.forEach(function(data) {
@@ -324,6 +344,7 @@
                         'id': plataformaId
                     },
                     success: function(data) {
+                        $(".windows8").hide();
                         console.log(data.datos);
                         let html_data = '<option  selected disabled value="0">Seleccione</option>';
                         data.datos.forEach(function(data) {
@@ -340,6 +361,7 @@
         $("#id_red").change(function() {
             var plataformaId = $('#id_plataforma').val();
             var redId = $('#id_red').val();
+            $(".windows8").show();
 
             $.ajax({
                 type: "POST",
@@ -350,6 +372,7 @@
                     'id_red': redId
                 },
                 success: function(data) {
+                    $(".windows8").hide();
                     console.log(data.datos);
                     let html_data = '<option  selected disabled value="0">Seleccione</option>';
                     data.datos.forEach(function(data) {
@@ -366,6 +389,7 @@
             var dispositivoId = $(this).val();
             $('#divSensor').hide();
             $("#id_sensor").val('').trigger('change');
+            $(".windows8").show();
 
             $.ajax({
                 type: "POST",
@@ -376,6 +400,7 @@
                     'id_plataforma': $('#id_plataforma').val()
                 },
                 success: function(data) {
+                    $(".windows8").hide();
                     $('#divSensor').show();
                     let html_data = '<option  selected disabled value="0">Seleccione</option>';
                     data.datos.forEach(function(data) {
@@ -400,6 +425,7 @@
             $(".graficas1").hide();
             $(".graficaMulti").hide();
             general.showNotificationOwn('top', 'center', 'info', 'Cargando Información', 'CARGANDO');
+            $(".windows8").show();
         
             $.ajax({
                 type: "POST",
@@ -414,6 +440,7 @@
                     'todoSensor': todoSensor
                 },
                 success: function(data) {
+                    $(".windows8").hide();
                     if (data.vertical.length == 0) {
                         general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos o Sin Informacion', 'ERROR')
                     } else {
@@ -436,7 +463,10 @@
         });
 
         $("#excel_btn").click(function() {
-            general.showNotificationOwn('top', 'right', 'success', 'Excel', 'Generando', 'tim-icons icon-cloud-download-93')
+            var chart = $('#chart-graficaMulti').highcharts();
+            chart.downloadCSV();
+
+            {% comment %} general.showNotificationOwn('top', 'right', 'success', 'Excel', 'Generando', 'tim-icons icon-cloud-download-93')
             var dispositivoId = $('#id_plataforma').val();
             var plataformaId = $('#id_dispositivo').val();
             var sensorId = $('#id_sensor').val();
@@ -461,7 +491,7 @@
             xhttp.open("POST", "/download-excel", true);
             xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
             xhttp.responseType = 'blob';
-            xhttp.send(data);
+            xhttp.send(data); {% endcomment %}
         });
 
     });

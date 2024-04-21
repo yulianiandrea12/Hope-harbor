@@ -274,11 +274,16 @@
                 'id_dispositivo': dispositivoId
             },
             success: function(data) {
-                let html_data = '<option  selected disabled value="0">Seleccione</option>';
-                data.datos.forEach(function(data) {
-                    html_data += `<option value="${data[0]}">${data[1]}</option>`
-                });
+                let html_data = '<option value="0"  selected disabled>Seleccione</option>';
+                if (data.datos.length > 0) {
+                    data.datos.forEach(function(data) {
+                        html_data += `<option value="${data[0]}">${data[1]}</option>`
+                    });
+                } else {
+                    html_data += `<option value="0">Sin informacion para tipos de informes.</option>`
+                }
                 $("#id_informe" + contDiv).html(html_data);
+                $("#id_informe" + contDiv).selectpicker("refresh");
                 $("#id_informe" + contDiv).selectpicker("refresh");
             }
         });
