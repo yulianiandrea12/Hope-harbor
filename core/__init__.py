@@ -1,4 +1,4 @@
 # -*- encoding: utf-8 -*-
 """
-Copyright (c) 2019 - present AppSeed.us
+Copyright (c) 2024- present Suavecitos.corp
 """
