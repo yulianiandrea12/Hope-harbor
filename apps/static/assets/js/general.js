@@ -1,6 +1,6 @@
 general = {
 
-    showNotificationOwn: function(from, align, type, message, title = 'Visualiti SAS', icon = "tim-icons icon-bell-55") {
+    showNotificationOwn: function(from, align, type, message, title = 'RUTERO APP', icon = "tim-icons icon-bell-55") {
         color = Math.floor((Math.random() * 4) + 1);
 
         $.notify({

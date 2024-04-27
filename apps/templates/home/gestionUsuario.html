@@ -20,6 +20,11 @@
 {% block content %}
 
 <div class="content">
+    <div class="row">
+        <p>
+            <a href="javascript:;" onclick="frmNuevo();" data-toggle="tooltip" title="Crear Estacion" class="btn btn-inverse btn-icon btn-circle" data-original-title="Crear Estacion"><i class="tim-icons icon-simple-add"></i></a>
+        </p>
+    </div>
     <form id="form">
         {% csrf_token %}
 
@@ -54,6 +59,65 @@
     </div>
 </div>
 
+
+
+<!-- MODAL ESTACION -->
+<div class="modal fade in" id="NuevoUsuarioModal" tabindex="-1" role="dialog" aria-labelledby="NuevoUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content card">
+            <form id="frmNuevoUsuario" data-parsley-validate="true" onsubmit="return false;">
+                <div class="modal-header">
+                    <h5 class="card-title" id="NuevoUsuarioModalLabel">Crear Nuevo Usuario</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Numero de Documento</label>
+                                    <input type="text" class="form-control" id="placaActivo" name="placaActivo" placeholder="Numero de Documento" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Nombre Usuario</label>
+                                    <input type="text" class="form-control" id="placaActivo" name="placaActivo" placeholder="Nombre Usuario" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                    </div>        
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>Direccion Casa:</label>
+                                    <input type="text" id="ubicacion" name="ubicacion" class="form-control" placeholder="Direccion Casa" required data-parsley-validate="true">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="mb-4">
+                                <div class="form-group">
+                                    <label>*La contraseña por defecto sera el numero de documento del usuario para su primer ingreso, despues le solicitara cambio de esta.</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                    <button id="btnCrear" type="submit" class="btn btn-success">Crear</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
@@ -62,6 +126,13 @@
 <script>
     var accion = 1;
     var idCli = 0;
+
+    function frmNuevo() {
+        accion = 1;
+        $('#NuevoUsuarioModalLabel').text('Crear Nuevo Usuario');
+        $('#btnCrear').show();
+        $('#NuevoUsuarioModal').modal('show');
+    }
     
     function datos() {
         $.ajax({

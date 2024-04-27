@@ -11,8 +11,7 @@ from django.contrib.auth.models import User
 
 class Cliente(models.Model):
     id = models.AutoField(primary_key=True)
-    country = models.CharField(null=True, blank=True, max_length=100)
-    state = models.CharField(null=True, blank=True, max_length=100)
+    plataforma = models.CharField(null=True, blank=True, max_length=100)
 
     def __str__(self):
-        return '{} {}'.format(self.country, self.state)
+        return '{} {}'.format(self.plataforma)

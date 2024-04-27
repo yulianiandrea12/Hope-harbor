@@ -24,16 +24,16 @@ def login_view(request):
             username = form.cleaned_data.get("username")
             password1 = form.cleaned_data.get("password")
 
-            resultCliente = execute_query(1,('SELECT c.cliente_id FROM clientes c  ' +
+            resultCliente = execute_query(('SELECT c.cliente_id FROM clientes c  ' +
                                     ' WHERE c.nombre like upper(\'' + cliente + '\') '))
             
             msg = 'Cliente Invalido'
             for rowCli in resultCliente:
                 clienteId = str(rowCli[0])
-                result = execute_query(1,('SELECT password, usuario_id FROM usuarios u  ' +
-                                        ' WHERE u.cliente_id = ' + clienteId + ' AND u.usuario like \'' + username + '\' '))
+                result = execute_query(('SELECT password, usuario_id FROM usuarios u  ' +
+                                        ' WHERE u.cliente_id = ' + clienteId + ' AND u.usuario = \'' + username + '\' '))
                 
-                user = authenticate(username='connor', password='Asdfqwer1234')
+                user = authenticate(username='admin', password='admin')
                 msg = 'Usuario Invalido'
                 if user is not None:
                     for row in result:
@@ -80,6 +80,6 @@ def register_user(request):
 
 def cambiar_contrasena(request):
     password = generate_password_hash(request.POST.get('pass'), 'pbkdf2:sha256:30', 30)
-    result = insert_update_query(1,('UPDATE usuarios  set password=\'' + password + '\'' +
+    result = insert_update_query(('UPDATE usuarios  set password=\'' + password + '\'' +
                                     ' WHERE cliente_id = ' + request.session['cliente_id'] + ' AND usuario like \'' + request.session['username'] + '\' '))
     return JsonResponse({'status': 1})

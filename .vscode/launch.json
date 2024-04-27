@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "runserver",
-                "localhost:55555"
+                "localhost:85"
             ],
             "justMyCode": true,
             "django": true
@@ -27,7 +27,7 @@
                 "--timeout",
                 "300",
                 "-b",
-                "0.0.0.0:55555",
+                "0.0.0.0:85",
                 "--access-logfile",
                 "access.log",
                 "core.wsgi:application"

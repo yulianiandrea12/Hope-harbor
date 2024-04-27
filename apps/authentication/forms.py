@@ -33,7 +33,7 @@ class LoginForm(forms.ModelForm):
     #                 )
     class Meta:
         model = Cliente
-        fields = ['country']
+        fields = ['plataforma']
 
     cliente = forms.CharField(
         widget=forms.TextInput(

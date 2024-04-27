@@ -1,5 +1,5 @@
 from django import forms
-from .models import Address
+from .models import Plataforma
 from apps.authentication.db import execute_query
 
 import json
@@ -10,41 +10,10 @@ def readJson(filename):
 
 def getPlataformas():
     plataformas = [('0', 'Seleccione')]  
-    plataformas.append(('1', 'Dispositivos Automatización ')) 
-    plataformas.append(('2', 'Redes Inalámbricas Sensores'))
-    plataformas.append(('3', 'Estaciones Davis Instruments'))
-    plataformas.append(('4', 'Redes Inalámbricas de Sensores Visualiti'))
-    plataformas.append(('5', 'Datalogger Visualiti'))
+    plataformas.append(('1', 'Plataforma 1')) 
+    plataformas.append(('2', 'Plataforma 2'))
 
     return plataformas
-
-def getFincas():
-    fincas = [('0', 'Seleccione')]
-    where = ''
-    # if request.session['cliente_id'] != '6':
-    #     where = ' where f.cliente_id = ' + request.session['cliente_id']
-    result = execute_query(1,('SELECT f.finca_id, f.nombre ' +
-                                    ' FROM finca f ' +
-                                    where +
-                                    ' ORDER BY f.nombre '))
-    for row in result:
-        fincas.append((row[0], row[1]))
-
-    return fincas
-
-def getClientes():
-    clientes = [('0', 'Seleccione')]
-    where = ''
-    # if request.session['cliente_id'] != '6':
-    #     where = ' where f.cliente_id = ' + request.session['cliente_id']
-    result = execute_query(1,('SELECT c.cliente_id, c.nombre ' +
-                                    ' FROM clientes c ' +
-                                    where +
-                                    ' ORDER BY c.nombre '))
-    for row in result:
-        clientes.append((row[0], row[1]))
-
-    return clientes
 
 class PlataformasForm(forms.ModelForm):
     platafromas = forms.ChoiceField(
@@ -52,20 +21,8 @@ class PlataformasForm(forms.ModelForm):
                     required = False, label='Plataforma',
                     widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'id_plataforma',  'name': 'id_plataforma', 'data-style': 'btn-success'}),
                     )
-    
-    fincas = forms.ChoiceField(
-                    choices = getFincas(),
-                    required = False, label='Fincas',
-                    widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'id_finca', 'name': 'id_finca', 'data-live-search': 'true', 'data-style': 'btn-success', 'required': ''}),
-                    )
-    
-    clientes = forms.ChoiceField(
-                    choices = getClientes(),
-                    required = False, label='Clientes',
-                    widget=forms.Select(attrs={'class': 'form-control selectpicker', 'id': 'id_cliente', 'name': 'id_cliente', 'data-live-search': 'true', 'data-style': 'btn-success', 'required': '', 'data-parsley-validate': 'true'}),
-                    )
 
     class Meta:
-            model = Address
-            fields = ['country']
+            model = Plataforma
+            fields = ['plataforma']
 
