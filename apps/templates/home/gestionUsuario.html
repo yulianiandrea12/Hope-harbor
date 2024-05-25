@@ -46,7 +46,6 @@
             <table class="table tablesorter table-striped" id="usuarioTable">
                 <thead class="text-primary">
                     <tr>
-                        <th>CLIENTE</th>
                         <th>USUARIO</th>
                         <th>PERFIL</th>
                         <th></th>
@@ -206,7 +205,9 @@
                     inputType: 'select',
                     inputOptions: perfiles,
                     callback: function (result) {
-                        setPerfilUsuario(usuario, result)
+                        if (result != null) {
+                            setPerfilUsuario(usuario, result)
+                        }
                     }
                 });
             }

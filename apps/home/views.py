@@ -69,7 +69,6 @@ def pages(request):
             access.append(row)
         context['segment'] = load_template
         context['form'] = PlataformasForm(request.POST or None)
-        context['cliente'] = request.session['cliente_id']
         context['access'] = access
 
         html_template = loader.get_template('home/' + load_template + '.html')
@@ -226,14 +225,13 @@ def getUsuarios(request):
     datos = []
     result = None
     
-    result = execute_query(('SELECT u.usuario_id, c.nombre, u.usuario, p.nombre ' +
+    result = execute_query(('SELECT u.usuario_id, u.usuario, p.nombre ' +
                             ' FROM usuarios u ' +
-                            ' INNER JOIN clientes c ON c.cliente_id = u.cliente_id ' +
                             ' INNER JOIN perfil p ON p.perfil_id = u.perfil_id ' +
-                            ' ORDER BY c.nombre, u.usuario'))
+                            ' ORDER BY u.usuario'))
     for row in result:
         btn = '<a href="javascript:;" onclick="perfil(' + str(row[0]) + ');" data-toggle="tooltip" title="Cambio Perfil" class="btn btn-inverse btn-icon btn-circle" data-original-title="Cambio Perfil"><i class="tim-icons icon-bullet-list-67"></i></a>'
-        datos.append(("<h4>" + str(row[1]) + "</h4>", "<h4>" + str(row[2]) + "</h4>", "<h4>" + str(row[3]) + "</h4>", btn))
+        datos.append(("<h4>" + str(row[1]) + "</h4>", "<h4>" + str(row[2]) + "</h4>", btn))
 
     return JsonResponse({'usuarios': datos})
 
