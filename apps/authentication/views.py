@@ -20,34 +20,26 @@ def login_view(request):
     if request.method == "POST":
 
         if form.is_valid():
-            cliente = form.cleaned_data.get("cliente")
             username = form.cleaned_data.get("username")
             password1 = form.cleaned_data.get("password")
-
-            resultCliente = execute_query(('SELECT c.cliente_id FROM clientes c  ' +
-                                    ' WHERE c.nombre like upper(\'' + cliente + '\') '))
             
-            msg = 'Cliente Invalido'
-            for rowCli in resultCliente:
-                clienteId = str(rowCli[0])
-                result = execute_query(('SELECT password, usuario_id FROM usuarios u  ' +
-                                        ' WHERE u.cliente_id = ' + clienteId + ' AND u.usuario = \'' + username + '\' '))
-                
-                user = authenticate(username='admin', password='admin')
-                msg = 'Usuario Invalido'
-                if user is not None:
-                    for row in result:
-                        msg = 'Usuario/Clave Invalido'
-                        validate_pass = check_password_hash(row[0], password1)
-                        if validate_pass == True:
-                            login(request, user)
-                            request.session['cliente_id']  = clienteId
-                            request.session['username']  = username
-                            request.session['usuario_id']  = row[1]
-                            if 'next' in request.GET:
-                                return redirect(request.GET['next'])
-                            else:
-                                return redirect("/")
+            result = execute_query(('SELECT password, usuario_id FROM usuarios u  ' +
+                                    ' WHERE u.usuario = \'' + username + '\' '))
+            
+            user = authenticate(username='admin', password='admin')
+            msg = 'Usuario Invalido'
+            if user is not None:
+                for row in result:
+                    msg = 'Usuario/Clave Invalido'
+                    validate_pass = check_password_hash(row[0], password1)
+                    if validate_pass == True:
+                        login(request, user)
+                        request.session['username']  = username
+                        request.session['usuario_id']  = row[1]
+                        if 'next' in request.GET:
+                            return redirect(request.GET['next'])
+                        else:
+                            return redirect("/")
         else:
             msg = 'Error validating the form'
 

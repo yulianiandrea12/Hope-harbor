@@ -28,7 +28,7 @@ import xlwt
 
 @login_required(login_url="/login/")
 def index(request):
-    if 'cliente_id' in request.session:
+    if 'usuario_id' in request.session:
         form = PlataformasForm(request.POST or None)
         context = {'segment': 'index', 'firstname': 'Connor',"form": form,}
         

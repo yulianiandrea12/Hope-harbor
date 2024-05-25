@@ -1,498 +1,404 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Dashboard {% endblock %}
+{% block title %} Dashboard {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}
-<style>
-    .input-group-addon {
-        color: #00f2c3;
-        border-color: #00f2c3;
-        border: none
-    }
-
-    .input-group-addon:focus {
-        outline: 0 !important
-    }
-</style>
-{% endblock stylesheets %}
+{% block stylesheets %}{% endblock stylesheets %}
 
 {% block content %}
 
-<div class="content">
-    <div class="row"></div>
-    {# <h1>Hello {{ firstname }}</h1> #}
-    <form id="formGrafica">
-        {% csrf_token %}
-
-        {% for error in errors  %}
-        <div class="alert alert-danger mb-4" role="alert">
-            <strong>{{ error }}</strong>
-        </div>
-        {% endfor %}
-
+    <div class="content">
         <div class="row">
-            <div class="col-lg-6">
-                <div class="mb-4">
-                    <div class="form-group">
-                        <label>Seleccione Plataforma IoT</label>
-                        {{ form.platafromas}}
+            <div class="col-12">
+                <div class="card card-chart">
+                    <div class="card-header ">
+                        <div class="row">
+                            <div class="col-sm-6 text-left">
+                                <h5 class="card-category">Total Shipments</h5>
+                                <h2 class="card-title">Performance</h2>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">
+                                    <label class="btn btn-sm btn-primary btn-simple active" id="0">
+                                        <input type="radio" name="options" checked>
+                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Accounts</span>
+                                        <span class="d-block d-sm-none">
+                        <i class="tim-icons icon-single-02"></i>
+                    </span>
+                                    </label>
+                                    <label class="btn btn-sm btn-primary btn-simple" id="1">
+                                        <input type="radio" class="d-none d-sm-none" name="options">
+                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Purchases</span>
+                                        <span class="d-block d-sm-none">
+                        <i class="tim-icons icon-gift-2"></i>
+                    </span>
+                                    </label>
+                                    <label class="btn btn-sm btn-primary btn-simple" id="2">
+                                        <input type="radio" class="d-none" name="options">
+                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Sessions</span>
+                                        <span class="d-block d-sm-none">
+                        <i class="tim-icons icon-tap-02"></i>
+                    </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div id="divRed" class="col-lg-6">
-                <div class="mb-4">
-                    <div class="form-group">
-                        <label>Seleccione Red</label>
-                        <select id="id_red" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="state">
-                            <option selected disabled value="0">Seleccione</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg-6">
-                <div class="mb-4">
-                    <div class="form-group">
-                        <label>Seleccione estación/dispositivo/equipo</label>
-                        <select id="id_dispositivo" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="state">
-                            <option selected disabled value="0">Seleccione</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div id="divSensor" class="mb-4">
-                    <div class="form-group">
-                        <label>Seleccione sensor/variable</label>
-                        <select id="id_sensor" class="form-control selectpicker" data-live-search="true" data-style="btn-success" name="state">
-                            <option selected disabled value="0">Seleccione</option>
-                        </select>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="chartBig1"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="row">
-            <div class="col-lg-6">
-                <div class="mb-4">
-                    <div class="form-group">
-                        <label>Seleccione fecha inicial y final</label>
-                        {# <div class="input-group date datepicker" data-date-format="yyyy-mm-dd"> #}
-                        {# <input type="text" class="form-control" data-style="btn-success" id="day" name="day" placeholder="yyyy-mm-dd"> #}
-                        <div class="input-group" id="fecDiv">
-                            <span class="input-group-btn">
-                                <button class="btn btn-default" type="button">
-                                    <i class="fa fa-calendar"></i>
-                                </button>
+            <div class="col-lg-4">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <h5 class="card-category">Total Shipments</h5>
+                        <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> 763,215</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="chartLinePurple"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <h5 class="card-category">Daily Sales</h5>
+                        <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> 3,500€</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="CountryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card card-chart">
+                    <div class="card-header">
+                        <h5 class="card-category">Completed Tasks</h5>
+                        <h3 class="card-title"><i class="tim-icons icon-send text-success"></i> 12,100K</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="chartLineGreen"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6 col-md-12">
+                <div class="card card-tasks">
+                    <div class="card-header ">
+                        <h6 class="title d-inline">Tasks(5)</h6>
+                        <p class="card-category d-inline">today</p>
+                        <div class="dropdown">
+                            <button type="button" class="btn btn-link dropdown-toggle btn-icon"
+                                    data-toggle="dropdown">
+                                <i class="tim-icons icon-settings-gear-63"></i>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink">
+                                <a class="dropdown-item" href="#pablo">Action</a>
+                                <a class="dropdown-item" href="#pablo">Another action</a>
+                                <a class="dropdown-item" href="#pablo">Something else</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body ">
+                        <div class="table-full-width table-responsive">
+                            <table class="table">
+                                <tbody>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="">
+                                                <span class="form-check-sign">
+                            <span class="check"></span>
                             </span>
-                            <input id="fecha" type="text" class="form-control" data-style="btn-success">
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="title">Update the Documentation</p>
+                                        <p class="text-muted">Dwuamish Head, Seattle, WA 8:47 AM</p>
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
+                                                data-original-title="Edit Task">
+                                            <i class="tim-icons icon-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="" checked="">
+                                                <span class="form-check-sign">
+                            <span class="check"></span>
+                            </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="title">GDPR Compliance</p>
+                                        <p class="text-muted">The GDPR is a regulation that requires businesses to
+                                            protect the personal data and privacy of Europe citizens for
+                                            transactions that occur within EU member states.</p>
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
+                                                data-original-title="Edit Task">
+                                            <i class="tim-icons icon-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="">
+                                                <span class="form-check-sign">
+                            <span class="check"></span>
+                            </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="title">Solve the issues</p>
+                                        <p class="text-muted">Fifty percent of all respondents said they would be
+                                            more likely to shop at a company </p>
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
+                                                data-original-title="Edit Task">
+                                            <i class="tim-icons icon-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="">
+                                                <span class="form-check-sign">
+                            <span class="check"></span>
+                            </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="title">Release v2.0.0</p>
+                                        <p class="text-muted">Ra Ave SW, Seattle, WA 98116, SUA 11:19 AM</p>
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
+                                                data-original-title="Edit Task">
+                                            <i class="tim-icons icon-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="">
+                                                <span class="form-check-sign">
+                            <span class="check"></span>
+                            </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="title">Export the processed files</p>
+                                        <p class="text-muted">The report also shows that consumers will not easily
+                                            forgive a company once a breach exposing their personal data
+                                            occurs. </p>
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
+                                                data-original-title="Edit Task">
+                                            <i class="tim-icons icon-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div class="form-check">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="">
+                                                <span class="form-check-sign">
+                            <span class="check"></span>
+                            </span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="title">Arival at export process</p>
+                                        <p class="text-muted">Capitol Hill, Seattle, WA 12:34 AM</p>
+                                    </td>
+                                    <td class="td-actions text-right">
+                                        <button type="button" rel="tooltip" title="" class="btn btn-link"
+                                                data-original-title="Edit Task">
+                                            <i class="tim-icons icon-pencil"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
                         </div>
-
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="mb-4">
-                    <div class="form-group">
-                        <label>Incluir datos de todos los sensores de la estación en la descarga </label>
-                        <div class="form-check">
-                            <label class="form-check-label">
-                                Si
-                                <input id="todoSensor" class="form-check-input" type="checkbox" value="1">
-                                <span class="form-check-sign">
-                                    <span class="check"></span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class=" row justify-content-md-center">
-            <div class="col-lg-4">
-                <input type="button" value="Graficar" class="form-control btn btn-success" id="form_btn">
-            </div>
-            <div class="col-lg-4">
-                <input type="button" value="Descargar Excel" class="form-control btn btn-success" id="excel_btn">
-            </div>
-        </div>
-
-    </form>
-    <br>
-    <div class="windows8" style="display: none;">
-        <div class="wBall" id="wBall_1">
-            <div class="wInnerBall"></div>
-        </div>
-        <div class="wBall" id="wBall_2">
-            <div class="wInnerBall"></div>
-        </div>
-        <div class="wBall" id="wBall_3">
-            <div class="wInnerBall"></div>
-        </div>
-        <div class="wBall" id="wBall_4">
-            <div class="wInnerBall"></div>
-        </div>
-        <div class="wBall" id="wBall_5">
-            <div class="wInnerBall"></div>
-        </div>
-    </div>
-    <br>
-    <div class="graficas1">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-chart">
-                    <div class="card-header ">
-                        <div class="row">
-                            <div class="col-sm-6 text-left">
-                                <h2 id="title-sensor-bar" class="card-title">Performance</h2>
-                            </div>
-                        </div>
+            <div class="col-lg-6 col-md-12">
+                <div class="card ">
+                    <div class="card-header">
+                        <h4 class="card-title"> Simple Table</h4>
                     </div>
                     <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="chartBar"></canvas>
+                        <div class="table-responsive">
+                            <table class="table tablesorter " id="">
+                                <thead class=" text-primary">
+                                <tr>
+                                    <th>
+                                        Name
+                                    </th>
+                                    <th>
+                                        Country
+                                    </th>
+                                    <th>
+                                        City
+                                    </th>
+                                    <th class="text-center">
+                                        Salary
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>
+                                        Dakota Rice
+                                    </td>
+                                    <td>
+                                        Niger
+                                    </td>
+                                    <td>
+                                        Oud-Turnhout
+                                    </td>
+                                    <td class="text-center">
+                                        $36,738
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Minerva Hooper
+                                    </td>
+                                    <td>
+                                        Curaçao
+                                    </td>
+                                    <td>
+                                        Sinaai-Waas
+                                    </td>
+                                    <td class="text-center">
+                                        $23,789
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Sage Rodriguez
+                                    </td>
+                                    <td>
+                                        Netherlands
+                                    </td>
+                                    <td>
+                                        Baileux
+                                    </td>
+                                    <td class="text-center">
+                                        $56,142
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Philip Chaney
+                                    </td>
+                                    <td>
+                                        Korea, South
+                                    </td>
+                                    <td>
+                                        Overland Park
+                                    </td>
+                                    <td class="text-center">
+                                        $38,735
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Doris Greene
+                                    </td>
+                                    <td>
+                                        Malawi
+                                    </td>
+                                    <td>
+                                        Feldkirchen in Kärnten
+                                    </td>
+                                    <td class="text-center">
+                                        $63,542
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Mason Porter
+                                    </td>
+                                    <td>
+                                        Chile
+                                    </td>
+                                    <td>
+                                        Gloucester
+                                    </td>
+                                    <td class="text-center">
+                                        $78,615
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        Jon Porter
+                                    </td>
+                                    <td>
+                                        Portugal
+                                    </td>
+                                    <td>
+                                        Gloucester
+                                    </td>
+                                    <td class="text-center">
+                                        $98,615
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <br>
-    <div class="graficas">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-chart">
-                    <div class="card-header ">
-                        <div class="row">
-                            <div class="col-sm-6 text-left">
-                                <h2 id="title-sensor-line" class="card-title">Performance</h2>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="chart-area">
-                            <canvas id="chartLine"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <br>
-    <div class="graficaMulti">
-        <div class="row">
-            <div class="col-12">
-                <div class="card card-chart">
-                    <div class="card-body">
-                        <div id="chart-graficaMulti" class="highcharts-background">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<style>
-    #chart-graficaMulti {
-        height: 500px;
-    }
-
-    .highcharts-figure,
-    .highcharts-data-table table {
-        min-width: 310px;
-        max-width: 800px;
-        margin: 1em auto;
-    }
-
-    .highcharts-data-table table {
-        font-family: Verdana, sans-serif;
-        border-collapse: collapse;
-        border: 1px solid #ebebeb;
-        margin: 10px auto;
-        text-align: center;
-        width: 100%;
-        max-width: 500px;
-    }
-
-    .highcharts-data-table caption {
-        padding: 1em 0;
-        font-size: 1.2em;
-        color: #555;
-    }
-
-    .highcharts-data-table th {
-        font-weight: 600;
-        padding: 0.5em;
-    }
-
-    .highcharts-data-table td,
-    .highcharts-data-table th,
-    .highcharts-data-table caption {
-        padding: 0.5em;
-    }
-
-    .highcharts-data-table thead tr,
-    .highcharts-data-table tr:nth-child(even) {
-        background: #f8f8f8;
-    }
-
-    .highcharts-data-table tr:hover {
-        background: #f1f7ff;
-    }
-
-    .highcharts-background {
-        fill: #ffffff00;
-    }
-</style>
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 
 <script>
-    var x = 'hola';
-    var chart_chartBig1;
-    var medida;
-
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Javascript method's body can be found in assets/js/demos.js
-        $(".graficas").hide()
-        $(".graficas1").hide()
-        $(".graficaMulti").hide()
-        $("#divRed").hide();
-
-        general.rangeDatePicker("fecDiv", "fecha", true);
-
-        $('.start-date').datepicker({
-            templates: {
-                leftArrow: '<i class="fa fa-chevron-left"></i>',
-                rightArrow: '<i class="fa fa-chevron-right"></i>'
-            },
-            format: "yyyy-mm-dd",
-            startDate: '2022-04-01',
-            keyboardNavigation: false,
-            autoclose: true,
-            todayHighlight: true,
-            disableTouchKeyboard: true,
-            orientation: "bottom auto"
-        });
-
-        $('.end-date').datepicker({
-            templates: {
-                leftArrow: '<i class="fa fa-chevron-left"></i>',
-                rightArrow: '<i class="fa fa-chevron-right"></i>'
-            },
-            format: "yyyy-mm-dd",
-            startDate: '2022-04-01',
-            keyboardNavigation: false,
-            autoclose: true,
-            todayHighlight: true,
-            disableTouchKeyboard: true,
-            orientation: "bottom auto"
-
-        });
-
-
-        $('.start-date').datepicker().on("changeDate", function() {
-            var startDate = $('.start-date').datepicker('getDate');
-            var oneDayFromStartDate = '2022-04-01';
-            $('.end-date').datepicker('setStartDate', oneDayFromStartDate);
-            $('.end-date').datepicker('setDate', oneDayFromStartDate);
-        });
-
-        $('.end-date').datepicker().on("show", function() {
-            var startDate = $('.start-date').datepicker('getDate');
-            $('.day.disabled').filter(function(index) {
-                return $(this).text() === moment(startDate).format('D');
-            }).addClass('active');
-        });
-
-        $("#id_plataforma").change(function() {
-            var plataformaId = $(this).val();
-            $(".windows8").show();
-
-            if (plataformaId == 4) {
-                $("#divRed").show();
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'get-red' %}",
-                    data: {
-                        'csrfmiddlewaretoken': '{{ csrf_token }}',
-                        'id': plataformaId
-                    },
-                    success: function(data) {
-                        $(".windows8").hide();
-                        console.log(data.datos);
-                        let html_data = '<option  selected disabled value="0">Seleccione</option>';
-                        data.datos.forEach(function(data) {
-                            html_data += `<option value="${data[0]}">${data[1]}</option>`
-                        });
-                        $("#id_red").html(html_data);
-                        $("#id_red").selectpicker("refresh");
-                    }
-                });
-            } else {
-                $("#divRed").hide();
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'get-dispositivo' %}",
-                    data: {
-                        'csrfmiddlewaretoken': '{{ csrf_token }}',
-                        'id': plataformaId
-                    },
-                    success: function(data) {
-                        $(".windows8").hide();
-                        console.log(data.datos);
-                        let html_data = '<option  selected disabled value="0">Seleccione</option>';
-                        data.datos.forEach(function(data) {
-                            html_data += `<option value="${data[0]}">${data[1]}</option>`
-                        });
-                        $("#id_dispositivo").html(html_data);
-                        $("#id_dispositivo").selectpicker("refresh");
-                    }
-                });
-            }
-
-        });
-
-        $("#id_red").change(function() {
-            var plataformaId = $('#id_plataforma').val();
-            var redId = $('#id_red').val();
-            $(".windows8").show();
-
-            $.ajax({
-                type: "POST",
-                url: "{% url 'get-dispositivo' %}",
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'id': plataformaId,
-                    'id_red': redId
-                },
-                success: function(data) {
-                    $(".windows8").hide();
-                    console.log(data.datos);
-                    let html_data = '<option  selected disabled value="0">Seleccione</option>';
-                    data.datos.forEach(function(data) {
-                        html_data += `<option value="${data[0]}">${data[1]}</option>`
-                    });
-                    $("#id_dispositivo").html(html_data);
-                    $("#id_dispositivo").selectpicker("refresh");
-                }
-            });
-
-        });
-
-        $("#id_dispositivo").change(function() {
-            var dispositivoId = $(this).val();
-            $('#divSensor').hide();
-            $("#id_sensor").val('').trigger('change');
-            $(".windows8").show();
-
-            $.ajax({
-                type: "POST",
-                url: "{% url 'get-sensors' %}",
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'id': dispositivoId,
-                    'id_plataforma': $('#id_plataforma').val()
-                },
-                success: function(data) {
-                    $(".windows8").hide();
-                    $('#divSensor').show();
-                    let html_data = '<option  selected disabled value="0">Seleccione</option>';
-                    data.datos.forEach(function(data) {
-                        html_data += `<option value="${data[0]}">${data[1]}</option>`
-                    });
-                    $("#id_sensor").html(html_data);
-                    $("#id_sensor").selectpicker("refresh");
-                }
-            });
-
-        });
-
-        $("#form_btn").click(function() {
-            var dispositivoId = $('#id_dispositivo').val();
-            var plataformaId = $('#id_plataforma').val();
-            var sensorId = $('#id_sensor').val();
-            var redId = $('#id_red').val();
-            var fecha = $('#fecha').val();
-            var todoSensor = $('#todoSensor').is(':checked');
-
-            $(".graficas").hide();
-            $(".graficas1").hide();
-            $(".graficaMulti").hide();
-            general.showNotificationOwn('top', 'center', 'info', 'Cargando Información', 'CARGANDO');
-            $(".windows8").show();
-        
-            $.ajax({
-                type: "POST",
-                url: "{% url 'process-form' %}",
-                data: {
-                    'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    'id_dispositivo': dispositivoId,
-                    'id_plataforma': plataformaId,
-                    'id_sensor': sensorId,
-                    'id_red': redId,
-                    'fecha': fecha,
-                    'todoSensor': todoSensor
-                },
-                success: function(data) {
-                    $(".windows8").hide();
-                    if (data.vertical.length == 0) {
-                        general.showNotificationOwn('top', 'right', 'warning', 'Datos Incompletos o Sin Informacion', 'ERROR')
-                    } else {
-                        // $(".graficas").show();
-                        $(".graficaMulti").show();
-                        $('#title-sensor-line').text('Grafico de sensor ' + $('#id_sensor option:selected').text() + ' - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
-                        // general.initLineCharts('chartLine', data.vertical, data.horizontal, "Valor del sensor " + data.medida, data.medida, 'Hora');
-
-                        general.initMultipleAxesHighCharts('chart-graficaMulti', data.vertical, data.horizontal, data.medidas, data.sensores, ('Grafico de ' + $('#id_dispositivo option:selected').text() + ' - Fechas ' + fecha));
-                    }
-                    // if (data.vertical2.length == 0) {
-                    //     $(".graficas1").hide()
-                    // } else {
-                    //     $(".graficas1").show()
-                    //     $('#title-sensor-bar').text('Grafico de sensor Precipitación - Fechas ' + $('#dateIni').val() + ' - ' + $('#dateFin').val());
-                    //     general.initBarCharts('chartBar', data.vertical2, data.horizontal2, "Valor del sensor " + data.medida2, data.medida2, 'Hora');
-                    // }
-                }
-            });
-        });
-
-        $("#excel_btn").click(function() {
-            var chart = $('#chart-graficaMulti').highcharts();
-            chart.downloadCSV();
-
-            {% comment %} general.showNotificationOwn('top', 'right', 'success', 'Excel', 'Generando', 'tim-icons icon-cloud-download-93')
-            var dispositivoId = $('#id_plataforma').val();
-            var plataformaId = $('#id_dispositivo').val();
-            var sensorId = $('#id_sensor').val();
-            var redId = $('#id_red').val();
-            var fecha = $('#fecha').val();
-            var todoSensor = $('#todoSensor').is(':checked');
-
-            data = 'csrfmiddlewaretoken={{ csrf_token }}&id_dispositivo=' + dispositivoId + '&id_plataforma=' + plataformaId + '&id_sensor=' + sensorId + '&id_red=' + redId + '&fecha=' + fecha + '&todoSensor=' + todoSensor;
-            xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                var a, today;
-                if (xhttp.readyState === 4 && xhttp.status === 200) {
-                    a = document.createElement('a');
-                    a.href = window.URL.createObjectURL(xhttp.response);
-                    today = new Date();
-                    a.download = "data_" + today.toDateString().split(" ").join("_") + ".xls";
-                    a.style.display = 'none';
-                    document.body.appendChild(a);
-                    return a.click();
-                }
-            };
-            xhttp.open("POST", "/download-excel", true);
-            xhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhttp.responseType = 'blob';
-            xhttp.send(data); {% endcomment %}
-        });
+        demo.initDashboardPageCharts();
 
     });
 </script>

@@ -34,14 +34,6 @@ class LoginForm(forms.ModelForm):
     class Meta:
         model = Cliente
         fields = ['plataforma']
-
-    cliente = forms.CharField(
-        widget=forms.TextInput(
-            attrs={
-                "placeholder": "Cliente",
-                "class": "form-control"
-            }
-        ))
     
     username = forms.CharField(
         widget=forms.TextInput(

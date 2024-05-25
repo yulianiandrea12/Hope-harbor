@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 #import pyodbc
 import pymysql
 
-engine = create_engine('mysql+pymysql://root:@localhost:3307/visualitiApisDB',
+engine = create_engine('mysql+pymysql://root:@localhost:3307/app_rutero_pia',
     isolation_level="READ UNCOMMITTED", future=True)
 
 conn = engine.connect()
